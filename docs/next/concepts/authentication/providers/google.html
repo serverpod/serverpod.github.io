@@ -17,7 +17,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.49751080.css">
-<script src="/assets/js/runtime~main.7f606b86.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.3b98ff3e.js" defer="defer"></script>
 <script src="/assets/js/main.6aea1147.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -54,6 +54,7 @@
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="server-side-configuration">Server-side configuration<a href="#server-side-configuration" class="hash-link" aria-label="Direct link to Server-side configuration" title="Direct link to Server-side configuration">​</a></h2>
 <p>Create the server credentials in the google cloud console. Navigate to <em>Credentials</em> under <em>APIs &amp; Services</em>. Click <em>Create Credentials</em> and select <em>OAuth client ID</em>. Configure the OAuth client as a <em><strong>Web application</strong></em>. If you have a domain add it to the <code>Authorized JavaScript origins</code> and <code>Authorized redirect URIs</code>. For development purposes we can add <code>http://localhost:8082</code> to both fields, this is the address to the web server.</p>
 <p>Download the JSON file for your web application OAuth client. This file contains both the client id and the client secret. Rename the file to <code>google_client_secret.json</code> and place it in your server&#x27;s <code>config</code> directory.</p>
+<p>Alternatively, you can provide the contents of the JSON file through the environment variable <code>SERVERPOD_PASSWORD_serverpod_auth_googleClientSecret</code>.</p>
 <div class="theme-admonition theme-admonition-warning admonition_xJq3 alert alert--warning"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>warning</div><div class="admonitionContent_BuS1"><p>The <code>google_client_secret.json</code> contains a private key and should not be version controlled.</p></div></div>
 <p><img decoding="async" loading="lazy" alt="Google credentials" src="/assets/images/6-google-credentials-aba2aae45d64b6d5438133a0c68765f6.jpg" width="2286" height="1020" class="img_ev3q"></p>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="client-side-configuration">Client-side configuration<a href="#client-side-configuration" class="hash-link" aria-label="Direct link to Client-side configuration" title="Direct link to Client-side configuration">​</a></h2>
