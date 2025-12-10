@@ -17,7 +17,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.f70ce5da.css">
-<script src="/assets/js/runtime~main.ebbf45fe.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.ac87b122.js" defer="defer"></script>
 <script src="/assets/js/main.b2b5e03b.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -45,6 +45,9 @@
 <li class=""><code>SERVERPOD_PASSWORD_jwtRefreshTokenHashPepper</code></li>
 <li class=""><code>SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey</code></li>
 </ul></div></div>
+<p>Then, extend the abstract endpoint to expose it on the server:</p>
+<div class="language-dart codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-dart codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> </span><span class="token string-literal string" style="color:#e3116c">&#x27;package:serverpod_auth_idp_server/core.dart&#x27;</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">as</span><span class="token plain"> core</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">class</span><span class="token plain"> </span><span class="token class-name">RefreshJwtTokensEndpoint</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">extends</span><span class="token plain"> </span><span class="token class-name namespace" style="opacity:0.7">core</span><span class="token class-name namespace punctuation" style="opacity:0.7;color:#393A34">.</span><span class="token class-name">RefreshJwtTokensEndpoint</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token punctuation" style="color:#393A34">}</span><br></span></code></pre></div></div>
+<p>Finally, run <code>serverpod generate</code> to generate the client code and expose the endpoint on the server.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="basic-configuration-options">Basic configuration options<a href="#basic-configuration-options" class="hash-link" aria-label="Direct link to Basic configuration options" title="Direct link to Basic configuration options" translate="no">​</a></h3>
 <ul>
 <li class=""><code>algorithm</code>: Required. The algorithm to use for signing tokens (HMAC SHA-512 or ECDSA SHA-512).</li>
