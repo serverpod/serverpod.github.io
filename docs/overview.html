@@ -17,7 +17,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.b0ce200a.css">
-<script src="/assets/js/runtime~main.0bccd256.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.0fd26524.js" defer="defer"></script>
 <script src="/assets/js/main.ee5cf35a.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -41,7 +41,7 @@
 <li class=""><strong>Real-time data streaming:</strong> Support for real-time communications via Dart streams. You push serialized objects over secure WebSocket connections, enabling live updates (e.g., for chats and games).</li>
 <li class=""><strong>Task scheduling:</strong> Serverpod&#x27;s future calls replace complicated cron jobs. Call a method anytime in the future or after a specified delay. The calls persist even if the server is restarted.</li>
 <li class=""><strong>Deployment automation:</strong> Serverpod Cloud (currently in private beta) allows you to deploy your server with zero configuration. There are also community-supported Terraform scripts for deployment on Google Cloud Platform and AWS, making it quick to provision infrastructure and deploy your server. Your Serverpod project comes with a Docker container for flexible deployment options.</li>
-<li class=""><strong>Built-in web server:</strong> Besides serving remote method calls, Serverpod comes with a traditional web server called Relic. It can serve web pages or act as a webhook/REST endpoint server. Relic is still experimental, but we&#x27;re actively working on getting a stable release out in the next few months.</li>
+<li class=""><strong>Built-in web server:</strong> Serverpod comes with a modern, high-performance web server called <a href="https://docs.dartrelic.dev/" target="_blank" rel="noopener noreferrer" class="">Relic</a>. It is built to meet the demanding requirements of modern web applications and provides a robust, type-safe, and efficient foundation for building scalable web services, such as REST APIs, webhooks, and web pages.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="defining-endpoints">Defining Endpoints<a href="#defining-endpoints" class="hash-link" aria-label="Direct link to Defining Endpoints" title="Direct link to Defining Endpoints" translate="no">​</a></h2>
 <p>In Serverpod, endpoints are the entry points that clients call to execute server-side logic. An endpoint is defined by creating a class that extends the Endpoint class and adding asynchronous methods to it. Each endpoint method must return a <code>Future&lt;Type&gt;</code> and take a <code>Session</code> object as its first parameter. The <code>Session</code> provides context about the call and gives access to server resources like the database or cache.</p>
