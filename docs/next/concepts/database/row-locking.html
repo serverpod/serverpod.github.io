@@ -19,7 +19,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.490713a2.css">
-<script src="/assets/js/runtime~main.5574b264.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.835bee2c.js" defer="defer"></script>
 <script src="/assets/js/main.a781a587.js" defer="defer"></script>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="lock-modes">Lock modes<a href="#lock-modes" class="hash-link" aria-label="Direct link to Lock modes" title="Direct link to Lock modes" translate="no">​</a></h2>
 <p>The <code>lockMode</code> parameter determines the type of lock acquired. Different lock modes allow varying levels of concurrent access.</p>
 <table><thead><tr><th>Lock Mode</th><th>Constant</th><th>Description</th></tr></thead><tbody><tr><td>For update</td><td><code>LockMode.forUpdate</code></td><td>Exclusive lock that blocks all other locks. Use when you intend to update or delete the locked rows.</td></tr><tr><td>For no key update</td><td><code>LockMode.forNoKeyUpdate</code></td><td>Exclusive lock that allows <code>forKeyShare</code> locks. Use when updating non-key columns only.</td></tr><tr><td>For share</td><td><code>LockMode.forShare</code></td><td>Shared lock that blocks exclusive locks but allows other shared locks. Use when you need to ensure rows don&#x27;t change while reading.</td></tr><tr><td>For key share</td><td><code>LockMode.forKeyShare</code></td><td>Weakest lock that only blocks changes to key columns.</td></tr></tbody></table>
-<p>For a detailed explanation of how lock modes interact, see the <a href="https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS" target="_blank" rel="noopener noreferrer" class="">PostgreSQL documentation</a>.</p>
+<p>For a detailed explanation of how lock modes interact, see the <a href="https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS" target="_blank" rel="noopener noreferrer" class="">PostgreSQL documentation</a>. On SQLite, row locking is a no-op operation, since it only supports one write-transaction at a time.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="lock-behavior">Lock behavior<a href="#lock-behavior" class="hash-link" aria-label="Direct link to Lock behavior" title="Direct link to Lock behavior" translate="no">​</a></h2>
 <p>The <code>lockBehavior</code> parameter controls what happens when a requested row is already locked by another transaction. If not specified, the default behavior is to wait.</p>
 <table><thead><tr><th>Behavior</th><th>Constant</th><th>Description</th></tr></thead><tbody><tr><td>Wait</td><td><code>LockBehavior.wait</code></td><td>Wait until the lock becomes available. This is the default.</td></tr><tr><td>No wait</td><td><code>LockBehavior.noWait</code></td><td>Throw an exception immediately if any row is already locked.</td></tr><tr><td>Skip locked</td><td><code>LockBehavior.skipLocked</code></td><td>Skip rows that are currently locked and return only the unlocked rows.</td></tr></tbody></table>
