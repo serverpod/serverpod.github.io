@@ -19,7 +19,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.2b9ce1be.css">
-<script src="/assets/js/runtime~main.3b6e0918.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.be341f5d.js" defer="defer"></script>
 <script src="/assets/js/main.6459de0f.js" defer="defer"></script>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->For new or customized servers, confirm auth services and JWT are configured per <a class="" href="/next/concepts/authentication/setup#identity-providers-configuration">Authentication setup</a> before adding Google.</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Add <code>GoogleIdpConfigFromPasswords()</code> to <code>identityProviderBuilders</code> in <code>server.dart</code>.</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Create a <code>GoogleIdpEndpoint</code> file in <code>lib/src/auth/</code>.</li>
-<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Run <code>serverpod generate</code>, then <code>serverpod create-migration</code>, then apply migrations using <code>--apply-migrations</code>.</li>
+<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Start the server with <code>serverpod start</code>, then create and apply the migration (press <strong>M</strong>, then <strong>A</strong>).</li>
 </ul>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="client">Client<a href="#client" class="hash-link" aria-label="Direct link to Client" title="Direct link to Client" translate="no">​</a></h4>
 <ul class="contains-task-list containsTaskList_mC6p">
@@ -150,9 +150,8 @@
 <p><strong>Resolution:</strong> Navigate to the <a href="https://console.cloud.google.com/apis/library/people.googleapis.com" target="_blank" rel="noopener noreferrer" class="">People API page</a> and click <strong>Enable</strong>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="server-crashes-on-first-google-sign-in-with-no-such-table">Server crashes on first Google sign-in with &quot;no such table&quot;<a href="#server-crashes-on-first-google-sign-in-with-no-such-table" class="hash-link" aria-label="Direct link to Server crashes on first Google sign-in with &quot;no such table&quot;" title="Direct link to Server crashes on first Google sign-in with &quot;no such table&quot;" translate="no">​</a></h2>
 <p><strong>Problem:</strong> The server builds and starts, but crashes when a user tries Google sign-in. The error cites a missing table (like <code>serverpod_auth_idp_google_account</code>).</p>
-<p><strong>Cause:</strong> <code>serverpod generate</code> has been run, but you didn&#x27;t create or apply the accompanying database migration.</p>
-<p><strong>Resolution:</strong> Create and apply the migration:</p>
-<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod generate</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">serverpod create-migration</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">dart run bin/main.dart --apply-migrations</span><br></div></code></pre></div></div>
+<p><strong>Cause:</strong> The database migration that creates the provider&#x27;s tables was never created or applied.</p>
+<p><strong>Resolution:</strong> In the running <code>serverpod start</code> terminal, press <strong>M</strong> to create the migration, then <strong>A</strong> to apply it.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="lightweight-sign-in-one-tap-not-appearing">Lightweight sign-in (One Tap) not appearing<a href="#lightweight-sign-in-one-tap-not-appearing" class="hash-link" aria-label="Direct link to Lightweight sign-in (One Tap) not appearing" title="Direct link to Lightweight sign-in (One Tap) not appearing" translate="no">​</a></h2>
 <p><strong>Problem:</strong> You enabled <code>attemptLightweightSignIn: true</code> but the One Tap prompt never appears on Web, or the silent sign-in doesn&#x27;t trigger on mobile.</p>
 <p><strong>Cause:</strong> Lightweight sign-in requires the user to have previously signed in with Google on this device or browser. It also depends on platform-specific conditions: on Web, FedCM or One Tap must be supported by the browser; on mobile, the user must have a Google account configured on the device.</p>
