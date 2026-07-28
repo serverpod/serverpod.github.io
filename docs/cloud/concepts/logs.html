@@ -19,8 +19,8 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.2b9ce1be.css">
-<script src="/assets/js/runtime~main.945f2b3d.js" defer="defer"></script>
-<script src="/assets/js/main.0d5c3d7f.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.db1278f5.js" defer="defer"></script>
+<script src="/assets/js/main.1d221518.js" defer="defer"></script>
 </head>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WG5VRRKX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -79,6 +79,7 @@
 <li class=""><code>SERVERPOD_SESSION_CONSOLE_LOG_ENABLED</code> defaults to <code>false</code>. Session logs are not printed to the runtime console and don&#x27;t appear in <code>scloud log</code> output. Set it to <code>true</code> to enable both.</li>
 </ul>
 <p>To change either default, set the value with <code>scloud variable set</code>. See <a class="" href="/cloud/concepts/passwords-secrets-env-vars">Passwords, secrets, and environment variables</a> for variable management.</p>
+<p>For what the server records, which tables it writes to, and how retention works, see <a href="https://docs.serverpod.dev/concepts/operations/logging" target="_blank" rel="noopener noreferrer" class="">Logging</a> in the framework documentation.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="troubleshooting">Troubleshooting<a href="#troubleshooting" class="hash-link" aria-label="Direct link to Troubleshooting" title="Direct link to Troubleshooting" translate="no">​</a></h2>
 <p><strong>Invalid timestamp format.</strong> Use ISO 8601 form (<code>YYYY-MM-DDTHH:MM:SSZ</code>) or a supported duration string (<code>5m</code>, <code>2h</code>, <code>1d</code>).</p>
 <p><strong>No logs appearing.</strong> Check that the time range is correct, that the app is running and generating output, and (for <code>--tail</code>) that you haven&#x27;t also passed <code>--since</code> or <code>--until</code>.</p>
