@@ -19,7 +19,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.2b9ce1be.css">
-<script src="/assets/js/runtime~main.337a690d.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.50ce1592.js" defer="defer"></script>
 <script src="/assets/js/main.dd98d100.js" defer="defer"></script>
 </head>
 <body>
@@ -35,7 +35,7 @@
 <p>Below is a non-exhaustive list of some of the most common configuration options. For more details on all options, check the <code>EmailIdpConfig</code> in-code documentation.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="peppering">Peppering<a href="#peppering" class="hash-link" aria-label="Direct link to Peppering" title="Direct link to Peppering" translate="no">​</a></h3>
 <p>A pepper is a server-side secret that is added, along with a unique salt, to a password before it is hashed and stored. The pepper makes it harder for an attacker to crack password hashes if they have only gained access to the database.</p>
-<p>The pepper is configured via the <code>secretHashPepper</code> property in <code>EmailIdpConfig</code>, as shown in the <a class="" href="/next/concepts/authentication/providers/email/setup#server-side-configuration">server-side configuration</a> section. Its <a href="https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2" target="_blank" rel="noopener noreferrer" class="">recommended pepper length</a> is 32 bytes.</p>
+<p>The pepper is configured via the <code>secretHashPepper</code> property in <code>EmailIdpConfig</code>, or read from the <code>emailSecretHashPepper</code> password by <code>EmailIdpConfigFromPasswords</code>, as described in the <a class="" href="/next/concepts/authentication/providers/email/setup#server-side-configuration">server-side configuration</a> section. Its <a href="https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2" target="_blank" rel="noopener noreferrer" class="">recommended pepper length</a> is 32 bytes.</p>
 <div class="theme-admonition theme-admonition-warning admonition_xJq3 alert alert--warning"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></span>warning</div><div class="admonitionContent_BuS1"><p>If the pepper is changed, all passwords in the database will need to be re-hashed with the new pepper, or the old pepper needs to be added as a fallback pepper. Store the pepper securely and never expose it to the client.</p></div></div>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="rotating-secret-hash-peppers">Rotating secret hash peppers<a href="#rotating-secret-hash-peppers" class="hash-link" aria-label="Direct link to Rotating secret hash peppers" title="Direct link to Rotating secret hash peppers" translate="no">​</a></h4>
 <p>To keep old passwords valid after a pepper change, use the <code>fallbackSecretHashPeppers</code> configuration option to add the old pepper as a fallback pepper.</p>
