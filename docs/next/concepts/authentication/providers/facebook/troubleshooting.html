@@ -19,7 +19,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.2b9ce1be.css">
-<script src="/assets/js/runtime~main.adde97a1.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.20f401c7.js" defer="defer"></script>
 <script src="/assets/js/main.89cdc584.js" defer="defer"></script>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Added <code>facebookAppId</code> and <code>facebookAppSecret</code> to <code>config/passwords.yaml</code> under the matching environment (<code>development:</code> for local, <code>production:</code> for prod), or set the matching <code>SERVERPOD_PASSWORD_facebookAppId</code> and <code>SERVERPOD_PASSWORD_facebookAppSecret</code> environment variables.</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Added <code>FacebookIdpConfigFromPasswords()</code> to <code>identityProviderBuilders</code> in <code>server.dart</code>.</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Created a <code>FacebookIdpEndpoint</code> file in <code>lib/src/auth/</code>.</li>
-<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Started the server with <code>serverpod start</code>, then created and applied the migration (pressed <strong>M</strong>, then <strong>A</strong>).</li>
+<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Started the server with <code>serverpod start</code>, then created and applied the migration (pressed <strong>M</strong>).</li>
 </ul>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="client">Client<a href="#client" class="hash-link" aria-label="Direct link to Client" title="Direct link to Client" translate="no">​</a></h4>
 <ul class="contains-task-list containsTaskList_mC6p">
@@ -109,7 +109,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="server-crashes-on-first-facebook-sign-in-with-no-such-table">Server crashes on first Facebook sign-in with &quot;no such table&quot;<a href="#server-crashes-on-first-facebook-sign-in-with-no-such-table" class="hash-link" aria-label="Direct link to Server crashes on first Facebook sign-in with &quot;no such table&quot;" title="Direct link to Server crashes on first Facebook sign-in with &quot;no such table&quot;" translate="no">​</a></h2>
 <p><strong>Problem:</strong> The server builds and starts, but crashes when a user tries to sign in with Facebook. The error cites a missing table such as <code>serverpod_auth_idp_facebook_account</code>.</p>
 <p><strong>Cause:</strong> The database migration that creates the provider&#x27;s tables was never created or applied.</p>
-<p><strong>Resolution:</strong> In the running <code>serverpod start</code> terminal, press <strong>M</strong> to create the migration, then <strong>A</strong> to apply it. See <a class="" href="/next/concepts/authentication/providers/facebook/setup#start-the-server">Start the server</a>.</p>
+<p><strong>Resolution:</strong> In the running <code>serverpod start</code> terminal, press <strong>M</strong> to create and apply the migration. See <a class="" href="/next/concepts/authentication/providers/facebook/setup#start-the-server">Start the server</a>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="sign-in-works-in-dev-but-fails-after-deploy">Sign-in works in dev but fails after deploy<a href="#sign-in-works-in-dev-but-fails-after-deploy" class="hash-link" aria-label="Direct link to Sign-in works in dev but fails after deploy" title="Direct link to Sign-in works in dev but fails after deploy" translate="no">​</a></h2>
 <p><strong>Problem:</strong> Facebook sign-in works locally but fails in production.</p>
 <p><strong>Cause:</strong> The production domain is not registered on the Facebook app, the app is still in Development mode, or the production Flutter build was not given the App ID.</p>
