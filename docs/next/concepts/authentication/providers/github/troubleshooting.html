@@ -19,8 +19,8 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.2b9ce1be.css">
-<script src="/assets/js/runtime~main.5933ce63.js" defer="defer"></script>
-<script src="/assets/js/main.76051fc5.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.d9cf0d1c.js" defer="defer"></script>
+<script src="/assets/js/main.9ee6afc3.js" defer="defer"></script>
 </head>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WG5VRRKX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -55,7 +55,7 @@
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Both <code>clientId</code> and <code>redirectUri</code> match values registered on the GitHub App.</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->On <strong>Android</strong>, added the <code>flutter_web_auth_2</code> <code>CallbackActivity</code> to <code>AndroidManifest.xml</code> with the <strong>exact</strong> scheme used in your callback URL.</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->On <strong>Web (Serverpod-hosted Flutter)</strong>, registered <code>FlutterWebAuth2CallbackRoute</code> via <code>pod.webServer.addRoute(...)</code> in <code>server.dart</code> before <code>pod.start()</code>. On <strong>Web (separately-hosted Flutter)</strong>, created <code>web/auth.html</code> in your Flutter project. See <a class="" href="/next/concepts/authentication/providers/github/setup#web">Web</a> for both flows.</li>
-<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->On <strong>Web</strong>, ran Flutter on a fixed <code>--web-port</code> matching the port registered in the GitHub App&#x27;s callback URL.</li>
+<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->On <strong>web</strong>, ran Flutter on a fixed <code>--web-port</code> matching the port registered in the GitHub App&#x27;s callback URL.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="sign-in-fails-with-redirect_uri_mismatch">Sign-in fails with redirect_uri_mismatch<a href="#sign-in-fails-with-redirect_uri_mismatch" class="hash-link" aria-label="Direct link to Sign-in fails with redirect_uri_mismatch" title="Direct link to Sign-in fails with redirect_uri_mismatch" translate="no">​</a></h2>
 <p><strong>Problem:</strong> The OAuth flow fails with a <code>redirect_uri_mismatch</code> error, or GitHub shows a &quot;The redirect_uri MUST match the registered callback URL for this application&quot; error page.</p>

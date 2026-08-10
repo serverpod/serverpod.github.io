@@ -19,8 +19,8 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.2b9ce1be.css">
-<script src="/assets/js/runtime~main.5933ce63.js" defer="defer"></script>
-<script src="/assets/js/main.76051fc5.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.d9cf0d1c.js" defer="defer"></script>
+<script src="/assets/js/main.9ee6afc3.js" defer="defer"></script>
 </head>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WG5VRRKX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -55,7 +55,7 @@
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Surface Google sign-in in the UI with <code>SignInWidget</code> or <code>GoogleSignInWidget</code> (see <a class="" href="/next/concepts/authentication/providers/google/setup#present-the-authentication-ui">Present the authentication UI</a>).</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Create an <strong>iOS</strong> OAuth client in the <strong>same</strong> Google Cloud project as the Web client, using the same <strong>Bundle ID</strong> as the app. Set <code>GIDClientID</code> from the iOS client, <code>GIDServerClientID</code> to the <strong>Web</strong> client&#x27;s ID, and add the reversed-client-ID <strong>URL scheme</strong> in <code>Info.plist</code> (<em>iOS only</em>).</li>
 <li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Create an <strong>Android</strong> OAuth client in the <strong>same</strong> project, with the same <strong>package name</strong> and <strong>SHA-1</strong> as the build you run (<em>Android only</em>).</li>
-<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Set up the web callback (<em>Web only</em>). Pick one:<!-- -->
+<li class="task-list-item"><input type="checkbox" disabled=""> <!-- -->Set up the web callback (<em>web only</em>). Pick one:<!-- -->
 <ul>
 <li class=""><strong>Standard:</strong> Register <code>FlutterWebAuth2CallbackRoute</code> on <code>pod.webServer</code> in <code>server.dart</code> before <code>pod.start()</code> per <a class="" href="/next/concepts/authentication/providers/google/setup#web">Web setup</a>.</li>
 <li class=""><strong>Separately-hosted fallback:</strong> Create <code>web/auth.html</code> in your Flutter project as described in <a class="" href="/next/concepts/authentication/setup#web-callback-page-authhtml">Web callback page (<code>auth.html</code>)</a> and run Flutter on a <strong>fixed</strong> <code>--web-port</code> so the origin does not change every run. See <a class="" href="/next/concepts/authentication/providers/google/customizations#separately-hosted-flutter-web">separately-hosted Flutter web</a>.</li>
