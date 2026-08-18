@@ -1,0 +1,47 @@
+# Choosing a strategy
+
+https://docs.serverpod.dev/next/deployments/custom-hosting/choosing-a-strategy
+
+You can run a Serverpod server anywhere that supports a Dart process or a Docker container: a managed server cluster, a serverless platform, or your own machine. This page covers the trade-offs. For the managed path, see [Serverpod Cloud](https://docs.serverpod.dev/cloud.md).
+
+## Server cluster or serverless?
+
+The two main options are running on a cluster of servers or on a serverless platform. Run on a **cluster** (such as Google Cloud Engine) if your server holds state. Run **serverless** (such as Google Cloud Run) if your server is stateless. An example of a stateful server is [Pixorama](https://pixorama.live), where the server keeps live state in memory. If you only make API calls that read and write a database, serverless may be the better fit.
+
+|      | Server cluster                                                                          | Serverless                                                        |
+| :--- | :-------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| Pros | All features are supported. Great for real-time communication. Cost-efficient at scale. | Minimal starting cost. Easier configuration. Minimal maintenance. |
+| Cons | Slightly higher starting cost. More complex to set up.                                  | Limited feature set. The server cannot hold state.                |
+
+Serverless does not support:
+
+- Future calls. (Possible to configure, but requires a more advanced setup.)
+- Health metrics.
+- On-server caching. Caching can still happen while a serverless instance stays warm, but it can be lost at any time. Caching with Redis is supported.
+- In-memory state. Store shared state in an external service such as Postgres, Redis, or another API instead.
+
+## Pick a guide
+
+- [Hosting elsewhere](https://docs.serverpod.dev/next/deployments/custom-hosting/hosting-elsewhere.md): run Serverpod on any Dart or Docker host.
+- [Community-supported deployments](https://docs.serverpod.dev/next/deployments/custom-hosting/community-supported.md): tools built by the community.
+
+## Approximate costs
+
+A minimal **server cluster** on Google Cloud Platform:
+
+| Service                  | Min cost |
+| :----------------------- | :------- |
+| Compute Engine Instance  | $7 / mo  |
+| Cloud Load Balancing     | $19 / mo |
+| Cloud SQL for PostgreSQL | $10 / mo |
+
+A minimal **serverless** setup on Google Cloud Run, where you only pay for the traffic you serve and no load balancer is required:
+
+| Service                  | Min cost |
+| :----------------------- | :------- |
+| Cloud Run                | $0 / mo  |
+| Cloud SQL for PostgreSQL | $10 / mo |
+
+:::info
+These prices are rough approximations to give you a sense of hosting costs. Actual costs vary and change over time. Do your own research before provisioning infrastructure.
+:::

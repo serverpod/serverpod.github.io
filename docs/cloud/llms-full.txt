@@ -1,0 +1,3783 @@
+# Serverpod Cloud documentation
+
+> The Serverpod Cloud documentation as a single markdown file. Every page starts with its title and canonical URL.
+
+---
+
+# Introduction
+
+https://docs.serverpod.dev/cloud
+
+Serverpod Cloud is a managed hosting platform for Serverpod apps with predictable pricing. You deploy your app with the `scloud` command-line interface or via CI/CD, and use the web console for account setup, billing, and project dashboards.
+
+With [`scloud` installed](https://docs.serverpod.dev/cloud/getting-started/installation.md), launch your first project with one command. No Dockerfile, no container config, no infrastructure setup:
+
+```bash
+scloud launch
+```
+
+## What Serverpod Cloud manages
+
+- **Runtime and scaling.** Your app runs on a production runtime that scales as traffic grows.
+- **Networking and TLS.** Encrypted endpoints, certificates, and load balancing work without configuration.
+- **[Managed Postgres](https://docs.serverpod.dev/cloud/concepts/database.md)** (optional). Cloud can provision a production-grade Postgres database with automatic migrations and backups.
+- **[Secrets and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md).** Manage sensitive values through `scloud`; values are encrypted where applicable.
+- **[Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md).** Attach your own domain; TLS certificates are provisioned and renewed. Cloud hosts both your backend and a preconfigured website for your Flutter web app.
+- **[Logs and inspection](https://docs.serverpod.dev/cloud/concepts/logs.md).** View logs in the CLI or in Serverpod Insights, the desktop log viewer (requires a database).
+- **PubSub, caching, and file storage.** Supported through the Serverpod framework using third-party services today; managed services are on the roadmap. See [Use Redis for PubSub and caching](https://docs.serverpod.dev/cloud/guides/redis.md) for the typical setup.
+
+## Where to go next
+
+- [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md) to set up the CLI.
+- [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md) for a guided first deploy.
+
+---
+
+# Install scloud
+
+https://docs.serverpod.dev/cloud/getting-started/installation
+
+This page shows how to install `scloud`, Serverpod Cloud's command-line interface, and authenticate it with your account. After completing these steps, you're ready to deploy your first Serverpod app.
+
+## Prerequisites
+
+Before installing the CLI, make sure you have:
+
+- **Dart installed.** Follow [Dart's install guide](https://dart.dev/get-dart#install).
+- **A Serverpod Cloud account.** [Sign up for Cloud](https://console.serverpod.cloud/auth/signup).
+
+## Install the Serverpod Cloud CLI
+
+Install `serverpod_cloud_cli` to make the `scloud` command available:
+
+```bash
+dart install serverpod_cloud_cli
+```
+
+Verify the CLI is available:
+
+```bash
+scloud version
+```
+
+If the command prints the installed version, the CLI is ready to use.
+
+## Authenticate the CLI
+
+Log in to your Serverpod Cloud account from the terminal:
+
+```bash
+scloud auth login
+```
+
+This opens a browser window where you authenticate. Once authentication completes, the CLI is authorized to manage your Serverpod Cloud projects.
+
+---
+
+# Deploy your first app
+
+https://docs.serverpod.dev/cloud/getting-started/launch
+
+Get your Serverpod app live on Cloud in a few minutes.
+
+## Before you start
+
+You need:
+
+- `scloud`, Serverpod Cloud's command-line tool, installed and signed in. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+- A Serverpod project on your machine. See the Serverpod [Quickstart](https://docs.serverpod.dev/get-started/quickstart) to create one.
+
+## Launch your project
+
+From your project's root directory:
+
+```bash
+scloud launch
+```
+
+It creates a Cloud project and ships its first version. The CLI walks you through eight prompts; press Enter at each one to accept the default (most default to yes). The four that need real decisions:
+
+- **Project ID.** scloud suggests a default from your pubspec name (for example, `my-app`). Press Enter to accept, or type a different ID. The project ID becomes part of your default URL (`<project-id>.serverpod.space`).
+- **Plan.** Type `starter` or `growth` (see [Cloud plans](https://serverpod.dev/cloud) for details). Pick `starter` for a first deploy. Starter includes a 1-month free trial; no credit card required.
+- **Database.** Press Enter for yes if you want Cloud to provision and manage a Postgres database for your server. Type `n` if your app doesn't need a database, or if you plan to connect to your own.
+- **Pre-deploy hooks.** Hooks run scripts before each deploy. scloud may offer to add `serverpod generate` and a Flutter build hook (if your project defines one). Accept the ones that match your project. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for details.
+
+After the final confirmation, scloud creates the Cloud project, writes a `scloud.yaml` linking subsequent commands to it, uploads your code, and starts the deploy.
+
+## Watch the deployment
+
+Next, scloud prints the URLs your project will be reachable at:
+
+```text
+When the server has started, you can access it at:
+   Web:      https://my-app.serverpod.space/
+   API:      https://my-app.api.serverpod.space/
+   Insights: https://my-app.insights.serverpod.space/
+```
+
+The server isn't live yet. Watch the deployment finish:
+
+```bash
+scloud deployment show
+```
+
+The command tracks the deployment through four stages, updating each line as it progresses:
+
+```text
+Tracking my-app deployment 4583d0a1-3d0a-400e-a9a5-9880da6abc94
+(Press Ctrl+C to exit)
+
+Upload successful.
+Cloud build successful.
+Infra deploy successful.
+Service rollout successful. 🚀
+```
+
+When you see the rocket on **Service rollout**, your app is live.
+
+## Open your app
+
+In your browser, open the Web URL scloud printed:
+
+```text
+https://my-app.serverpod.space/
+```
+
+The server's landing page loads. If you added the Flutter build hook, navigate to `/app` to see your Flutter web app.
+
+## What you've done
+
+You've created a Cloud project and shipped its first version. From here:
+
+- Every change you make ships with `scloud deploy`. See [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the full deploy lifecycle.
+- To use your own domain instead of `<project>.serverpod.space`, see [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md).
+
+---
+
+# Deployments
+
+https://docs.serverpod.dev/cloud/concepts/deployments
+
+When you ship a code change to Serverpod Cloud, `scloud deploy` builds and rolls out a new version of your server. Cloud switches traffic automatically to the latest successful deploy, keeping the previous one live if a build fails.
+
+## Deploy your app
+
+:::info
+If this is the first time you're deploying this project to Cloud, follow [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md) first. It walks through `scloud launch`, which creates the project before the first deploy.
+:::
+
+Deploy your project to Cloud:
+
+```bash
+scloud deploy
+```
+
+The CLI packages your project, uploads it, and waits for the new version to go live. Once the deployment is live, your project is reachable at its default URLs:
+
+- Web: `https://<project-id>.serverpod.space/`
+- API: `https://<project-id>.api.serverpod.space/`
+- Insights: `https://<project-id>.insights.serverpod.space/`
+
+To use your own URL instead, see [`scloud domain`](https://docs.serverpod.dev/cloud/reference/cli/commands/domain.md).
+
+Other flags:
+
+- `-v` (`--verbose`): detailed output.
+- `--dart-version`: override the Dart SDK used at build time.
+- `--concurrency=<N>`: how many files are zipped in parallel during packaging (default `5`).
+
+To regenerate code or run other tasks before each deploy, configure a pre-deploy hook. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md).
+
+## Check deployment status
+
+Watch the latest deployment as it runs:
+
+```bash
+scloud deployment show
+```
+
+The command tracks the deployment through its four lifecycle stages and updates each line as it progresses. When complete:
+
+```text
+Tracking my-app deployment 4583d0a1-3d0a-400e-a9a5-9880da6abc94
+(Press Ctrl+C to exit)
+
+Upload successful.
+Cloud build successful.
+Infra deploy successful.
+Service rollout successful. 🚀
+```
+
+The four stages are **Upload** (your project package reaches Cloud), **Cloud build** (Cloud builds the container), **Infra deploy** (Cloud prepares the infrastructure for the new version), and **Service rollout** (the new version starts serving requests).
+
+List recent deployments:
+
+```bash
+scloud deployment list
+```
+
+The list shows deploy IDs alongside status and timestamps:
+
+```text
+# | Project | Deploy Id                            | Status  | Started             | Finished            | Info
+--+---------+--------------------------------------+---------+---------------------+---------------------+-----------------------------------
+0 | my-app  | 4583d0a1-3d0a-400e-a9a5-9880da6abc94 | SUCCESS | 2026-06-03 13:41:21 | 2026-06-03 13:46:08 |
+1 | my-app  | 73e66b41-64fc-4920-b6ef-4918cc6ceca1 | FAILURE | 2026-06-02 15:19:37 | 2026-06-02 15:20:34 | User build FAILURE - see build log
+```
+
+Inspect a specific deployment by its ID:
+
+```bash
+scloud deployment show <deployment-id>
+```
+
+Stream the build log for a deployment that failed during the build stage:
+
+```bash
+scloud deployment build-log
+```
+
+## Validate before deploying
+
+A dry run packages your project and validates the package without uploading or building it:
+
+```bash
+scloud deploy --dry-run
+```
+
+Preview the file tree that will be uploaded, with ignored files marked:
+
+```bash
+scloud deploy --show-files
+```
+
+Combine the two flags to inspect what will be uploaded without deploying:
+
+```bash
+scloud deploy --dry-run --show-files
+```
+
+Save the package to a local zip (useful for CI inspection or air-gapped environments):
+
+```bash
+scloud deploy --output deployment.zip --dry-run
+```
+
+## Configure what's included
+
+A `.scloudignore` file in your project root controls which files are packaged. The syntax mirrors `.gitignore`.
+
+By default, every file ignored by `.gitignore` is also excluded from the deployment. To include files that `.gitignore` excludes, prefix the pattern with `!` in your `.scloudignore`:
+
+```text title=".scloudignore"
+# Exclude a specific file
+/specific_file.txt
+
+# Exclude all log files
+*.log
+
+# Exclude a directory and its contents
+/large_dir/
+
+# Include generated code, even if ignored by .gitignore
+!lib/src/generated/
+```
+
+The `scloud` CLI may generate intermediate files under `.scloud/` directories. Add the pattern to your project's `.gitignore` so they don't end up in version control:
+
+```text title=".gitignore"
+# scloud deployment generated files
+**/.scloud/
+```
+
+Verify your ignore patterns:
+
+```bash
+scloud deploy --dry-run --show-files
+```
+
+## Troubleshooting
+
+**Build failure.** Stream the build log and look for lines beginning with `ERROR:` or `FAILED:`:
+
+```bash
+scloud deployment build-log
+```
+
+Common causes are missing dependencies in `pubspec.yaml` or compile errors in your code.
+
+**Package resolution failure.** Update your `pubspec.yaml` (run `dart pub get` locally to verify), then redeploy.
+
+For a step-by-step walkthrough, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
+## Related
+
+- [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for pre- and post-deploy automation.
+- [Private dependencies](https://docs.serverpod.dev/cloud/reference/private-dependencies.md) for private package access during the build.
+- [Ship non-Dart files with your server](https://docs.serverpod.dev/cloud/guides/ship-non-dart-files.md) for shipping static assets like configuration and templates.
+- [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md) for shipping every push.
+
+---
+
+# Logs
+
+https://docs.serverpod.dev/cloud/concepts/logs
+
+When a request fails, a deploy errors out, or you're chasing a slow endpoint, logs are where you go to find out what happened. Serverpod Cloud collects logs from your running app and from each deployment's build, and surfaces them through Serverpod Insights (a visual viewer in the Cloud console) and the `scloud` CLI.
+
+Insights groups logs by session, so it's the right starting point for tracing a single request end-to-end. The CLI is faster for one-off filtering and is the only path to build logs from failed deploys.
+
+## View logs in Insights
+
+Open Insights from the Cloud console once a project is deployed. Sessions appear in a chronological list; selecting one expands into its messages, errors, and (when enabled per project) the database queries the session ran and the stack traces for any caught exceptions. Query logging and stack-trace capture add overhead, so they're off by default.
+
+:::tip
+
+Use Serverpod Insights for root-cause analysis. The session-grouped view makes it straightforward to follow a single request end-to-end, which is harder to do from terminal output.
+
+:::
+
+## View build logs
+
+Build logs are emitted while Cloud builds your deployment package: package installation, compilation, warnings, and errors. They're the first place to look when a deploy fails. Fetch the latest build log:
+
+```bash
+scloud deployment build-log
+```
+
+Pass a sequence number (where `0` is the latest) or a UUID to inspect a specific deployment; `scloud deployment list` shows the IDs:
+
+```bash
+scloud deployment build-log 3
+scloud deployment build-log 550e8400-e29b-41d4-a716-446655440000
+```
+
+For longer build logs, redirect to a file or filter inline:
+
+```bash
+scloud deployment build-log > build-log.txt
+scloud deployment build-log | grep ERROR
+```
+
+For a step-by-step walkthrough of diagnosing and recovering from a failed deploy, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
+## View runtime logs
+
+Runtime logs are the live output of your deployed service. Each entry contains:
+
+- **Timestamp**: local time by default, UTC with `--utc`
+- **Level**: `INFO`, `ERROR`, and so on
+- **Content**: the log message body
+
+Fetch the most recent records:
+
+```bash
+scloud log
+```
+
+By default this returns 50 records. Use `--limit` to fetch more (or fewer):
+
+```bash
+scloud log --limit 100
+```
+
+Pass `--utc` for UTC timestamps (useful when collaborating across time zones):
+
+```bash
+scloud log --utc
+```
+
+Pipe to standard shell tools for further filtering, or redirect to a file for sharing:
+
+```bash
+scloud log | grep ERROR
+scloud log > project_logs.txt
+```
+
+## Filter logs by time
+
+The `--since` and `--until` options accept either duration strings or ISO 8601 timestamps.
+
+Duration strings cover recent windows:
+
+```bash
+scloud log 120s              # last 120 seconds
+scloud log 5m                # last 5 minutes
+scloud log 12h               # last 12 hours
+scloud log 7d                # last 7 days
+scloud log --since 1h --until 10m
+```
+
+ISO 8601 strings allow specific times:
+
+```bash
+scloud log --since "2026-06-15T14:00:00Z"
+scloud log --since "2026-06-15T14:00:00Z" --until "2026-06-15T16:00:00Z"
+```
+
+Lower-precision ISO forms are also accepted:
+
+```bash
+scloud log --since "2026-06-15T14:00"     # without seconds
+scloud log --since "2026-06-15T14"        # without minutes and seconds
+scloud log --since "2026-06-15"           # just the date (starts at 00:00:00)
+```
+
+Duration and ISO forms can be mixed:
+
+```bash
+scloud log --since "2026-06-15T14:00:00Z" --until 30m
+scloud log --since 1h --until "2026-06-15T16:00:00Z"
+```
+
+## Stream logs
+
+Follow new log records as they arrive:
+
+```bash
+scloud log --tail
+```
+
+Press `Ctrl+C` to stop. `--tail` cannot be combined with `--since` or `--until`.
+
+## Configure session logging
+
+Two environment variables control session logging. With a database enabled (the typical Cloud configuration), the defaults are:
+
+- `SERVERPOD_SESSION_PERSISTENT_LOG_ENABLED` defaults to `true`. Session logs are written to the database and visible in Insights.
+- `SERVERPOD_SESSION_CONSOLE_LOG_ENABLED` defaults to `false`. Session logs are not printed to the runtime console and don't appear in `scloud log` output. Set it to `true` to enable both.
+
+To change either default, set the value with `scloud variable set`. See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for variable management.
+
+For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/operations/logging) in the framework documentation.
+
+## Troubleshooting
+
+**Invalid timestamp format.** Use ISO 8601 form (`YYYY-MM-DDTHH:MM:SSZ`) or a supported duration string (`5m`, `2h`, `1d`).
+
+**No logs appearing.** Check that the time range is correct, that the app is running and generating output, and (for `--tail`) that you haven't also passed `--since` or `--until`.
+
+## Related
+
+- [CLI reference: `log` command](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md)
+- [CLI reference: `deployment` command](https://docs.serverpod.dev/cloud/reference/cli/commands/deployment.md)
+
+---
+
+# Passwords, secrets, and environment variables
+
+https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars
+
+Your server needs sensitive values (database passwords, third-party API keys, OAuth client secrets) and runtime configuration without checking them into source. Serverpod Cloud gives you three configuration tiers. Passwords are encrypted and accessed through Serverpod's `getPassword()` API. Secrets are encrypted and injected as environment variables under a name you choose. Variables are plaintext, for non-sensitive configuration.
+
+|                    | Passwords                                              | Secrets                                                    | Variables                                  |
+| ------------------ | ------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------ |
+| **CLI**            | `scloud password`                                      | `scloud secret`                                            | `scloud variable`                          |
+| **Stored as**      | Env var with `SERVERPOD_PASSWORD_` prefix              | Env var (any name)                                         | Env var (any name)                         |
+| **Encrypted**      | Yes                                                    | Yes                                                        | No (values visible in CLI and dashboard)   |
+| **Access in code** | `session.serverpod.getPassword('name')`                | `Platform.environment['NAME']`                             | `Platform.environment['NAME']`             |
+| **Use when**       | Serverpod code reads the value (preferred for secrets) | A dependency reads env vars and cannot use `getPassword()` | Non-sensitive config (URLs, feature flags) |
+
+All three commands follow the same shape:
+
+- **`--name`** (mandatory): positional or as a flag
+- **Value**: positional, `--value`, or `--from-file`
+- **`-p, --project`**: required only when the project isn't linked
+- **`set` is create-or-update**: running it again with the same name overwrites the value
+
+## Manage passwords
+
+Passwords are the default tier for sensitive values the server reads through the Serverpod API. They are encrypted at rest, never shown after they're set, and accessed in code by the name you gave them. Each password is stored under a `SERVERPOD_PASSWORD_` prefix that the CLI adds on `set` and that `getPassword()` strips on read, so the name in your code stays clean. Common cases include database passwords, JWT signing secrets, third-party API keys, and email service credentials.
+
+Serverpod Cloud also provisions a set of platform-managed passwords automatically: database credentials, Insights tokens, `serverpod_auth_idp_server` keys, and keys for the legacy auth module. Run `scloud password list` to see them grouped into four categories: **Custom** (passwords you add), **Services** (database, Insights, and related platform passwords), **Auth** (passwords for `serverpod_auth_idp_server`), and **Legacy Auth** (passwords for the legacy authentication module). The Status column marks platform-managed passwords `AUTO (Platform)` and user-set ones `SET (User)`.
+
+Override a platform-managed password by setting a custom value with the same name. Unset it to restore the platform default.
+
+Set a password by name and value:
+
+```bash
+scloud password set myApiKey "your_secret_value"
+```
+
+Read the value in code:
+
+```dart
+final apiKey = session.serverpod.getPassword('myApiKey');
+```
+
+Pass `--from-file` when the value is long, multi-line, or shouldn't appear in shell history:
+
+```bash
+scloud password set myApiKey --from-file path/to/file.txt
+```
+
+List all configured passwords:
+
+```bash
+scloud password list
+```
+
+Remove a user-added password:
+
+```bash
+scloud password unset myApiKey
+```
+
+## Manage secrets
+
+Secrets are the right tier when a library or dependency reads a value from `Platform.environment['SOMETHING']` and can't use the Serverpod API. They're encrypted at rest and never shown in the CLI after creation.
+
+Set a secret by name and value:
+
+```bash
+scloud secret set API_KEY "your_secret_value"
+```
+
+Read the value in code:
+
+```dart
+final apiKey = Platform.environment['API_KEY'];
+```
+
+Pass `--from-file` for long, multi-line, or sensitive values you don't want in shell history:
+
+```bash
+scloud secret set API_KEY --from-file path/to/file.txt
+```
+
+List configured secrets:
+
+```bash
+scloud secret list
+```
+
+Remove a secret:
+
+```bash
+scloud secret unset API_KEY
+```
+
+## Manage environment variables
+
+Variables are for non-sensitive configuration: URLs, feature flags, region names, or other settings that don't need encryption. Values are stored in plaintext and visible in the CLI and the Cloud console.
+
+Set a variable by name and value:
+
+```bash
+scloud variable set LOG_LEVEL "info"
+```
+
+Read the value in code:
+
+```dart
+final logLevel = Platform.environment['LOG_LEVEL'];
+```
+
+Pass `--from-file` to load the value from a file:
+
+```bash
+scloud variable set LOG_LEVEL --from-file path/to/file.txt
+```
+
+List configured variables:
+
+```bash
+scloud variable list
+```
+
+Remove a variable:
+
+```bash
+scloud variable unset LOG_LEVEL
+```
+
+:::warning
+
+Do not use variables for API keys, tokens, or passwords. Use passwords or secrets for sensitive data.
+
+:::
+
+## Limits
+
+The same naming and size rules apply across all three tiers:
+
+- Names use letters (`a-z`, `A-Z`), digits (`0-9`), and underscores (`_`) only, and must start with a letter or underscore.
+- Maximum name length is 255 characters.
+- Variables and secrets each have a separate per-project storage budget of 64,000 bytes (the total of all names plus values within that tier). Passwords share the secrets budget because they're stored as secrets under the `SERVERPOD_PASSWORD_` prefix.
+
+## Related
+
+- CLI reference: [`password`](https://docs.serverpod.dev/cloud/reference/cli/commands/password.md), [`secret`](https://docs.serverpod.dev/cloud/reference/cli/commands/secret.md), [`variable`](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md)
+
+---
+
+# Custom domains
+
+https://docs.serverpod.dev/cloud/concepts/custom-domains
+
+When you're ready to ship your project to real users, you might want it reachable at `yourapp.com` rather than the `*.serverpod.space` defaults. Custom domains attach a domain you own to your project's web, API, or Insights surface, with automatic TLS and DNS-based verification.
+
+Every Serverpod Cloud project gets default domains automatically. A project named `my-app` is reachable at:
+
+| Service  | Default domain                             |
+| -------- | ------------------------------------------ |
+| Web      | `https://my-app.serverpod.space/`          |
+| API      | `https://my-app.api.serverpod.space/`      |
+| Insights | `https://my-app.insights.serverpod.space/` |
+
+## Attach a custom domain
+
+A custom domain points at one of the three surfaces:
+
+- `web`: a Flutter web app or other content served by Serverpod's web server
+- `api`: Serverpod endpoints your Flutter app or other clients call
+- `insights`: the Serverpod Insights app (typically on a separate subdomain like `insights.example.com`)
+
+Attach the domain to your project, specifying the target surface:
+
+```bash
+scloud domain attach example.com --target web
+```
+
+After attaching, the CLI prints DNS records to add at your registrar. For an apex domain like `example.com`, two records are needed:
+
+```text
+Custom domain attached successfully!
+
+Complete the setup by adding the records to your DNS configuration
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ Record type | Domain name | Value                                              │
+│ ------------+-------------+--------------------------------------------------- │
+│ ANAME       | example.com | my-app.api.serverpod.space                         │
+│ TXT         | example.com | scloud-verify=cbe1f5cc-f176-4183-8142-e0585ad15999 │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Each row corresponds to one record to add at your registrar:
+
+- **ANAME (or ALIAS)**: points the domain at the Serverpod Cloud surface
+- **TXT**: carries a verification token that Serverpod Cloud uses to confirm ownership
+
+Plain CNAMEs aren't valid at the zone apex, which is why ANAME or ALIAS is required there. [Cloudflare](https://www.cloudflare.com/), [Route 53](https://aws.amazon.com/route53/), and [DNSimple](https://dnsimple.com/) all support ANAME or ALIAS records.
+
+For a subdomain like `api.example.com`, a single CNAME record is enough:
+
+```text
+Custom domain attached successfully!
+
+Complete the setup by adding the records to your DNS configuration
+
+┌────────────────────────────────────────────────────────────┐
+│ Record type | Domain name     | Value                      │
+│ ------------+-----------------+--------------------------- │
+│ CNAME       | api.example.com | my-app.api.serverpod.space │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Verify the domain
+
+DNS changes typically propagate within a few minutes but can take up to 24 hours. Once propagation completes, Serverpod Cloud verifies the domain automatically.
+
+To force a verification attempt without waiting:
+
+```bash
+scloud domain verify example.com
+```
+
+A successful verification triggers TLS certificate provisioning, which usually completes within the hour. Certificates are renewed automatically.
+
+Once the domain is active, point your client at the new URL:
+
+```dart
+final client = Client('https://api.example.com');
+```
+
+## List custom domains
+
+Show the domains attached to a project, with their target surface and verification status:
+
+```bash
+scloud domain list
+```
+
+## Detach a custom domain
+
+Remove a custom domain from a project. The CLI prompts for confirmation before removing:
+
+```bash
+scloud domain detach example.com
+```
+
+## Troubleshooting
+
+**Verification fails.** DNS records may be missing or still propagating. Confirm the records are in place at your registrar, then wait up to 24 hours and retry with `scloud domain verify <domain>`.
+
+**Can't attach the domain.** The domain is already attached to another project. Detach it from that project first.
+
+**TLS certificate errors.** TLS provisioning is still in progress. It usually completes within an hour of successful verification.
+
+## Related
+
+- [CLI reference: `domain` command](https://docs.serverpod.dev/cloud/reference/cli/commands/domain.md)
+
+---
+
+# Database
+
+https://docs.serverpod.dev/cloud/concepts/database
+
+Most Serverpod apps need to persist data (user accounts, orders, session state). Serverpod Cloud can provision and run a managed PostgreSQL database alongside your project, so you don't have to set up or maintain Postgres yourself. When the database is enabled, Cloud handles provisioning, connection details for your server, migrations on every deploy, and backups. Direct access from tools like `psql` or a GUI client is opt-in and requires a database user that you create yourself.
+
+The managed database runs on PostgreSQL 17 with TLS required, connection pooling on by default, and autoscaling compute.
+
+## Enable the database
+
+The database is opt-in. You choose whether to enable it when you create the project, and you can enable it in two ways:
+
+- **Interactively with `scloud launch`.** Launch prompts you with *"Enable the database for the project?"* and defaults to yes.
+- **Non-interactively with `--enable-db`.** Pass `--enable-db` (or `--no-enable-db`) to `scloud launch` to skip the prompt. The same flag is **required** on `scloud project create`: it has no default there, so you must pass one.
+
+Once a project is created with the database enabled, the database is provisioned automatically and made available to your server on the next deploy.
+
+If your project doesn't use a database, pass `--no-enable-db` instead.
+
+## How your server connects
+
+When the database is enabled, your deployed Serverpod server receives its connection details as environment variables, injected by Cloud:
+
+| Variable                         | What it holds                  |
+| -------------------------------- | ------------------------------ |
+| `SERVERPOD_DATABASE_HOST`        | The database host              |
+| `SERVERPOD_DATABASE_PORT`        | The port (5432 by default)     |
+| `SERVERPOD_DATABASE_NAME`        | The database name              |
+| `SERVERPOD_DATABASE_USER`        | The server's database user     |
+| `SERVERPOD_DATABASE_REQUIRE_SSL` | Always `true`; TLS is required |
+| `SERVERPOD_PASSWORD_database`    | The server's database password |
+
+Your server reads these through Serverpod's standard configuration. You don't write them into `config/production.yaml` or `passwords.yaml`; Cloud supplies them at runtime. The server's password is managed by the platform and never exposed to you.
+
+## Migrations run on every deploy
+
+When Cloud deploys your server, the container starts with `--apply-migrations`. Any pending migrations in your project's `migrations/` directory are applied before the server begins serving requests.
+
+If a migration fails to apply, the server fails to start and the deployment is reported as failed. Fix the migration in your project and redeploy. For a step-by-step walkthrough, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
+To undo a migration that already applied successfully, create a repair migration with `serverpod create-repair-migration` targeting the version you want to roll back to, then redeploy. Cloud applies the repair on the next deploy. Only the schema is rolled back; data is not. See the framework's [Migrations](https://docs.serverpod.dev/concepts/database/migrations.md#rolling-back-migrations) guide for details.
+
+## Backups
+
+Cloud can back up the managed database on demand or on a schedule, and restore it to any snapshot in one step. See [Database backups](https://docs.serverpod.dev/cloud/concepts/database-backups.md) for how to set up scheduled backups, take manual snapshots, and restore.
+
+## Access the database directly
+
+You can connect to the managed database from your machine, a GUI client, or `psql` for inspection and debugging. This is independent of how your server connects.
+
+The steps:
+
+1. Run `scloud db connection` to print the host, port, and database name.
+2. Run `scloud db user create <username>` to create a superuser. The password is shown **once**; save it.
+3. Connect from your client with the host, port, database, your username, and the saved password.
+
+Both commands need to know which project you're working with. From a project directory that's been linked (any project created with `scloud launch` is linked automatically), the project ID is picked up from `scloud.yaml`. From anywhere else, pass `-p your-project-id`.
+
+If you lose the password, run `scloud db user reset-password <username>` to reset it. The new password is also shown only once.
+
+Any PostgreSQL-compatible client works. A few popular options:
+
+- [Postico](https://eggerapps.at/postico/), a focused PostgreSQL client for macOS
+- [pgAdmin](https://www.pgadmin.org/), the official open-source admin tool
+- [DBeaver](https://dbeaver.io/), cross-platform and free for personal use
+- [DataGrip](https://www.jetbrains.com/datagrip/), JetBrains' database IDE
+- `psql`, the standard PostgreSQL command-line client
+- A PostgreSQL VS Code extension if you prefer to stay in your editor
+
+## Reset the database
+
+The `scloud db wipe` command deletes all tables, all data, and all applied migrations from the managed database. It asks for confirmation by default.
+
+```bash
+scloud db wipe
+```
+
+After a wipe, your server will error on its next request because the schema is gone. Redeploy with `scloud deploy` to reapply migrations and bring the database back into a working state.
+
+Use this when you want to start clean during development. **Do not wipe a production database.**
+
+## Security
+
+The managed database is built so you don't have to think about credentials in your code or your repo:
+
+- **TLS is required for all connections.** Cloud sets `SERVERPOD_DATABASE_REQUIRE_SSL` to `true` for your server, and the same applies to direct connections from `psql` or a GUI client.
+- **The server's password is managed by the platform.** It's never written into your repo and never shown to you. Your server reads it from the injected environment at runtime.
+- **Direct access uses separate superusers that you create.** The server's user and the users you create with `scloud db user create` are distinct, so revoking or rotating a direct-access password does not affect the server.
+
+## Performance
+
+The managed database includes infrastructure features you'd otherwise wire up yourself:
+
+- **Connection pooling is on by default.** The connection details returned by `scloud db connection` point at a pooled endpoint, so short-lived connections from many clients don't exhaust Postgres connection slots.
+- **Compute autoscales.** The database scales compute up and down within bounds set by your plan, so you don't need to provision for peak traffic up front.
+
+## Related
+
+- [CLI reference: `scloud db`](https://docs.serverpod.dev/cloud/reference/cli/commands/db.md) for all `db` subcommands and options.
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for how migrations apply during deploy.
+
+---
+
+# Database backups
+
+https://docs.serverpod.dev/cloud/concepts/database-backups
+
+A bad migration or an accidental bulk delete can lose data you needed. Serverpod Cloud can take point-in-time snapshots of your managed database, on demand or on a recurring schedule, and restore the whole database to any snapshot in one step. Backups run on the platform, so there is nothing for you to host or maintain. You manage them with the `scloud` CLI.
+
+:::info
+Backups are a **Growth** plan feature. On Growth you can create snapshots, schedule backups, and restore. Listing snapshots, deleting snapshots, and viewing or disabling the schedule are available on every plan, so a project on a smaller plan can still see and clean up backups it already has.
+:::
+
+## When to use each kind of backup
+
+Two kinds of backup cover different needs, and most projects use both.
+
+- **Scheduled backups** run automatically at a frequency you choose. Set one up so the database always has recent recovery points, without anyone having to remember. This is the safety net most projects want.
+- **Manual snapshots** are taken on demand. Take one right before a risky change, such as a large migration or a bulk data edit, so you have a known-good point to return to.
+
+## Set up automatic backups
+
+A schedule takes snapshots for you at a fixed frequency. Each database has one schedule. Set it with `scloud db schedule set` and a frequency of `daily`, `weekly`, or `monthly`:
+
+```bash
+scloud db schedule set --frequency weekly --day 1 --hour 3 --retention 30d
+```
+
+Use `--day` to pick the day of the week (1-7) for a weekly schedule or the day of the month (1-31) for a monthly one; it defaults to 1 and does not apply to a daily schedule. Use `--hour` for the hour of the day (0-23, in UTC); it defaults to 0. Use `--retention` (for example `30d`) to set how long each scheduled snapshot is kept before it is deleted automatically. Without `--retention`, scheduled snapshots are kept for 24 hours.
+
+Cloud confirms the schedule it stored:
+
+```text
+Setting    | Value
+-----------+--------
+Frequency  | weekly
+Hour (UTC) | 3
+Day        | 1
+Retention  | 30 days
+```
+
+To see the current schedule, run `scloud db schedule show`. To turn it off, run `scloud db schedule unset`.
+
+## Create a manual snapshot
+
+Take a one-off snapshot with `scloud db backup create`, for example just before applying a large migration:
+
+```bash
+scloud db backup create --name pre-migration --expire-in 7d
+```
+
+Both options are optional. The `--name` option labels the snapshot so you can recognize it later. The `--expire-in` option (for example `7d` or `24h`) sets how long the snapshot is kept before it is deleted automatically; leave it off to keep the snapshot until you delete it yourself.
+
+## List your backups
+
+Run `scloud db backup list` to see every snapshot and its ID:
+
+```bash
+scloud db backup list
+```
+
+```text
+ID           | Name          | Type      | Created             | Expires             | Size
+-------------+---------------+-----------+---------------------+---------------------+---------
+snap-3f2a9c  | pre-migration | manual    | 2026-07-15 09:12:04 | 2026-07-22 09:12:04 | 512.0 MB
+snap-9b71e0  |               | scheduled | 2026-07-15 03:00:01 | 2026-08-14 03:00:01 | 24.3 MB
+```
+
+The **Type** column shows whether a snapshot was taken manually or by the schedule. **Size** is the snapshot's full size. A scheduled snapshot's actual storage is smaller, because only the first snapshot in a schedule is a full copy and the rest keep just the changes since the previous one. Timestamps are shown in your local time zone; add `--utc` to show them in UTC.
+
+## Restore from a backup
+
+Restoring replaces the live database with the contents of a snapshot. Pass the snapshot ID from `scloud db backup list`:
+
+```bash
+scloud db backup restore snap-3f2a9c
+```
+
+Because this replaces live data, Cloud asks you to confirm first:
+
+```text
+WARNING: Restores the database for project "my-app" to snapshot "snap-3f2a9c".
+The live database is replaced with the data from the snapshot.
+The current state is retained by the provider as a separate backup.
+
+Do you want to proceed?
+```
+
+The connection string and database credentials do not change, so your deployed server keeps working against the same database with no config change.
+
+## Delete a snapshot
+
+Remove a snapshot you no longer need with `scloud db backup delete` and its ID:
+
+```bash
+scloud db backup delete snap-3f2a9c
+```
+
+Cloud asks for confirmation, then deletes the snapshot permanently. Scheduled snapshots are removed automatically once they pass the schedule's retention, so you mostly delete manual snapshots this way.
+
+## Pricing
+
+Backup storage is billed separately from your regular database storage, as its own metered charge rather than counting against your database usage. It is priced the same as database storage, billed by usage and prorated for partial months, and applies only on the Growth plan. A schedule usually costs less than keeping the same number of manual snapshots. Each manual snapshot is a full copy, while a scheduled series stores one full copy plus the changes between snapshots. For current plan pricing, see [Serverpod Cloud plans](https://serverpod.dev/cloud).
+
+## Limits
+
+- **Up to 100 manual snapshots per project.** Scheduled snapshots do not count towards this limit. When you reach it, creating another manual snapshot returns a clear error; delete snapshots you no longer need to make room.
+- **Retention defaults.** A manual snapshot created without `--expire-in` is kept until you delete it. A scheduled snapshot created without `--retention` is kept for 24 hours, then deleted automatically.
+- **Downgrading with stored backups.** A project that still has backups stored cannot move from the Growth plan to a smaller plan. Delete the backups first, then change the plan.
+
+## Related
+
+- [Database](https://docs.serverpod.dev/cloud/concepts/database.md): how the managed database is provisioned, connected, and reset.
+- [`scloud db` CLI reference](https://docs.serverpod.dev/cloud/reference/cli/commands/db.md): every `db backup` and `db schedule` flag and default.
+- [Migrations](https://docs.serverpod.dev/concepts/database/migrations.md#rolling-back-migrations): rolling a schema change back, which pairs with restoring data.
+
+---
+
+# Personal access tokens
+
+https://docs.serverpod.dev/cloud/concepts/personal-access-tokens
+
+When you need to run `scloud` in a CI pipeline, a script, or a headless environment where the browser-based `scloud auth login` flow isn't possible, you authenticate with a personal access token instead. Tokens are long-lived credentials you generate once, store as a secret, and pass to `scloud` as a flag or environment variable.
+
+For everyday development on your machine, `scloud auth login` is simpler; it stores credentials locally and you don't need to handle tokens.
+
+## Create a token
+
+Sign in first, then run:
+
+```bash
+scloud auth create-token
+```
+
+Example output:
+
+```text
+✅ Successfully created an API token.
+
+Use the --token option or the SERVERPOD_CLOUD_TOKEN environment variable to
+authenticate with this token in scloud commands.
+
+The token is only visible once:
+c2FzAZxXRnzFeN2xTo6xVInh3k3bNanACBRM7ux5AYOLQDgzK82PZvdRn0N_f2WqLPCZ
+```
+
+:::warning
+
+The CLI prints the token once. Store it somewhere secure (a secret in your CI system, a password manager). It can't be retrieved again.
+
+:::
+
+### Token expiration
+
+By default, tokens expire after 30 days of non-use. Adjust this when creating the token:
+
+```bash
+# Expire after 7 days of non-use
+scloud auth create-token --idle-ttl 7d
+
+# Never expire from non-use (still valid until revoked or until --expire-at)
+scloud auth create-token --no-idle-ttl
+
+# Expire at a fixed ISO 8601 time
+scloud auth create-token --expire-at 2026-12-31T23:59:59Z
+```
+
+Durations accept `s`, `m`, `h`, and `d` units.
+
+## List authentication sessions
+
+To see your active sessions and tokens with their IDs, creation, last-used, and expiry times:
+
+```bash
+scloud auth list
+```
+
+Use the Token Id column to identify a token before revoking it.
+
+## Revoke a token
+
+Revoke a specific token by its ID from `scloud auth list`:
+
+```bash
+scloud auth logout --token-id <token-id>
+```
+
+Log out the current session instead:
+
+```bash
+scloud auth logout
+```
+
+Revoke every session and token at once:
+
+```bash
+scloud auth logout --all
+```
+
+A revoked token can no longer authenticate.
+
+## Use a token with scloud
+
+The CLI accepts a token two ways. For CI pipelines and shell sessions, prefer the `SERVERPOD_CLOUD_TOKEN` environment variable. The `--token` flag is a per-command override.
+
+### Environment variable
+
+Set the variable once so every subsequent `scloud` call in that shell uses the token:
+
+```bash
+export SERVERPOD_CLOUD_TOKEN="your-token-here"
+scloud deploy
+scloud log
+```
+
+Best for CI pipelines and shell sessions where you set the secret once and run multiple commands.
+
+### Command-line flag
+
+Pass the token directly to any command:
+
+```bash
+scloud --token="your-token-here" deploy
+scloud --token="your-token-here" log
+```
+
+The flag applies only to that command. Useful when the token lives in a script variable or a short-lived secret.
+
+If both `--token` and `SERVERPOD_CLOUD_TOKEN` are set, `--token` takes precedence.
+
+## Use a token in GitHub Actions
+
+Store the token as a repository secret, then pass it to the official action:
+
+```yaml
+- uses: serverpod/serverpod_cloud_deploy@v1
+  with:
+    token: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
+```
+
+For the full walkthrough, see [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md).
+
+## Related
+
+- [`scloud auth`](https://docs.serverpod.dev/cloud/reference/cli/commands/auth.md) for the full reference on `auth login`, `create-token`, `list`, and `logout`.
+- [CLI environment variables](https://docs.serverpod.dev/cloud/reference/cli/env_vars.md) for all `scloud` environment variables.
+
+---
+
+# Content delivery and caching
+
+https://docs.serverpod.dev/cloud/concepts/cdn
+
+Serverpod Cloud runs a CDN, a content delivery network, in front of every app's web server. Whatever your app marks as cacheable is served from an edge server near each visitor, whether it is a Flutter web build, a Jaspr site, or plain static files. Visitors get fast loads wherever they are, and your server does less work. Caching stays off until your app opts in, and every successful deploy clears the CDN's copies so a new build reaches visitors right away.
+
+## How caching works
+
+Your app's `Cache-Control` header decides, per response, where a file may be cached and for how long. There are three layers:
+
+- **The visitor's browser:** Keeps its own copy of a file for up to the `max-age` you set. No deploy can clear it, so keep this lifetime short.
+- **The CDN at the edge:** Stores cacheable files for up to `s-maxage`, or `max-age` when `s-maxage` is not set. Every successful deploy clears it, and it refills on its own: the first request for a file at each edge location fetches it from your server and stores it back. There is no manual purge command. To clear the edge on demand, deploy again.
+- **Your server:** Serves everything else: responses marked `no-cache`, `private`, or `no-store`, responses with no cache header, responses that set a cookie, and all calls from your Flutter app to your endpoints. Every request for these reaches your server. For `no-cache`, the CDN may keep a copy, but it checks with your server before serving it.
+
+What the common header patterns do at each layer:
+
+| `Cache-Control`                                    | CDN at the edge                                         | Visitor's browser                                    |
+| -------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
+| `no-cache, private` (`FlutterRoute` default)       | Never stores it                                         | Stores it, but checks with your server on every load |
+| None (`StaticRoute` and `SpaRoute` default)        | Never stores it                                         | Decides on its own, using browser heuristics         |
+| `public, max-age=60, s-maxage=86400` (recommended) | Serves it for up to a day, cleared on every deploy      | Uses it for up to a minute                           |
+| `no-cache, public, s-maxage=86400`                 | Stores it, but checks with your server on every request | Stores it, but checks with your server on every load |
+
+Those checks are cheap: for an unchanged file, your server answers with a small 304 Not Modified response instead of the file itself. The last pattern keeps content fresh on every request and saves bandwidth, but your server still handles every request, so it does not reduce load the way `max-age` does. Whichever route you use, the CDN stores nothing under the defaults, so opting in works the same way for every stack.
+
+## Enable caching for your app
+
+To make content cacheable, set a `cacheControlFactory` on the route that serves it: the `FlutterRoute` for a Flutter web app, the `SpaRoute` for another framework's single-page app, or a `StaticRoute.directory` for plain files. The factory returns the `Cache-Control` header for each file the route serves. Routes you write yourself work the same way: the CDN only reads the header on a response, however your code produces it. The recommended header is `public, max-age=60, s-maxage=86400`, shown here on a `FlutterRoute`:
+
+```dart
+pod.webServer.addRoute(
+  FlutterRoute(
+    Directory('web/app'),
+    cacheControlFactory: (_, _) => CacheControlHeader(
+      publicCache: true,
+      maxAge: 60,
+      sMaxAge: 86400,
+    ),
+  ),
+);
+```
+
+Each directive plays a part:
+
+- The `public` directive lets both the browser and the CDN store the file.
+- The `max-age=60` directive sets the browser lifetime to one minute, short enough that a visitor picks up a new deploy almost immediately.
+- The `s-maxage=86400` directive sets the CDN lifetime to one day. The deploy purge keeps the edge fresh, so this longer lifetime is mainly a safety net. If a purge ever fails, your deploy still succeeds, and the cached copies expire on their own within a day.
+
+There is one exception. The `FlutterRoute` always serves the `index.html` fallback with `no-cache, private`, whatever factory you set, so visitors pick up a new build's entry page right away.
+
+For a simpler setup, the `StaticRoute.public` and `StaticRoute.publicImmutable` factories return common header shapes without a custom closure. Any of the three routes accepts them, including the `FlutterRoute` above. They do not set a separate CDN lifetime, so the browser and the CDN share one `max-age`:
+
+```dart
+cacheControlFactory: StaticRoute.public(maxAge: const Duration(minutes: 1)),
+```
+
+:::warning
+Flutter's build uses fixed file names with no content hashes, so a long browser `max-age` can leave a visitor on an old build after you deploy. Keep the browser lifetime short and let the deploy purge handle the edge.
+:::
+
+Caching more aggressively takes cache busting, where each asset URL includes a hash of the file's content, so a new build gets new URLs and old cached copies are never requested again. The web server supports this for static files, and hashed assets can use `publicImmutable` with a long lifetime, because a file at a hashed URL never changes. Flutter's build does not produce hashed names, so for a Flutter build that means post-processing the build output yourself, and the short browser lifetime above is the simpler choice. See the framework [Static files](https://docs.serverpod.dev/concepts/web-server/static-files) guide for the full `cacheControlFactory` and cache-busting reference.
+
+## Verify caching is working
+
+To confirm the CDN is serving a file, request it a few times and read the `age` response header. It reports how many seconds the edge has held its copy of the file:
+
+```bash
+curl -s -o /dev/null -D - https://my-app.serverpod.space/main.dart.js
+```
+
+The `-o /dev/null` discards the body and `-D -` prints the response headers. A cached file answers like this:
+
+```text
+cache-control: public, max-age=60, s-maxage=86400
+date: Mon, 20 Jul 2026 08:03:47 GMT
+age: 26
+```
+
+How to read the responses:
+
+- **No `age` on the first request:** The edge had no copy yet and fetched the file from your server.
+- **An `age` that goes up with each request while `date` stays the same:** The edge is serving its stored copy, and those requests never reach your server.
+- **No `age` at all:** The response does not opt in to caching (either default), or the request was a HEAD request. The CDN does not cache HEAD requests, so use GET, not `curl -I`.
+- **An `age` that resets shortly after a deploy:** The purge cleared the edge, and the new build is being cached.
+
+## Cost and limits
+
+- **No separate charge:** The CDN is part of Serverpod Cloud. Serving from the edge takes static traffic off your server, leaving it more capacity for your endpoint calls.
+- **Nothing to turn on:** It is active for every project. Your cache headers are the only switch.
+- **Isolated per app:** Cached files are tied to your app's hostnames, so the CDN never serves another app's content to your visitors, even when two apps serve a file at the same path.
+- **No usage limits:** Cached traffic is not capped.
+- **Every hostname covered:** The CDN serves any [custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md) attached to your project, and the deploy purge clears them too.
+
+## Related
+
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md): the deploy that clears the cache.
+- [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md): the CDN covers your custom domains too.
+- [Static files](https://docs.serverpod.dev/concepts/web-server/static-files): the framework reference for `cacheControlFactory` and cache busting.
+- [Single-page apps](https://docs.serverpod.dev/concepts/web-server/single-page-apps): serving another framework's single-page app with `SpaRoute`.
+- [Flutter web apps](https://docs.serverpod.dev/concepts/web-server/flutter-web): serving a Flutter build from the framework web server.
+
+---
+
+# Deployment hooks
+
+https://docs.serverpod.dev/cloud/concepts/deployment-hooks
+
+If you need something to run on every deploy, like database migrations, deployment hooks let you trigger your own scripts before or after `scloud deploy`. Without them, those steps live in a separate command you remember to run yourself.
+
+## When to use hooks
+
+Hooks come in two shapes:
+
+- **`pre_deploy`** for anything that has to run *before* Cloud receives your project (regenerate Serverpod code, build a Flutter web client, compile non-Dart assets, run database migration scripts, run a test suite as a deploy gate).
+- **`post_deploy`** for anything that should fire *after* the upload completes (Slack notification, kick a downstream pipeline, mark a release in your tracker).
+
+If your deploy doesn't depend on either, don't add hooks. Deploys work without them.
+
+## Configure hooks
+
+Hooks live in `scloud.yaml` under `project.scripts`. Each hook accepts either a single command (string) or a list of commands (array). See the [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md#scripts) for the field types and validation rules.
+
+Single command:
+
+```yaml
+project:
+  projectId: my-project
+  scripts:
+    pre_deploy: serverpod generate
+    post_deploy: echo "Deployment complete"
+```
+
+Multiple commands run sequentially:
+
+```yaml
+project:
+  projectId: my-project
+  scripts:
+    pre_deploy:
+      - serverpod generate
+      - serverpod run flutter_build
+    post_deploy:
+      - curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK -d '{"text":"Deployed"}'
+```
+
+## How scripts run
+
+Each command runs in your project directory (the one containing `scloud.yaml`) through the system shell (`bash -c` on macOS and Linux, `cmd /c` on Windows). Scripts inherit the environment variables of the shell that invoked `scloud deploy`, so CI-set secrets and your local `PATH` are available. Commands in an array run sequentially; output streams to your terminal in real time as each one executes.
+
+A non-zero exit code halts further commands in that hook.
+
+:::warning
+
+The `pre_deploy` and `post_deploy` hooks fail asymmetrically:
+
+- A failing `pre_deploy` script aborts the deploy *before* Cloud receives your code.
+- A failing `post_deploy` script runs *after* the upload, so the deploy has already happened. The `scloud deploy` command exits with an error, but the new version is live.
+
+Plan your scripts accordingly: put anything that must succeed before your code ships in `pre_deploy`.
+
+:::
+
+## Related
+
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle around hooks.
+- [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) for the deploy command and its flags.
+
+---
+
+# Use Redis for PubSub and caching
+
+https://docs.serverpod.dev/cloud/guides/redis
+
+Serverpod Cloud does not yet provide Redis natively. You can use a third-party Redis service and point your Serverpod app at it. This guide uses [Upstash](https://upstash.com) as an example; other Redis-compatible providers that support TLS and password auth will work with the same configuration pattern.
+
+Serverpod uses Redis for **distributed caching** and **PubSub** when running across multiple servers. The connection is configured via environment variables and a password.
+
+## Before you start
+
+- Completed the **Installation** steps (`scloud` installed and authenticated).
+- A Serverpod Cloud project already deployed (or ready to deploy).
+
+## Create a Redis database on Upstash
+
+1. Sign up or log in at [Upstash](https://console.upstash.com/).
+2. Click **Create Database**.
+3. Give the database a name and choose **Primary Region**. For Serverpod Cloud, the closest option is `EU-CENTRAL-1` (Frankfurt).
+4. Choose a plan and create the database.
+5. On the database page, open **REST API** or **Connect to your database** and note:
+   - **Endpoint** (host)
+   - **Port**
+   - **Password** (copy it; you will not see it again in full in some views).
+
+Upstash enables TLS for all databases and does not allow disabling it, so you will set `SERVERPOD_REDIS_REQUIRE_SSL` to `true` below.
+
+## Set the Redis password in Serverpod Cloud
+
+Serverpod expects the Redis password under the built-in key `redis`. Set it with the Serverpod Cloud CLI:
+
+```bash
+scloud password set redis "YOUR_UPSTASH_PASSWORD"
+```
+
+Use the exact password from the Upstash database page.
+
+## Set Redis connection variables
+
+Configure host, port, enable Redis, and require SSL using environment variables:
+
+```bash
+scloud variable set SERVERPOD_REDIS_HOST "YOUR_UPSTASH_ENDPOINT"
+scloud variable set SERVERPOD_REDIS_PORT "YOUR_UPSTASH_PORT"
+scloud variable set SERVERPOD_REDIS_ENABLED "true"
+scloud variable set SERVERPOD_REDIS_REQUIRE_SSL "true"
+```
+
+Replace `YOUR_UPSTASH_ENDPOINT` with the Upstash endpoint (host only, no `rediss://` or port). Replace `YOUR_UPSTASH_PORT` with the port number as a string (most likely `6380` for Upstash).
+
+:::note
+
+If your Redis provider uses a username (e.g. ACL), you can set:
+
+```bash
+scloud variable set SERVERPOD_REDIS_USER "default"
+```
+
+:::
+
+## Redeploy
+
+Environment variables and passwords are applied when your server deploys. Redeploy so the new Redis config is used:
+
+```bash
+scloud deploy
+```
+
+After a successful deploy, your server will use Upstash for Redis-backed caching and PubSub.
+
+## Related
+
+- [Serverpod configuration](https://docs.serverpod.dev/concepts/server-fundamentals/configuration) for Redis options and environment variables.
+- [Serverpod caching](https://docs.serverpod.dev/concepts/endpoints-and-apis/caching) for local and Redis-backed caches.
+- [Upstash: Connect your client](https://upstash.com/docs/redis/howto/connectclient) for connection details and TLS.
+- [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for how Serverpod Cloud injects passwords and variables.
+
+---
+
+# Ship non-Dart files with your server
+
+https://docs.serverpod.dev/cloud/guides/ship-non-dart-files
+
+Bundle non-Dart files (configuration, templates, CSV data, binary blobs) with your server code on Cloud. Place them in an `assets/` folder at the project root and read them with `./assets/<path>` at runtime.
+
+## Before you start
+
+- A Serverpod server project on disk (alongside `lib/` and `bin/`).
+- The `scloud` CLI installed and authenticated. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+
+## Add files to your project
+
+Place files in an `assets/` folder at the root of your server project, alongside `lib/` and `bin/`:
+
+```text
+my_server/
+├── assets/
+│   ├── config/
+│   │   └── settings.json
+│   ├── templates/
+│   │   └── email_template.html
+│   └── data/
+│       └── initial_data.csv
+├── lib/
+├── bin/
+└── pubspec.yaml
+```
+
+Then deploy:
+
+```bash
+scloud deploy
+```
+
+Cloud zips your project directory and includes every file that isn't excluded from the deploy package (see [Control what gets uploaded](#control-what-gets-uploaded) below). The `assets/` name is the Serverpod naming convention for this folder. You can call it anything, but the rest of this guide assumes `assets/`.
+
+To preview which files Cloud will upload before deploying:
+
+```bash
+scloud deploy --dry-run --show-files
+```
+
+## Read an asset at runtime
+
+Use Dart's `dart:io` library and a path relative to the server's working directory:
+
+```dart
+import 'dart:io';
+
+Future<String> readSettings() async {
+  final file = File('./assets/config/settings.json');
+  return file.readAsString();
+}
+```
+
+The path is relative to the directory the server runs from, not to the source file. Use `./assets/<path>` everywhere; absolute paths break across local and deployed environments.
+
+For binary data (images, PDFs, archives), use `readAsBytes()` instead of `readAsString()`.
+
+## Read common file types
+
+### Load JSON configuration
+
+Parse a JSON file into a `Map` on startup or per request:
+
+```dart
+import 'dart:io';
+import 'dart:convert';
+
+Future<Map<String, dynamic>> loadConfig() async {
+  final file = File('./assets/config/app_config.json');
+  final contents = await file.readAsString();
+  return jsonDecode(contents) as Map<String, dynamic>;
+}
+```
+
+### Render a template
+
+Read an HTML or text template, then interpolate values:
+
+```dart
+import 'dart:io';
+
+Future<String> loadWelcomeEmail({required final String name}) async {
+  final template = await File('./assets/templates/welcome_email.html').readAsString();
+  return template.replaceAll('{{name}}', name);
+}
+```
+
+### Read CSV data
+
+For tabular data, read line by line:
+
+```dart
+import 'dart:io';
+
+Future<List<String>> readCsv() async {
+  return File('./assets/data/initial_data.csv').readAsLines();
+}
+```
+
+For more complex parsing, the [`csv` package](https://pub.dev/packages/csv) handles quoting and escaping.
+
+## Control what gets uploaded
+
+Two files affect what's in the deployment:
+
+- **`.gitignore`.** Anything excluded here is also excluded from the deploy.
+- **`.scloudignore`.** Cloud-specific exclusions. Same syntax as `.gitignore`. Use the `!` prefix to opt files back in that `.gitignore` excluded.
+
+Hidden files (those starting with `.`) are excluded by default. If you need them shipped, opt back in via `.scloudignore`. See [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the full picture of the deployment package.
+
+:::tip
+
+Asset files count toward your deployment package size. Large folders slow uploads and the Cloud build step. For files larger than a few megabytes that don't need to live in version control, consider an external object store and reading them from the network instead.
+
+:::
+
+## Troubleshooting
+
+**File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `scloud deploy --dry-run --show-files` before debugging at runtime.
+
+**Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**`.
+
+## Related
+
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for what's in the deployment package and how `.scloudignore` works.
+- [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) for the deploy command and its flags.
+
+---
+
+# Deploy from CI with GitHub Actions
+
+https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions
+
+Use the official [`serverpod/serverpod_cloud_deploy`](https://github.com/serverpod/serverpod_cloud_deploy) action to deploy your Serverpod Cloud project on every push to your main branch. Setup takes about ten minutes once you have a personal access token.
+
+## Before you start
+
+- A personal access token. See [Create a token](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md#create-a-token) on the Personal access tokens page.
+- The project's `scloud.yaml` committed to the repository. It's created by `scloud launch` or `scloud link`.
+- Either: generated Serverpod files committed to the repository, **or** a CI step that runs `serverpod generate` (covered as a variant below).
+- One Serverpod project per repository, located no more than two subdirectory levels below the repository root.
+
+## Add the token as a repository secret
+
+In your GitHub repository, go to **Settings → Secrets and variables → Actions → New repository secret**. Name the secret `SERVERPOD_CLOUD_TOKEN` (or anything else, as long as it matches the workflow below) and paste the token value.
+
+## Add the workflow file
+
+Create `.github/workflows/deploy.yml` with the following workflow:
+
+```yaml title=".github/workflows/deploy.yml"
+name: Deploy to Serverpod Cloud
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+
+      - name: Activate serverpod command
+        run: dart pub global activate serverpod_cli
+
+      - uses: serverpod/serverpod_cloud_deploy@v1
+        with:
+          token: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
+```
+
+What each step does:
+
+- The `actions/checkout@v4` step clones the repository into the runner.
+- The `subosito/flutter-action@v2` step installs the Flutter SDK, which also provides Dart. The deploy action needs Dart to install `scloud`.
+- The `dart pub global activate serverpod_cli` step puts the framework CLI on the runner so any pre-deploy hooks (for example, `serverpod generate`) can run.
+- The `serverpod/serverpod_cloud_deploy@v1` step installs `scloud`, reads your `scloud.yaml`, and runs `scloud deploy` against your project using the token.
+
+## Push to trigger the workflow
+
+Commit the workflow file and push to `main`. Open the **Actions** tab in your repository to watch the run. When it succeeds, confirm the deploy went live:
+
+```bash
+scloud deployment show
+```
+
+You should see a recent deployment moving through Upload → Cloud build → Infra deploy → Service rollout, finishing with the rocket on **Service rollout**.
+
+## Run `serverpod generate` in CI (variant)
+
+If you don't want to commit generated Serverpod files, run `serverpod generate` as a workflow step instead. The Flutter SDK in the workflow below provides the Dart toolchain `serverpod generate` needs and is also handy if the project's pre-deploy hook builds a Flutter web client.
+
+```yaml title=".github/workflows/deploy.yml"
+name: Deploy to Serverpod Cloud
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  # Replace with your Cloud project ID and the path to your server package.
+  PROJECT_ID: your-project-id
+  SERVER_DIR: ./path/to/server
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+
+      - name: Generate Serverpod code
+        working-directory: ${{ env.SERVER_DIR }}
+        run: |
+          dart pub get
+          dart pub global activate serverpod_cli
+          serverpod generate
+
+      - uses: serverpod/serverpod_cloud_deploy@v1
+        with:
+          token: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
+          project_id: ${{ env.PROJECT_ID }}
+          project_dir: ${{ env.SERVER_DIR }}
+```
+
+The `flutter-action@v2` step is required if the `generate` step pulls Flutter packages. Pass `project_id` and `project_dir` to the action so it knows which project to deploy and where the server code lives.
+
+## Action inputs
+
+| Input                 | Required | What it does                                                                                    |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `token`               | yes      | Your personal access token, passed from the repository secret.                                  |
+| `working_directory`   | no       | The directory the action runs in. Defaults to the repository root.                              |
+| `project_id`          | no       | The Cloud project to deploy to. Inferred from `scloud.yaml` when present.                       |
+| `project_dir`         | no       | Path to the server package. Useful for monorepos where the server isn't at the repository root. |
+| `project_config_file` | no       | Path to `scloud.yaml` if it's not in the default location.                                      |
+
+## Troubleshooting
+
+**`scloud auth login` is required in the run output.** The `token` input is empty or the secret name in the workflow doesn't match what's in your repository's secrets. Confirm the secret name in your repository matches the name your workflow references in `${{ secrets.<name> }}`.
+
+**Project not found.** Either `scloud.yaml` isn't committed and the action can't resolve the project, or `project_id` was passed but doesn't match a project on your Cloud account. Commit `scloud.yaml`, or pass the correct `project_id` as an action input.
+
+**Generated files missing.** The primary workflow assumes generated Serverpod files are committed. Either commit them, or switch to the variant workflow that runs `serverpod generate` in CI.
+
+## Related
+
+- [Personal access tokens](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md) for how to create and rotate tokens.
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle the action triggers.
+- [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for tasks that should run before or after a deploy.
+
+---
+
+# Recover from a failed deploy
+
+https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy
+
+Your `scloud deploy` just failed. This guide walks you through finding what broke and shipping a fix. A failed deploy doesn't disrupt a running version; Cloud only switches traffic to a successful deploy, so if a previous version was live, it stays live.
+
+## Before you start
+
+- The `scloud` CLI installed and authenticated. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+- A Serverpod Cloud project with at least one deploy attempt.
+
+## Confirm the deploy failed
+
+List recent deployments to see status:
+
+```bash
+scloud deployment list
+```
+
+A failed deploy shows `FAILURE` in the Status column and a short reason in the Info column:
+
+```text
+# | Project | Deploy Id                            | Status  | Started             | Finished            | Info
+--+---------+--------------------------------------+---------+---------------------+---------------------+-----------------------------------
+0 | my-app  | 73e66b41-64fc-4920-b6ef-4918cc6ceca1 | FAILURE | 2026-06-15 15:19:37 | 2026-06-15 15:20:34 | User build FAILURE - see build log
+```
+
+The Info column points at which lifecycle stage failed: Upload, Cloud build, Infra deploy, or Service rollout.
+
+## Read the build log
+
+Build logs are the only surface for build-time errors. Fetch the latest:
+
+```bash
+scloud deployment build-log
+```
+
+For a specific deploy, pass a sequence number (`0` is the latest) or the deploy UUID from `scloud deployment list`:
+
+```bash
+scloud deployment build-log 3
+scloud deployment build-log 73e66b41-64fc-4920-b6ef-4918cc6ceca1
+```
+
+For long logs, redirect to a file or grep for errors:
+
+```bash
+scloud deployment build-log > build-log.txt
+scloud deployment build-log | grep ERROR
+```
+
+## Identify the failure type
+
+Most failed deploys fall into one of these patterns. Match the log output to the closest one.
+
+**Pre-deploy hook failure.** A script in your `scloud.yaml` under `project.scripts.pre_deploy` exited non-zero, so the upload never happened. Run the failing command locally to reproduce, fix the script, commit, and redeploy. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for the failure semantics and the [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md#pre_deploy) for the accepted formats.
+
+**Upload timeout.** The CLI reports `Send Timeout. Please check your internet connection and try again.` The project never reached Cloud, so nothing was built. Common on first deploys with large project packages or slow connections. Retry with a longer timeout:
+
+```bash
+scloud deploy --timeout 120s
+```
+
+If the timeout keeps tripping at high values, the issue is likely upstream (network or Cloud-side); retry later.
+
+**Package resolution failure.** Cloud can't resolve your `pubspec.yaml`. Run `dart pub get` locally to reproduce the error, fix the pubspec (mismatched versions, missing packages, private dependencies that aren't configured), and redeploy. For private packages, see [Private dependencies](https://docs.serverpod.dev/cloud/reference/private-dependencies.md).
+
+**Build failure.** Lines beginning with `ERROR:` or `FAILED:` in the build log, usually pointing at a Dart compile error, a missing import, or a missing dependency. Fix the file in your project, commit, and redeploy.
+
+**Migration failure.** The build succeeds but the server fails to start because a migration in your project's `migrations/` directory can't apply. The deploy is marked failed. Fix the migration locally (often a SQL error or a column that already exists), commit, and redeploy.
+
+## Fix and redeploy
+
+Commit the fix and redeploy:
+
+```bash
+scloud deploy
+```
+
+Watch the new attempt:
+
+```bash
+scloud deployment show
+```
+
+When **Service rollout** reports success, Cloud switches traffic to the new version.
+
+## Related
+
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle and `scloud deploy --dry-run` to validate before shipping.
+- [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md) for the build-log and runtime-log surfaces.
+- [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for pre- and post-deploy hook failure semantics.
+- [Database](https://docs.serverpod.dev/cloud/concepts/database.md) for the migration model and how to reverse a schema change.
+
+---
+
+# Dart SDK versions
+
+https://docs.serverpod.dev/cloud/reference/dart-sdk-versions
+
+Serverpod Cloud builds your server with one of a fixed set of Dart SDK versions. This page lists the supported versions and shows how to select the one your deploy uses.
+
+## Supported versions
+
+## How the version is selected
+
+The `scloud deploy` command reads the Dart SDK version from the first of these sources that sets one:
+
+1. The `--dart-version` flag.
+2. The `dartSdk` field in `scloud.yaml`.
+3. The `dart` entry in a `.tool-versions` file, in the project directory first and then the workspace root.
+4. The `environment.sdk` constraint in `pubspec.yaml`.
+
+Every source accepts an exact version or a pub-style version constraint, such as `3.10`, `^3.9.0`, or `>=3.9.0 <4.0.0`. Serverpod Cloud builds with the highest supported version the constraint allows. If the constraint allows no supported version, the deploy fails with an error that lists the supported versions.
+
+When no source sets a version, your server builds with Dart .
+
+### Pass the flag
+
+```bash
+# Deploy with a one-off Dart SDK version override
+scloud deploy --dart-version 3.10
+```
+
+### Set the version in scloud.yaml
+
+```yaml title="scloud.yaml"
+project:
+  projectId: "my-app"
+  dartSdk: "3.10"
+```
+
+### Use your version manager's pin
+
+Version managers such as mise and asdf pin tool versions in a `.tool-versions` file. Serverpod Cloud reads the `dart` entry:
+
+```text title=".tool-versions"
+dart 3.10.4
+```
+
+### Use the pubspec constraint
+
+Without any of the sources above, the SDK constraint in your `pubspec.yaml` decides:
+
+```yaml title="pubspec.yaml"
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+```
+
+This example builds with the highest supported version, since the constraint allows all of them from 3.9 up.
+
+## Related documentation
+
+- [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md) - The `dartSdk` field and how scloud commands preserve it.
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) - Deploy operations, status checks, and package validation.
+- [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) - The deploy command and its flags.
+
+---
+
+# Private dependencies
+
+https://docs.serverpod.dev/cloud/reference/private-dependencies
+
+Serverpod Cloud supports deploying your project with private dependencies.
+The typical methods are:
+
+- Dart workspaces, which let you include local packages within a monorepo structure
+- Access credentials for dependencies in private git repositories
+
+## Using Dart workspaces
+
+To use Dart workspaces for private dependencies, set up a workspace root with a `pubspec.yaml` that includes a `workspace` field:
+
+```yaml
+name: my_project
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+workspace:
+  - packages/shared_utilities
+  - my_project_flutter
+  - my_project_client
+  - my_project_server
+```
+
+Each package in the workspace should include `resolution: workspace` in its `pubspec.yaml`:
+
+```yaml
+name: shared_utilities
+version: 1.0.0
+
+resolution: workspace
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  serverpod_serialization: ^2.9.0
+```
+
+When you deploy your Serverpod application, the CLI automatically detects workspace structures and includes all necessary workspace packages in your deployment package.
+
+## Using private git dependencies
+
+If your server depends on Dart packages from a private git repository, the
+Serverpod Cloud build process needs to be given read access to it.
+
+Do this by setting a *build secret* on the project. SSH keys are supported, and you store the private SSH key in the build secret.
+
+:::info
+Build secrets are kept separate from runtime secrets and will not be accessible
+anywhere outside the build pipeline. They are automatically encrypted in transit
+and at rest.
+:::
+
+### CLI commands for build secrets
+
+Use the `scloud deployment build-secret` commands to manage your build secrets.
+
+#### List the current build secrets
+
+```sh
+$ scloud deployment build-secret list
+```
+
+#### Add or modify a build secret
+
+```sh
+$ scloud deployment build-secret set MY_SECRET_NAME "my-private-ssh-key"
+```
+
+#### Add or modify a build secret with the value in a file
+
+```sh
+$ scloud deployment build-secret set MY_SECRET_NAME --from-file my_private_ssh_key_file
+```
+
+#### Remove a build secret
+
+```sh
+$ scloud deployment build-secret unset MY_SECRET_NAME
+```
+
+### Accessing a private repository in GitHub
+
+If you are using GitHub, you can set up a *deploy key* for this.
+It only needs read access.
+
+[Set up deploy keys in GitHub](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys#set-up-deploy-keys)
+
+Then store the private SSH key as a build secret on your Serverpod Cloud project,
+and redeploy.
+
+## Current limitations
+
+Serverpod Cloud currently does not support:
+
+- **Private package managers**: Custom package registry configurations are not supported.
+
+---
+
+# Project identifier rules
+
+https://docs.serverpod.dev/cloud/reference/project-id-rules
+
+The identifier given to a project in Serverpod Cloud must adhere to these rules:
+
+- Globally unique
+- Between 6 and 32 characters long
+- Contain only lowercase letters, numbers, and hyphens
+
+When creating a new project (see also the
+[`scloud launch`](https://docs.serverpod.dev/cloud/reference/cli/commands/launch.md)
+or
+[`scloud project`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)
+commands) you will get an error message if the name is not valid.
+
+Most `scloud` commands need to know which project to operate on, which can be
+specified in multiple ways:
+
+- The `scloud.yaml` file in your project directory (see [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md) for the file format and the [`scloud project link`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md) command for how to generate or update it)
+- The `-p` / `--project` command line option
+- The `SERVERPOD_CLOUD_PROJECT_ID` environment variable
+
+## Default server domain
+
+Your project is automatically set up with default server domain names
+which begin with the project id.
+
+For example if your project id is 'my-app', then your server can be accessed at:
+
+- Web:      [https://my-app.serverpod.space/](https://my-app.serverpod.space/)
+- API:      [https://my-app.api.serverpod.space/](https://my-app.api.serverpod.space/)
+
+---
+
+# scloud.yaml schema
+
+https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema
+
+A Serverpod project deployed to Serverpod Cloud has a `scloud.yaml` file at its root. The file links the local project to a Cloud project, optionally pins the Dart SDK used for builds, and lists commands to run before or after each deploy.
+
+Two commands write the file: `scloud launch` creates it on first setup, and `scloud project link` creates or updates it when you link your codebase to a Cloud project. You can also hand-edit it at any time, and scloud preserves your `dartSdk` and hook scripts across later commands. See [How scloud updates the file](#how-scloud-updates-the-file) for the exact per-field rules.
+
+## File location
+
+The file lives in your server package directory, alongside the server's `pubspec.yaml`. In a workspace project, that's the `*_server` package directory; in a single-package project, it's the project root.
+
+To find the file for any subsequent command, scloud searches the starting directory (the current directory, or the value of `--project-dir`) and up to two levels below it. If no `scloud.yaml` is found and the starting directory contains a `pubspec.yaml`, scloud walks one level up and searches with depth 1; this covers single-package projects where you run scloud from a `client/` or `flutter/` subdirectory. Multiple matches throw an ambiguous-search error. With no match, commands that need a project require `-p <project-id>` instead.
+
+When scloud writes the file, it prepends this comment header so the file is recognizable when you open it:
+
+```yaml
+# This file configures your Serverpod Cloud project.
+# It is automatically generated and updated by the `scloud` command.
+# 
+# Useful commands:
+# - Deploy: `scloud deploy`
+# - Get Help: `scloud help`
+#
+# For full documentation, visit: https://docs.serverpod.dev/cloud
+```
+
+The header is preserved across subsequent scloud updates.
+
+## Schema
+
+One top-level key, `project`, with three fields.
+
+### projectId
+
+**Type:** string. **Required.**
+
+The unique Cloud project identifier the CLI operates on. You set it when you create the project with `scloud launch` or `scloud project create`. See [Project identifier rules](https://docs.serverpod.dev/cloud/reference/project-id-rules.md) for the naming constraints.
+
+```yaml title="scloud.yaml"
+project:
+  projectId: "my-app"
+```
+
+### dartSdk
+
+**Type:** string. **Optional.**
+
+Pins the Dart SDK version used for builds. When unset, scloud falls back to your `.tool-versions` file and then the `environment.sdk` constraint in your `pubspec.yaml`. See [Dart SDK versions](https://docs.serverpod.dev/cloud/reference/dart-sdk-versions.md) for the supported versions and the full selection order.
+
+```yaml title="scloud.yaml"
+project:
+  dartSdk: "^3.10.3"
+```
+
+### scripts
+
+**Type:** map. **Optional.**
+
+Holds two hook lists, `pre_deploy` and `post_deploy`. Each runs commands around `scloud deploy`. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for when each fires and how failures behave.
+
+#### pre\_deploy
+
+**Type:** string or list of strings. **Optional.** **Default:** scloud may suggest hooks during `scloud launch` (typically `serverpod generate`).
+
+Commands that run before scloud uploads your project package. A single string runs one command; a list runs each command in order. Each command runs through the system shell (`bash -c` on macOS and Linux, `cmd /c` on Windows) in your project directory. A non-zero exit code halts further commands and aborts the deploy.
+
+Single command:
+
+```yaml title="scloud.yaml"
+project:
+  scripts:
+    pre_deploy: "serverpod generate"
+```
+
+Multiple commands:
+
+```yaml title="scloud.yaml"
+project:
+  scripts:
+    pre_deploy:
+      - "serverpod generate"
+      - "flutter build web"
+```
+
+#### post\_deploy
+
+**Type:** string or list of strings. **Optional.** **Default:** `[]` (empty list).
+
+Commands that run after scloud finishes uploading. Same shape and shell semantics as `pre_deploy`. A failure here does not roll back the deploy; the new version is already live by then.
+
+Empty (the default on a freshly created project):
+
+```yaml title="scloud.yaml"
+project:
+  scripts:
+    post_deploy: []
+```
+
+Single command:
+
+```yaml title="scloud.yaml"
+project:
+  scripts:
+    post_deploy: "curl -X POST https://example.com/notify"
+```
+
+## Complete example
+
+A minimal valid file:
+
+```yaml title="scloud.yaml"
+project:
+  projectId: "my-app"
+```
+
+What `scloud launch` typically writes for a new project (a suggested `pre_deploy` hook, empty `post_deploy`):
+
+```yaml title="scloud.yaml"
+project:
+  projectId: "my-app"
+  dartSdk: "^3.10.3"
+  scripts:
+    pre_deploy:
+      - "serverpod generate"
+    post_deploy: []
+```
+
+## How scloud updates the file
+
+Both `scloud launch` and `scloud project link` rewrite `scloud.yaml` to reflect the current project. They apply these rules to each field:
+
+- **`projectId`** is set to the project the command targets. Treat it as scloud-managed; hand-edits won't survive the next run.
+- **`dartSdk`** is preserved as you wrote it, unless the command sets a new value.
+- **`scripts.pre_deploy`** is merged. Your custom hooks are kept. Hooks that scloud considers "suggested" (for example `serverpod generate` for projects that need it) are re-added on every run, even if you removed them.
+- **`scripts.post_deploy`** is preserved entirely.
+
+In practice, hand-edit `dartSdk` and `post_deploy` freely, and add your own `pre_deploy` hooks alongside any suggested ones. Editing `projectId` by hand has no lasting effect; use `scloud project link` to change which project the file points at.
+
+## Validation errors
+
+scloud parses `scloud.yaml` on every command that needs project context. Validation failures raise `SchemaValidationException` in one of three forms.
+
+### Missing required field
+
+```text
+Missing required key: "project.projectId"
+```
+
+The required `projectId` field is absent. Add it, or run `scloud project link <project-id>` to set it for you.
+
+### Wrong type for a field
+
+```text
+At path "project.projectId": Expected String, got int
+```
+
+A field's value is the wrong type. The path tells you which field; the expected and actual types tell you what to change.
+
+### Wrong format for a script field
+
+```text
+At path "project.scripts.pre_deploy": Expected one of String, [String]
+```
+
+The `pre_deploy` or `post_deploy` value is neither a string nor a list of strings. Change it to either form (see [`pre_deploy`](#pre_deploy) for examples).
+
+## Related
+
+- [Project identifier rules](https://docs.serverpod.dev/cloud/reference/project-id-rules.md)
+- [Dart SDK versions](https://docs.serverpod.dev/cloud/reference/dart-sdk-versions.md)
+- [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md)
+- [scloud project](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)
+
+---
+
+# Introduction to the scloud CLI
+
+https://docs.serverpod.dev/cloud/reference/cli/introduction
+
+The Serverpod Cloud CLI (`scloud`) creates, manages, and deploys your Serverpod projects on Cloud. This reference covers every command, option, and flag.
+
+## Install and authenticate
+
+Before running any command:
+
+- Install `scloud`. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+- Authenticate with `scloud auth login` interactively, or pass a personal access token in non-interactive contexts like CI pipelines. See [Personal access tokens](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md).
+
+## Command syntax
+
+Every `scloud` invocation follows the same shape:
+
+```text
+scloud [global options] <command> [<subcommand>] [arguments] [options]
+```
+
+Global options can appear anywhere on the line; `scloud --token foo deploy` and `scloud deploy --token foo` are equivalent. When you run a command from a project directory containing `scloud.yaml`, the project ID is picked up automatically; pass `-p <project-id>` from anywhere else.
+
+## Global options
+
+A small set of options applies to every command: authentication (`--token`), project selection (`-p` / `--project`), output verbosity (`-v` / `--verbose`), and analytics (`-a` / `--analytics`). The full list, including timeouts and config-file overrides, lives on the [Global options](https://docs.serverpod.dev/cloud/reference/cli/global_options.md) page.
+
+## Environment variables
+
+Most global options have an environment-variable equivalent so workflows and CI don't need flags everywhere. The two you'll reach for most often:
+
+- **Authentication in CI:** `SERVERPOD_CLOUD_TOKEN` (equivalent to `--token`).
+- **Project selection:** `SERVERPOD_CLOUD_PROJECT_ID` (equivalent to `-p`).
+
+The full list is on the [CLI environment variables](https://docs.serverpod.dev/cloud/reference/cli/env_vars.md) page.
+
+## Where the concepts live
+
+Command pages describe *what* a command does. For the *why* and *when*, the concept pages are the home:
+
+- Deploying, validating, rolling back: [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md).
+- Pre- and post-deploy automation: [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md).
+- Runtime and build logs: [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md).
+- Default and custom domains: [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md).
+- Managed PostgreSQL: [Database](https://docs.serverpod.dev/cloud/concepts/database.md).
+- Sensitive values and runtime config: [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md).
+- CI and headless authentication: [Personal access tokens](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md).
+
+## How this reference is organized
+
+Each command page combines a hand-written introduction with auto-generated subcommand and option listings drawn from `scloud --help`. The sidebar lists commands alphabetically. Use the search box for fast lookup by flag or argument name.
+
+---
+
+# Global options
+
+https://docs.serverpod.dev/cloud/reference/cli/global_options
+
+The global options of `scloud` can be specified anywhere on the command line,
+in conjunction with any subcommand.
+
+They allow you to override the default behavior, file locations,
+and URLs that `scloud` uses.
+
+## Usage
+
+```console
+Manage your Serverpod Cloud projects
+
+Usage: scloud <command> [arguments]
+
+Global options:
+-h, --help                                Print this usage information.
+-q, --quiet                               Suppress all cli output. Is overridden by  -v, --verbose.
+-v, --verbose                             Prints additional information useful for development.
+                                          Overrides --q, --quiet.
+-a, --[no-]analytics                      Toggles if analytics data is sent.
+    --version                             Prints the version of the Serverpod Cloud CLI.
+    --token                               The authentication token to use for the current command.
+-d, --project-dir                         The path to the Serverpod Cloud project server directory.
+    --project-config-file                 The path to the Serverpod Cloud project configuration file
+                                          (defaults to <server-package>/scloud.yaml)
+    --timeout=<integer[us|ms|s|m|h|d]>    The timeout for the connection to the Serverpod Cloud API.
+                                          (defaults to "1m")
+    --yes                                 Automatically accept confirmation prompts. For use in
+                                          non-interactive environments.
+
+Available commands:
+  completion   Command line completion commands
+  context      Manage the global project context.
+  settings     Manage local CLI user settings.
+  version      Prints the version of the Serverpod Cloud CLI.
+
+Getting started
+  launch       Common command to launch and deploy Serverpod Cloud projects.
+
+Management
+  auth         Manage user authentication.
+  me           Show information about the current user.
+  project      Manage Serverpod Cloud projects.
+
+Mission Control
+  db           Manage Serverpod Cloud DBs.
+  deploy       Deploy a Serverpod project to the cloud.
+  deployment   Manage deployments.
+  domain       Bring your own domain to Serverpod Cloud.
+  log          Fetch Serverpod Cloud logs.
+  password     Manage Serverpod Cloud passwords.
+  secret       Manage Serverpod Cloud secrets.
+  variable     Manage Serverpod Cloud environment variables for a project.
+
+Run "scloud help <command>" for more information about a command.
+
+See the full documentation at: https://docs.serverpod.dev/cloud
+```
+
+---
+
+# CLI environment variables
+
+https://docs.serverpod.dev/cloud/reference/cli/env_vars
+
+The `scloud` command supports a number of environment variables, many of which
+override the default behavior and / or can be used in place of specifying the
+values on the command line.
+
+| Name                                  | In lieu of option       | Example value           | Description                                                                                           |
+| ------------------------------------- | ----------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| `SERVERPOD_CLOUD_PROJECT_ID`          | `-p` / `--project`      | `my-project-id`         | The ID of the project.                                                                                |
+| `SERVERPOD_CLOUD_DISPLAY_UTC`         | `-u` / `--utc`          | `true` or `false`       | Display timestamps in UTC timezone instead of local.                                                  |
+| `SERVERPOD_CLOUD_COMMAND_ANALYTICS`   | `-a` / `--analytics`    | `true` or `false`       | Toggles if analytics data is sent.                                                                    |
+| `SERVERPOD_CLOUD_TOKEN`               | `--token`               | `your-auth-token-here`  | The authentication token to use for the current command.                                              |
+| `SERVERPOD_CLOUD_DIR`                 | `--config-dir`          | `/path/to/config/dir`   | Override the directory path where Serverpod Cloud cache/authentication files are stored.              |
+| `SERVERPOD_CLOUD_PROJECT_DIR`         | `-d` / `--project-dir`  | `/path/to/your/project` | The path to the directory containing `scloud.yaml` (typically your project root or server directory). |
+| `SERVERPOD_CLOUD_PROJECT_CONFIG_FILE` | `--project-config-file` | `/path/to/scloud.yaml`  | The path to the Serverpod Cloud project configuration file.                                           |
+| `SERVERPOD_CLOUD_CONNECTION_TIMEOUT`  | `--timeout`             | `60s`                   | The timeout for the connection to the Serverpod Cloud API (defaults to 60 seconds).                   |
+
+---
+
+# scloud auth
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+`scloud auth` manages your login session: log in to Serverpod Cloud, log out, and revoke other sessions or tokens. Most `scloud` commands authenticate against the cloud API, so you need to be logged in (or pass a token) to do anything that touches your projects.
+
+For long-lived authentication (CI pipelines, scripts), see [Personal access tokens](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md), which covers token creation, the `SERVERPOD_CLOUD_TOKEN` environment variable, and the `--token` flag.
+
+## Credentials storage
+
+After running `scloud auth login`, your authentication token is stored locally at:
+
+```text
+~/.serverpod/cloud/serverpod_cloud_auth.json
+```
+
+This file contains a JSON object with your token:
+
+```json
+{"token": "your-token-here"}
+```
+
+Delete the file (or run `scloud auth logout`) to clear stored credentials.
+
+## Usage
+
+```console
+Manage user authentication.
+
+Usage: scloud auth <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  create-token   Create a personal access token.
+  list           List the current authentication sessions.
+  login          Log in to Serverpod cloud.
+  logout         Log out from Serverpod Cloud.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+```
+
+### Sub commands
+
+#### `login`
+
+```console
+Log in to Serverpod cloud.
+
+Usage: scloud auth login [arguments]
+-h, --help                                   Print this usage information.
+    --time-limit=<integer[us|ms|s|m|h|d]>    The time to wait for the authentication to complete.
+                                             (defaults to "5m")
+    --[no-]persistent                        Store the authentication credentials.
+                                             (defaults to on)
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+```
+
+#### `logout`
+
+```console
+Log out from Serverpod Cloud.
+
+By default the current session is logged out.
+Use options to log out other sessions and CLI / personal access tokens.
+See also "scloud auth list", to list the current authentication sessions.
+
+Usage: scloud auth logout [arguments]
+-h, --help        Print this usage information.
+
+Sessions
+    --token-id    The token IDs to log out. Logs out the current session if not provided.
+    --all         Log out from all sessions including API tokens.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+```
+
+#### `list`
+
+```console
+List the current authentication sessions.
+
+Usage: scloud auth list [arguments]
+-h, --help        Print this usage information.
+-u, --[no-]utc    Display timestamps in UTC timezone instead of local.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+```
+
+#### `create-token`
+
+```console
+Create a personal access token.
+
+Creates an additional CLI / personal access token for the current user.
+This token can be used to authenticate scloud commands by using
+the --token option or the SERVERPOD_CLOUD_TOKEN environment variable.
+
+Usage: scloud auth create-token [arguments]
+-h, --help                                 Print this usage information.
+    --expire-at=<YYYY-MM-DDtHH:MM:SSz>     The calendar time to expire the token at.
+
+TTL: Expire after non-use
+    --idle-ttl=<integer[us|ms|s|m|h|d]>    The duration of non-use after which the token will
+                                           expire.
+                                           (defaults to "30d")
+    --no-idle-ttl                          Do not expire the token after a duration of non-use.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+```
+
+---
+
+# scloud completion
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/completion
+
+As an `scloud` user, you can enable command line completion in most shells.
+
+Two completion tools are supported: Completely and Carapace.
+
+Completely is easier to set up for the end user, but only has direct support for bash and zsh. See [Completely on GitHub](https://github.com/bashly-framework/completely).
+
+Carapace supports nearly all shells but requires the end user to install the Carapace tool. See the [Carapace docs](https://carapace.sh/).
+
+## Installing completion
+
+### Bash with Completely
+
+Run:
+
+```sh
+scloud completion install -t completely
+```
+
+This will write the completions script to this location, where bash picks it up
+automatically on start:
+`~/.local/share/bash-completion/completions/scloud.bash`
+
+In order to update the completions in the current bash shell, run:
+
+```sh
+exec bash
+```
+
+### Zsh with Completely
+
+Run the same as for bash:
+
+```sh
+scloud completion install -t completely
+```
+
+Then set up bash completions for your Zsh:
+
+If you use Oh-My-Zsh, bash completions are already enabled.
+Otherwise, enable them by adding the following to your `~/.zshrc`
+(if not already present):
+
+```sh
+autoload -Uz +X compinit && compinit
+autoload -Uz +X bashcompinit && bashcompinit
+```
+
+Then, enable `scloud` completions by adding this line to your `~/.zshrc`
+(for all setups, including Oh-My-Zsh):
+
+```sh
+source ~/.local/share/bash-completion/completions/scloud.bash
+```
+
+### Nearly all shells with Carapace
+
+Carapace supports nearly all shells but requires the end user to install the Carapace tool. See the [Carapace docs](https://carapace.sh/).
+
+#### Prerequisites
+
+To install Carapace on macOS:
+
+```sh
+brew install carapace
+```
+
+For other environments, see the [Carapace install guide](https://carapace-sh.github.io/carapace-bin/install.html).
+
+#### Enable Carapace completion for scloud
+
+Run the following once for the current shell,
+or add to your shell startup script:
+
+Bash:
+
+```bash
+scloud completion install -t carapace
+source <(carapace scloud)
+```
+
+Zsh:
+
+```zsh
+scloud completion install -t carapace
+zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
+source <(carapace scloud)
+```
+
+For other shells, see the [Carapace setup guide](https://carapace-sh.github.io/carapace-bin/setup.html).
+
+## Usage
+
+```console
+Command line completion commands
+
+Usage: scloud completion <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  generate   Generate a command line completion specification
+  install    Install a command line completion script
+
+Run "scloud help" to see global options.
+```
+
+### Sub commands
+
+#### `generate`
+
+```console
+Generate a command line completion specification
+
+Usage: scloud completion generate [arguments]
+-h, --help                Print this usage information.
+-t, --tool (mandatory)    The completion tool to target
+
+          [completely]    Use the `completely` tool (https://github.com/bashly-framework/completely)
+          [carapace]      Use the `carapace` tool (https://carapace.sh/)
+
+-e, --exec-name           Override the name of the executable
+-f, --file                Write the specification to a file instead of stdout
+
+Run "scloud help" to see global options.
+```
+
+#### `install`
+
+```console
+Install a command line completion script
+
+Usage: scloud completion install [arguments]
+-h, --help                Print this usage information.
+-t, --tool (mandatory)    The completion tool to target
+
+          [completely]    Use the `completely` tool (https://github.com/bashly-framework/completely)
+          [carapace]      Use the `carapace` tool (https://carapace.sh/)
+
+-e, --exec-name           Override the name of the executable
+-d, --write-dir           Override the directory to write the script to
+
+Run "scloud help" to see global options.
+```
+
+---
+
+# reference/cli/commands/context/context
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/context
+
+## Usage
+
+```console
+Manage the global project context.
+
+The global project context is a locally stored setting that selects the project to use when it is
+not specified by other means. Commands that act on a project use it as a last resort, after command
+line arguments, environment variables, and the scloud.yaml project configuration file.
+
+Usage: scloud context <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    List the Serverpod Cloud projects available as context.
+  set     Set the global project context to the given project ID.
+  show    Show the current global project context.
+  unset   Unset the global project context.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
+
+```
+
+### Sub commands
+
+#### `list`
+
+```console
+List the Serverpod Cloud projects available as context.
+
+Usage: scloud context list [arguments]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
+
+```
+
+#### `show`
+
+```console
+Show the current global project context.
+
+Usage: scloud context show [arguments]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
+
+```
+
+#### `set`
+
+```console
+Set the global project context to the given project ID.
+
+Usage: scloud context set [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
+
+```
+
+#### `unset`
+
+```console
+Unset the global project context.
+
+Usage: scloud context unset [arguments]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
+
+```
+
+---
+
+# scloud db
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+`scloud db` manages your project's database directly: print connection details, create and reset superusers for `psql` or GUI clients, and wipe the database during development. These operations are independent of how your server connects (the server's credentials are injected by Cloud separately).
+
+See [Database](https://docs.serverpod.dev/cloud/concepts/database.md) for the model, common operations, and security notes around direct access.
+
+## Usage
+
+```console
+Manage Serverpod Cloud DBs.
+
+Usage: scloud db <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  connection   Show the connection details for a Serverpod Cloud DB.
+  user         Manage database users.
+
+Danger Zone
+  wipe         Irreversibly wipe and recreate the database, deleting all data and schema changes.
+
+Service
+  backup       Manage database backup snapshots.
+  schedule     Manage the automated database backup schedule.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+```
+
+### Sub commands
+
+#### `connection`
+
+```console
+Show the connection details for a Serverpod Cloud DB.
+
+Usage: scloud db connection [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+```
+
+#### `user`
+
+```console
+Manage database users.
+
+Usage: scloud db user <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  create           Create a new superuser in the Serverpod Cloud DB.
+  reset-password   Reset a password in the Serverpod Cloud DB.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+```
+
+#### `backup`
+
+```console
+Manage database backup snapshots.
+
+Usage: scloud db backup <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  create    Create a manual database backup snapshot.
+  list      List the database backup snapshots.
+
+Danger Zone
+  delete    Delete a database backup snapshot.
+  restore   Restore the live database to a backup snapshot.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+```
+
+#### `schedule`
+
+```console
+Manage the automated database backup schedule.
+
+Usage: scloud db schedule <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  set     Set (create or update) the automated backup schedule.
+  show    Show the automated backup schedule.
+  unset   Unset (disable) the automated backup schedule.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+```
+
+#### `wipe`
+
+```console
+Irreversibly wipe and recreate the database, deleting all data and schema changes.
+
+Usage: scloud db wipe [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/db
+
+```
+
+---
+
+# scloud deploy
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/deploy
+
+`scloud deploy` packages your project, uploads it to Serverpod Cloud, and waits for the new version to go live. Run it from the directory containing `scloud.yaml` (typically your project root or server directory) or pass `--project-dir`.
+
+To preview what will be uploaded without deploying, use `scloud deploy --dry-run` (optionally with `--show-files`). To follow an in-flight deploy, run `scloud deployment show`.
+
+For the full deploy lifecycle, pre-deploy hooks, and how to recover from a failed deploy, see [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) and [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
+## Usage
+
+```console
+Deploy a Serverpod project to the cloud.
+
+Usage: scloud deploy [arguments]
+-h, --help                     Print this usage information.
+-p, --project (mandatory)      The ID of the project. Can be passed as the first argument.
+                               Can be omitted for existing projects that are linked or if a global
+                               project context is set. See `scloud project link --help` and `scloud
+                               context set --help`.
+-c, --concurrency=<integer>    Number of concurrent files processed when zipping the project.
+                               (defaults to "5")
+    --wet-run                  Perform every step except the deployment, leaving the hosted
+                               application untouched. Local files may still be modified.
+    --show-files               Display the file tree that will be uploaded.
+-o, --output                   Save the deployment zip file to the specified path. Must end with
+                               .zip
+    --[no-]await               Await the deployment to finish while showing status progression.
+                               (defaults to on)
+    --dart-version             Overrides the Dart SDK version to use for building the project.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Deploy your project to the cloud
+
+    $ scloud deploy
+
+  Preview the file tree that will be uploaded
+
+    $ scloud deploy --show-files
+
+  The output shows files that will be included in the deployment, as well as files that are ignored
+  (marked with "(ignored)").
+
+  This is useful for verifying that your .gitignore and .scloudignore files are working as expected.
+  You can combine it with --wet-run to preview the file tree without actually deploying:
+
+    $ scloud deploy --wet-run --show-files
+
+  Save the deployment zip file locally
+
+    $ scloud deploy --output deployment.zip --wet-run
+
+  Save the deployment zip and still upload it (unless --wet-run is set)
+
+    $ scloud deploy --output deployment.zip
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deploy
+
+```
+
+---
+
+# scloud deployment
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
+
+`scloud deployment` inspects existing deploys: list history, show status, view build logs. Use it after a deploy to confirm what shipped, watch one in progress, or debug a failure.
+
+For deploying new code, use [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md). For the deploy lifecycle and how to recover from a failed deploy, see [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) and [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
+## Usage
+
+```console
+Manage deployments.
+
+Usage: scloud deployment <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  build-log      View a deployment's build log.
+  build-secret   Manage build secrets.
+  list           List recent deployments.
+  show           Show the status of a deployment.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
+
+```
+
+### Sub commands
+
+#### `show`
+
+```console
+Show the status of a deployment.
+
+Usage: scloud deployment show [arguments]
+-h, --help                       Print this usage information.
+-p, --project (mandatory)        The ID of the project.
+                                 Can be omitted for existing projects that are linked or if a global
+                                 project context is set. See `scloud project link --help` and
+                                 `scloud context set --help`.
+-u, --[no-]utc                   Display timestamps in UTC timezone instead of local.
+    --deploy=<<uuid|integer>>    View a specific deployment, with uuid or sequence number, 0 for
+                                 latest. Can be passed as the first argument.
+                                 (defaults to "0")
+    --output-overall-status      View a deployment's overall status as a single word, one of:
+                                 success, failure, awaiting, running, cancelled, unknown.
+    --[no-]await                 Await the deployment to finish while showing status progression.
+                                 (defaults to on)
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Show the status of the latest deployment and wait for it to finish.
+
+    $ scloud deployment show
+
+
+  Show the status of the latest deployment without waiting for it to finish.
+
+    $ scloud deployment show --no-await
+
+
+  Show the status of a specific deployment by sequence number.
+
+    $ scloud deployment show 3
+
+
+  Show the status of a specific deployment by UUID.
+
+    $ scloud deployment show 550e8400-e29b-41d4-a716-446655440000
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
+
+```
+
+#### `list`
+
+```console
+List recent deployments.
+
+Usage: scloud deployment list [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --limit=<integer>        The maximum number of records to fetch.
+                             (defaults to "10")
+-u, --[no-]utc               Display timestamps in UTC timezone instead of local.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  List the 10 most recent deployments.
+
+    $ scloud deployment list
+
+
+  List the 20 most recent deployments.
+
+    $ scloud deployment list --limit 20
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
+
+```
+
+#### `build-log`
+
+```console
+View a deployment's build log.
+
+Usage: scloud deployment build-log [arguments]
+-h, --help                       Print this usage information.
+-p, --project (mandatory)        The ID of the project.
+                                 Can be omitted for existing projects that are linked or if a global
+                                 project context is set. See `scloud project link --help` and
+                                 `scloud context set --help`.
+-u, --[no-]utc                   Display timestamps in UTC timezone instead of local.
+    --deploy=<<uuid|integer>>    View a specific deployment, with uuid or sequence number, 0 for
+                                 latest. Can be passed as the first argument.
+                                 (defaults to "0")
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  View the build log of the latest deployment.
+
+    $ scloud deployment build-log
+
+
+  View the build log of a specific deployment by sequence number.
+
+    $ scloud deployment build-log 3
+
+
+  View the build log of a specific deployment by UUID.
+
+    $ scloud deployment build-log 550e8400-e29b-41d4-a716-446655440000
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
+
+```
+
+#### `build-secret`
+
+```console
+Manage build secrets.
+
+Build secrets are used to securely store sensitive information that needs to be
+available when building your server, for example SSH keys.
+
+Build secrets are not available at runtime.
+(See `scloud secret` for managing runtime secrets:
+https://docs.serverpod.dev/cloud/reference/cli/commands/secret)
+
+Usage: scloud deployment build-secret <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    List all build secrets.
+  set     Set a build secret (create or update).
+  unset   Remove a build secret.
+
+Run "scloud help" to see global options.
+
+Examples
+
+  List the current build secrets.
+
+    $ scloud deployment build-secret list
+
+  Add or modify a build secret.
+
+    $ scloud deployment build-secret set MY_SECRET_NAME "my-secret-value"
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
+
+```
+
+---
+
+# scloud domain
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/domain
+
+`scloud domain` attaches a custom domain to one of your project's surfaces (`web`, `api`, or `insights`), prints the DNS records to add at your registrar, and tracks verification + TLS provisioning.
+
+See [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md) for the attach flow, DNS record types for apex vs subdomain, propagation timing, and TLS details.
+
+## Usage
+
+```console
+Bring your own domain to Serverpod Cloud.
+
+Get started by attaching a custom domain to your project with the command:
+
+  $ scloud domain attach example.com <target> --project <project-id>
+
+The valid targets are:
+- api: Serverpod endpoints
+- insights: Serverpod insights
+- web: Relic server (e.g. REST API or a Flutter web app)
+
+
+Usage: scloud domain <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  attach   Attach a custom domain to your project.
+  detach   Detach a custom domain.
+  list     List all custom domains.
+  verify   Verify the DNS record for a custom domain.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/domain
+
+```
+
+### Sub commands
+
+#### `attach`
+
+```console
+Attach a custom domain to your project.
+
+You need to have a domain name and a DNS provider that supports
+TXT, CNAME and/or ANAME records.
+
+You can attach domains for each Serverpod server target.
+
+The valid targets are:
+- api: Serverpod endpoints
+- insights: Serverpod insights
+- web: Relic server (e.g. REST API or a Flutter web app)
+
+
+Usage: scloud domain attach [arguments]
+-h, --help                                     Print this usage information.
+-p, --project (mandatory)                      The ID of the project.
+                                               Can be omitted for existing projects that are linked
+                                               or if a global project context is set. See `scloud
+                                               project link --help` and `scloud context set --help`.
+    --name (mandatory)                         The custom domain name. Can be passed as the first
+                                               argument.
+-t, --target=<api|insights|web> (mandatory)    The Serverpod server target of the custom domain,
+                                               only one can be specified.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/domain
+
+```
+
+#### `list`
+
+```console
+List all custom domains.
+
+Usage: scloud domain list [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/domain
+
+```
+
+#### `detach`
+
+```console
+Detach a custom domain.
+
+Usage: scloud domain detach [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The custom domain name. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/domain
+
+```
+
+#### `verify`
+
+```console
+Verify the DNS record for a custom domain.
+
+Usage: scloud domain verify [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The custom domain name. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/domain
+
+```
+
+---
+
+# scloud help
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/help
+
+`scloud help` lists every available command with a short description. Run `scloud help <command>` to drill into one command's arguments and examples; every command also accepts `--help` directly.
+
+For options that apply to every command, see [Global options](https://docs.serverpod.dev/cloud/reference/cli/global_options.md).
+
+## Usage
+
+```console
+Display help information for scloud.
+
+Usage: scloud help [command]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+```
+
+---
+
+# scloud launch
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/launch
+
+`scloud launch` is the front door for new projects: it interactively creates a Serverpod Cloud project, links your local server to it, and deploys for the first time. The flow prompts for the project name, whether to enable a database, and confirms each step before performing it.
+
+Once your project is linked, you typically switch to `scloud deploy` for subsequent updates. For non-interactive project creation (no prompts), use `scloud project create` and pass the settings as flags.
+
+See [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md) for the full walkthrough.
+
+## Usage
+
+```console
+Common command to launch and deploy Serverpod Cloud projects.
+
+If there already is a Serverpod Cloud project near the current directory
+it will redeploy the project (upload, build, and rollout in the cloud).
+
+Otherwise it will guide you through setting up a new Serverpod Cloud project.
+
+
+Usage: scloud launch [arguments]
+-h, --help                       Print this usage information.
+-p, --project                    The ID of the project.
+    --[no-]pre-deploy-scripts    Set up pre-deploy scripts.
+                                 (defaults to on)
+    --dart-version               Overrides the Dart SDK version to use for building the project.
+
+Deployment options
+-c, --concurrency=<integer>      Number of concurrent files processed when zipping the project.
+                                 (defaults to "5")
+    --wet-run                    Perform every step except the deployment, leaving the hosted
+                                 application untouched. Local files and the cloud project setup may
+                                 still be modified.
+    --show-files                 Display the file tree that will be uploaded.
+-o, --output                     Save the deployment zip file to the specified path. Must end with
+                                 .zip
+    --[no-]await                 Await the deployment to finish while showing status progression.
+                                 (defaults to on)
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/launch
+
+```
+
+---
+
+# scloud log
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/log
+
+`scloud log` fetches the runtime logs from your deployed service. Use it to read recent activity, filter by time range (`--since` / `--until`), or stream new records as they arrive (`--tail`).
+
+See [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md) for the time-format options (duration strings, ISO 8601), how `--tail` interacts with `--since` / `--until`, and session-log configuration.
+
+## Usage
+
+```console
+Fetch Serverpod Cloud logs.
+
+Usage: scloud log [arguments]
+-h, --help                                                       Print this usage information.
+-p, --project (mandatory)                                        The ID of the project.
+                                                                 Can be omitted for existing
+                                                                 projects that are linked or if a
+                                                                 global project context is set. See
+                                                                 `scloud project link --help` and
+                                                                 `scloud context set --help`.
+    --limit=<integer>                                            The maximum number of log records
+                                                                 to fetch.
+                                                                 (defaults to "50")
+-u, --[no-]utc                                                   Display timestamps in UTC timezone
+                                                                 instead of local.
+    --until=<YYYY-MM-DDtHH:MM:SSz or duration[us|ms|s|m|h|d]>    Fetch records from before this
+                                                                 timestamp. Accepts ISO date (e.g.
+                                                                 "2024-01-15T10:30:00Z") or relative
+                                                                 from now (e.g. "5m", "3h", "1d").
+    --since=<YYYY-MM-DDtHH:MM:SSz or duration[us|ms|s|m|h|d]>    Fetch records from after this
+                                                                 timestamp. Accepts ISO date (e.g.
+                                                                 "2024-01-15T10:30:00Z") or relative
+                                                                 from now (e.g. "5m", "3h", "1d").
+                                                                 Can also be specified as the first
+                                                                 argument.
+    --tail                                                       Tail the log and get real time
+                                                                 updates.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  View the most recent logs (default limit is 50 records).
+
+    $ scloud log
+
+
+  View the most recent logs with UTC timestamps and a custom limit.
+
+    $ scloud log --utc --limit 100
+
+
+  Stream logs in real-time.
+
+    $ scloud log --tail
+
+
+  View logs from the last hour using duration.
+
+    $ scloud log 1h
+
+    $ scloud log --since 1h
+
+
+  View logs since a specific time using ISO date format:
+
+    $ scloud log --since 2025-01-15T14:00:00Z
+
+    $ scloud log --since "2025-01-15 14:00"
+
+    $ scloud log --since 2025-01-15
+
+
+  View logs in a time range using durations:
+
+    $ scloud log --since 1h --until 5m
+
+
+  View logs in a time range using ISO dates:
+
+    $ scloud log --since 2025-01-15 --until 2025-01-16
+
+
+  Mix ISO dates and durations:
+
+    $ scloud log --since 2025-01-15T14:00:00Z --until 30m
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/log
+
+```
+
+---
+
+# scloud me
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/me
+
+`scloud me` prints the user currently logged in to the CLI. Use it to confirm which account you're authenticated as before running a privileged command, or when sharing context with support.
+
+If the CLI isn't authenticated, the command exits with an error. Log in with [`scloud auth login`](https://docs.serverpod.dev/cloud/reference/cli/commands/auth.md).
+
+## Usage
+
+```console
+Show information about the current user.
+
+Usage: scloud me [arguments]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/me
+
+```
+
+---
+
+# scloud password
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/password
+
+`scloud password` manages encrypted password values your server reads through Serverpod's `getPassword()` API. Each password is stored under a `SERVERPOD_PASSWORD_` prefix that the CLI adds on `set` and that `getPassword()` strips on read.
+
+For the model (when to use passwords vs secrets vs variables, platform-managed defaults, and naming rules), see [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md).
+
+## Usage
+
+```console
+Manage Serverpod Cloud passwords.
+
+The passwords are automatically prefixed with SERVERPOD_PASSWORD_ and will be injected as
+environment variables.
+Passwords defined by this command can be accessed with the getPassword function.
+
+If you need to set a secret without the SERVERPOD_PASSWORD_ prefix, you can do so by using the
+secret set command.
+
+
+Usage: scloud password <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    List all passwords, both user-set and platform-managed.
+  set     Set a password.
+  unset   Unset a password, can only unset user-set passwords.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/password
+
+```
+
+### Sub commands
+
+#### `list`
+
+```console
+List all passwords, both user-set and platform-managed.
+
+  Passwords are grouped by category:
+  - Custom: User-defined passwords that are not part of the platform.
+  - Services: Passwords for services like databases, insights, etc.
+  - Auth: Passwords for authentication like JWT, email, for package serverpod_auth_idp_server.
+  - Legacy Auth: Passwords for the legacy authentication module.
+
+
+Usage: scloud password list [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/password
+
+```
+
+#### `set`
+
+```console
+Set a password.
+
+  Setting a platform-managed password will override the existing password.
+  The original password will not be lost and can be activated again by unsetting the password.
+
+
+Usage: scloud password set [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The name of the password (without SERVERPOD_PASSWORD_ prefix). Can be
+                             passed as the first argument.
+
+Value
+    --value                  The value of the password. Can be passed as the second argument.
+    --from-file              The name of the file with the password value.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/password
+
+```
+
+#### `unset`
+
+```console
+Unset a password, can only unset user-set passwords.
+
+Usage: scloud password unset [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The name of the password (without SERVERPOD_PASSWORD_ prefix). Can be
+                             passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/password
+
+```
+
+---
+
+# scloud project
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+`scloud project` creates and manages projects on Serverpod Cloud. For an interactive walkthrough that also deploys for the first time, use `scloud launch`.
+
+To create a project from the command line:
+
+```bash
+scloud project create my-project --enable-db
+```
+
+If the project doesn't need a database, pass `--no-enable-db` instead. Once created, deploy with [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md).
+
+## Link an existing project
+
+`scloud project link <project-id>` connects a local Serverpod codebase to an existing Cloud project. Use it when you've created the project in the Cloud console or when joining a teammate's project.
+
+The link command writes or updates three files in your local project directory:
+
+1. **`scloud.yaml`**: contains the project ID that ties your codebase to the Cloud project. Created in your server package directory (or the one specified with `--project-dir`).
+2. **`.scloudignore`**: created from a template if it doesn't exist; defines which files should be excluded when uploading to Cloud (syntax mirrors `.gitignore`).
+3. **`.gitignore`**: if your project is a workspace, the `.scloud/` directory is added to keep deployment artifacts out of version control.
+
+## Usage
+
+```console
+Manage Serverpod Cloud projects.
+
+Usage: scloud project <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  create   Create a Serverpod Cloud project.
+  delete   Delete a Serverpod Cloud project.
+  link     Link your local project to an existing Serverpod Cloud project.
+  list     List the Serverpod Cloud projects.
+
+Management
+  user     Manage Serverpod Cloud project users.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+### Sub commands
+
+#### `create`
+
+```console
+Create a Serverpod Cloud project.
+
+Usage: scloud project create [arguments]
+-h, --help                     Print this usage information.
+-p, --project (mandatory)      The ID of the project. Can be passed as the first argument.
+    --plan=<starter|growth>    Selects the plan to use.
+    --[no-]enable-db           Flag to enable the database for the project.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+#### `delete`
+
+```console
+Delete a Serverpod Cloud project.
+
+Usage: scloud project delete [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+#### `list`
+
+```console
+List the Serverpod Cloud projects.
+
+Usage: scloud project list [arguments]
+-h, --help    Print this usage information.
+    --all     Include deleted projects.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+#### `link`
+
+```console
+Link your local project to an existing Serverpod Cloud project.
+
+This command creates or updates the project configuration files in your local codebase to connect it
+to an existing Serverpod Cloud project. It will:
+  - Create or update the scloud.yaml configuration file with the project ID
+  - Create a .scloudignore file if it does not exist
+  - Update .gitignore to exclude the .scloud/ directory (if in a workspace)
+
+The scloud.yaml file contains the project ID and is used by other scloud commands to identify which
+Serverpod Cloud project to use. This file can be safely committed to version control as it only
+contains the project identifier, not sensitive credentials.
+
+Usage: scloud project link [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project. Can be passed as the first argument.
+    --dart-version           Overrides the Dart SDK version to use for building the project.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+#### `user`
+
+```console
+Manage Serverpod Cloud project users.
+
+Usage: scloud project user <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  invite   Invite a user to a Serverpod Cloud project.
+  list     List users in a Serverpod Cloud project.
+  revoke   Revoke a user from a Serverpod Cloud project.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+---
+
+# scloud secret
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/secret
+
+`scloud secret` stores sensitive values that your server reads from `Platform.environment` (rather than through Serverpod's `getPassword()` API). Secrets are encrypted at rest and injected as environment variables under names you choose.
+
+For values you read through Serverpod's API, use [`scloud password`](https://docs.serverpod.dev/cloud/reference/cli/commands/password.md). For non-sensitive config, use [`scloud variable`](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md). See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for when to use which.
+
+## Usage
+
+```console
+Manage Serverpod Cloud secrets.
+
+Usage: scloud secret <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    List all secrets.
+  set     Set a secret (create or update).
+  unset   Remove a secret.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/secret
+
+```
+
+### Sub commands
+
+#### `set`
+
+```console
+Set a secret (create or update).
+
+Usage: scloud secret set [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The name of the secret. Can be passed as the first argument.
+
+Value
+    --value                  The value of the secret. Can be passed as the second argument.
+    --from-file              The name of the file with the secret value.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/secret
+
+```
+
+#### `list`
+
+```console
+List all secrets.
+
+Usage: scloud secret list [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/secret
+
+```
+
+#### `unset`
+
+```console
+Remove a secret.
+
+Usage: scloud secret unset [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The name of the secret. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/secret
+
+```
+
+---
+
+# scloud settings
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/settings
+
+`scloud settings` manages local CLI preferences stored on your machine. The settings persist across commands and only affect this CLI installation; they don't change anything about your Cloud projects. The current setting toggles whether the CLI sends analytics.
+
+## Usage
+
+```console
+Manage local CLI user settings.
+
+Usage: scloud settings [arguments]
+-h, --help              Print this usage information.
+    --[no-]analytics    Toggles if analytics data is sent.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/settings
+
+```
+
+---
+
+# scloud variable
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/variable
+
+`scloud variable` manages plaintext environment variables for non-sensitive configuration (URLs, feature flags, log levels). Variables are visible in the CLI and the Cloud console; for sensitive values, use `scloud secret` or `scloud password` instead.
+
+See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for the tier comparison, naming rules, and size limits.
+
+## Usage
+
+```console
+Manage Serverpod Cloud environment variables for a project.
+
+Usage: scloud variable <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    Lists all environment variables for the project.
+  set     Set an environment variable (create or update).
+  unset   Remove an environment variable.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/variable
+
+```
+
+### Sub commands
+
+#### `list`
+
+```console
+Lists all environment variables for the project.
+
+Usage: scloud variable list [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/variable
+
+```
+
+#### `set`
+
+```console
+Set an environment variable (create or update).
+
+Usage: scloud variable set [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The name of the environment variable. Can be passed as the first
+                             argument.
+
+Value
+    --value                  The value of the environment variable. Can be passed as the second
+                             argument.
+    --from-file              The name of the file with the environment variable value.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Set an environment variable called SERVICE_EMAIL to support@example.com.
+
+    $ scloud variable set SERVICE_EMAIL support@example.com
+
+  To set the variable from a file, use the --from-file option.
+  The full content of the file will be used as the value.
+
+    $ scloud variable set SERVICE_EMAIL --from-file email.txt
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/variable
+
+```
+
+#### `unset`
+
+```console
+Remove an environment variable.
+
+Usage: scloud variable unset [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked or if a global
+                             project context is set. See `scloud project link --help` and `scloud
+                             context set --help`.
+    --name (mandatory)       The name of the environment variable. Can be passed as the first
+                             argument.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Remove an environment variable called SERVICE_EMAIL.
+
+    $ scloud variable unset SERVICE_EMAIL
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/variable
+
+```
+
+---
+
+# scloud version
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/version
+
+`scloud version` prints the version of the Serverpod Cloud CLI you have installed. Include the version when reporting a bug or asking for help, so the response can target your build.
+
+To update to the latest version, see [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+
+## Usage
+
+```console
+Prints the version of the Serverpod Cloud CLI.
+
+Usage: scloud version [arguments]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/version
+
+```

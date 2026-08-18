@@ -1,0 +1,203 @@
+# Configurations
+
+https://docs.serverpod.dev/2.8.0/concepts/configuration
+
+Serverpod can be configured in a few different ways. The minimum required settings to provide is the configuration for the API server. If no settings are provided at all, the default settings for the API server are used.
+
+## Configuration options
+
+There are three different ways to configure Serverpod: with environment variables, via yaml config files, or by supplying the dart configuration object to the Serverpod constructor. The environment variables take precedence over the yaml configurations but both can be used simultaneously. The dart configuration object will override any environment variable or config file. The tables show all available configuration options provided in the Serverpod core library.
+
+```mermaid
+flowchart TB
+    %% ── widest box first so YAML feels like the default bedrock
+    A["YAML config files<br/>(default)"]:::yaml
+    B["Environment variables<br/>(overrides YAML)"]:::env
+    C["Dart configuration object<br/>(overrides YAML and ENV)"]:::dart
+
+    A --> B
+    B --> C
+
+    %% Styles (optional – tweak to your theme)
+  class A yaml
+    class B env
+    class C dart
+```
+
+### Configuration options for the server
+
+These can be separately declared for each run mode in the corresponding yaml file (`development.yaml`,`staging.yaml`, `production.yaml` and `testing.yaml`) or as environment variables.
+
+| Environment variable                         | Config file                   | Default   | Description                                                                                                                                           |
+| -------------------------------------------- | ----------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SERVERPOD\_API\_SERVER\_PORT                 | apiServer.port                | 8080      | The port number for the API server                                                                                                                    |
+| SERVERPOD\_API\_SERVER\_PUBLIC\_HOST         | apiServer.publicHost          | localhost | The public host address of the API server                                                                                                             |
+| SERVERPOD\_API\_SERVER\_PUBLIC\_PORT         | apiServer.publicPort          | 8080      | The public port number for the API server                                                                                                             |
+| SERVERPOD\_API\_SERVER\_PUBLIC\_SCHEME       | apiServer.publicScheme        | http      | The public scheme (http/https) for the API server                                                                                                     |
+| SERVERPOD\_INSIGHTS\_SERVER\_PORT            | insightsServer.port           | -         | The port number for the Insights server                                                                                                               |
+| SERVERPOD\_INSIGHTS\_SERVER\_PUBLIC\_HOST    | insightsServer.publicHost     | -         | The public host address of the Insights server                                                                                                        |
+| SERVERPOD\_INSIGHTS\_SERVER\_PUBLIC\_PORT    | insightsServer.publicPort     | -         | The public port number for the Insights server                                                                                                        |
+| SERVERPOD\_INSIGHTS\_SERVER\_PUBLIC\_SCHEME  | insightsServer.publicScheme   | -         | The public scheme (http/https) for the Insights server                                                                                                |
+| SERVERPOD\_WEB\_SERVER\_PORT                 | webServer.port                | -         | The port number for the Web server                                                                                                                    |
+| SERVERPOD\_WEB\_SERVER\_PUBLIC\_HOST         | webServer.publicHost          | -         | The public host address of the Web server                                                                                                             |
+| SERVERPOD\_WEB\_SERVER\_PUBLIC\_PORT         | webServer.publicPort          | -         | The public port number for the Web server                                                                                                             |
+| SERVERPOD\_WEB\_SERVER\_PUBLIC\_SCHEME       | webServer.publicScheme        | -         | The public scheme (http/https) for the Web server                                                                                                     |
+| SERVERPOD\_DATABASE\_HOST                    | database.host                 | -         | The host address of the database                                                                                                                      |
+| SERVERPOD\_DATABASE\_PORT                    | database.port                 | -         | The port number for the database connection                                                                                                           |
+| SERVERPOD\_DATABASE\_NAME                    | database.name                 | -         | The name of the database                                                                                                                              |
+| SERVERPOD\_DATABASE\_USER                    | database.user                 | -         | The user name for database authentication                                                                                                             |
+| SERVERPOD\_DATABASE\_SEARCH\_PATHS           | database.searchPaths          | -         | The search paths used for all database connections                                                                                                    |
+| SERVERPOD\_DATABASE\_REQUIRE\_SSL            | database.requireSsl           | false     | Indicates if SSL is required for the database                                                                                                         |
+| SERVERPOD\_DATABASE\_IS\_UNIX\_SOCKET        | database.isUnixSocket         | false     | Specifies if the database connection is a Unix socket                                                                                                 |
+| SERVERPOD\_REDIS\_HOST                       | redis.host                    | -         | The host address of the Redis server                                                                                                                  |
+| SERVERPOD\_REDIS\_PORT                       | redis.port                    | -         | The port number for the Redis server                                                                                                                  |
+| SERVERPOD\_REDIS\_USER                       | redis.user                    | -         | The user name for Redis authentication                                                                                                                |
+| SERVERPOD\_REDIS\_ENABLED                    | redis.enabled                 | false     | Indicates if Redis is enabled                                                                                                                         |
+| SERVERPOD\_REDIS\_REQUIRE\_SSL               | redis.requireSsl              | false     | Indicates if SSL is required for the Redis connection                                                                                                 |
+| SERVERPOD\_MAX\_REQUEST\_SIZE                | maxRequestSize                | 524288    | The maximum size of requests allowed in bytes                                                                                                         |
+| SERVERPOD\_SESSION\_PERSISTENT\_LOG\_ENABLED | sessionLogs.persistentEnabled | -         | Enables or disables logging session data to the database. Defaults to `true` if a database is configured, otherwise `false`.                          |
+| SERVERPOD\_SESSION\_CONSOLE\_LOG\_ENABLED    | sessionLogs.consoleEnabled    | -         | Enables or disables logging session data to the console. Defaults to `true` if no database is configured, otherwise `false`.                          |
+| SERVERPOD\_SESSION\_CONSOLE\_LOG\_FORMAT     | sessionLogs.consoleLogFormat  | json      | The format for console logging of session data. Valid options are `text` and `json`. Defaults to `text` for run mode `development`, otherwise `json`. |
+| SERVERPOD\_FUTURE\_CALL\_EXECUTION\_ENABLED  | futureCallExecutionEnabled    | true      | Enables or disables the execution of future calls.                                                                                                    |
+| SERVERPOD\_FUTURE\_CALL\_CONCURRENCY\_LIMIT  | futureCall.concurrencyLimit   | 1         | The maximum number of concurrent future calls allowed. If the value is negative or null, no limit is applied.                                         |
+| SERVERPOD\_FUTURE\_CALL\_SCAN\_INTERVAL      | futureCall.scanInterval       | 5000      | The interval in milliseconds for scanning future calls                                                                                                |
+
+| Environment variable  | Command line option | Default | Description                               |
+| --------------------- | ------------------- | ------- | ----------------------------------------- |
+| SERVERPOD\_SERVER\_ID | `--server-id`       | default | Configures the id of the server instance. |
+
+### Secrets
+
+Secrets are declared in the `passwords.yaml` file. The password file is structured with a common `shared` section, any secret put here will be used in all run modes. The other sections are the names of the run modes followed by respective key/value pairs.
+
+| Environment variable          | Passwords file | Default | Description                                                       |
+| ----------------------------- | -------------- | ------- | ----------------------------------------------------------------- |
+| SERVERPOD\_DATABASE\_PASSWORD | database       | -       | The password for the database                                     |
+| SERVERPOD\_SERVICE\_SECRET    | serviceSecret  | -       | The token used to connect with insights must be at least 20 chars |
+| SERVERPOD\_REDIS\_PASSWORD    | redis          | -       | The password for the Redis server                                 |
+
+#### Secrets for first party packages
+
+- [serverpod\_cloud\_storage\_gcp](https://pub.dev/packages/serverpod_cloud_storage_gcp): Google Cloud Storage
+- [serverpod\_cloud\_storage\_s3](https://pub.dev/packages/serverpod_cloud_storage_s3): Amazon S3
+
+| Environment variable             | Passwords file  | Default | Description                                                                  |
+| -------------------------------- | --------------- | ------- | ---------------------------------------------------------------------------- |
+| SERVERPOD\_HMAC\_ACCESS\_KEY\_ID | HMACAccessKeyId | -       | The access key ID for HMAC authentication for serverpod\_cloud\_storage\_gcp |
+| SERVERPOD\_HMAC\_SECRET\_KEY     | HMACSecretKey   | -       | The secret key for HMAC authentication for serverpod\_cloud\_storage\_gcp    |
+| SERVERPOD\_AWS\_ACCESS\_KEY\_ID  | AWSAccessKeyId  | -       | The access key ID for AWS authentication for serverpod\_cloud\_storage\_s3   |
+| SERVERPOD\_AWS\_SECRET\_KEY      | AWSSecretKey    | -       | The secret key for AWS authentication for serverpod\_cloud\_storage\_s3      |
+
+### Config file example
+
+The config file should be named after the run mode you start the server in and it needs to be placed inside the `config` directory in the root of the server project. As an example, you have the `config/development.yaml` that will be used when running in the `development` run mode.
+
+```yaml
+apiServer:
+  port: 8080
+  publicHost: localhost
+  publicPort: 8080
+  publicScheme: http
+
+insightsServer:
+  port: 8081
+  publicHost: localhost
+  publicPort: 8081
+  publicScheme: http
+
+webServer:
+  port: 8082
+  publicHost: localhost
+  publicPort: 8082
+  publicScheme: http
+
+database:
+  host: localhost
+  port: 8090
+  name: database_name
+  user: postgres
+
+redis:
+  enabled: false
+  host: localhost
+  port: 8091
+
+maxRequestSize: 524288
+
+sessionLogs:
+  persistentEnabled: true
+  consoleEnabled: true
+  consoleLogFormat: json
+
+futureCallExecutionEnabled: true
+
+futureCall:
+  concurrencyLimit: 5
+  scanInterval: 2000
+```
+
+### Passwords file example
+
+The password file contains the secrets used by the server to connect to different services but you can also supply your secrets if you want. This file is structured with a common `shared` section, any secret put here will be used in all run modes. The other sections are the names of the run modes followed by respective key/value pairs.
+
+```yaml
+shared:
+  myCustomSharedSecret: 'secret_key'
+
+development:
+  database: 'development_password'
+  redis: 'development_password'
+  serviceSecret: 'development_service_secret'
+
+production:
+  database: 'production_password'
+  redis: 'production_password'
+  serviceSecret: 'production_service_secret'
+```
+
+### Dart config object example
+
+To configure Serverpod in Dart you simply pass an instance of the `ServerpodConfig` class to the `Serverpod` constructor. This config will override any environment variables or config files present. The `Serverpod` constructor is normally used inside the `run` function in your `server.dart` file. At a minimum, the `apiServer` has to be provided.
+
+```dart
+Serverpod(
+  args,
+  Protocol(),
+  Endpoints(),
+  config: ServerpodConfig(
+    apiServer: ServerConfig(
+      port: 8080,
+      publicHost: 'localhost',
+      publicPort: 8080,
+      publicScheme: 'http',
+    ),
+    insightsServer: ServerConfig(
+      port: 8081,
+      publicHost: 'localhost',
+      publicPort: 8081,
+      publicScheme: 'http',
+    ),
+    webServer: ServerConfig(
+      port: 8082,
+      publicHost: 'localhost',
+      publicPort: 8082,
+      publicScheme: 'http',
+    ),
+  ),
+);
+```
+
+### Default
+
+If no yaml config files exist, no environment variables are configured and no dart config file is supplied this default configuration will be used.
+
+```dart
+ServerpodConfig(
+  apiServer: ServerConfig(
+    port: 8080,
+    publicHost: 'localhost',
+    publicPort: 8080,
+    publicScheme: 'http',
+  ),
+);
+```
