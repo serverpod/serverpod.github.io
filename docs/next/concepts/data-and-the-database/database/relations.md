@@ -19,7 +19,7 @@ Relations are declared in the model file with the `relation` keyword. There are 
 | [Self-relations](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/self-relations.md)  | Rows relate to rows in the same table.                               | A `Cat` linking to its mother and kittens.     |
 | [Relations with modules](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/modules.md) | Your tables relate to a module's tables, such as the signed-in user. | A `UserProfile` attached to an `AuthUser`.     |
 
-Whatever the shape, [Referential actions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/referential-actions.md) control what happens to related rows when the row they point to is deleted or its id changes.
+Whatever the shape, [Referential actions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/referential-actions.md) control what happens to related rows when the row they point to is deleted or its id changes, and [Deferrable constraints](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/deferrable-constraints.md) control when the foreign key is checked.
 
 ## Related
 
