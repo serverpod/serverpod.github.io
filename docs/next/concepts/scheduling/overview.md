@@ -30,7 +30,6 @@ Which servers run future calls depends on their role, the mode a server is start
 - **[Recurring tasks](https://docs.serverpod.dev/next/concepts/scheduling/recurring-tasks.md)**: run a call on a repeating cron or interval schedule.
 - **[Inheritance](https://docs.serverpod.dev/next/concepts/scheduling/inheritance.md)**: extend future calls from other classes and modules.
 - **[Configuration](https://docs.serverpod.dev/next/concepts/scheduling/configuration.md)**: set concurrency, the scan interval, and broken-call handling.
-- **[Legacy](https://docs.serverpod.dev/next/concepts/scheduling/legacy.md)**: the older string-based API, kept for existing code.
 
 ## Related
 
