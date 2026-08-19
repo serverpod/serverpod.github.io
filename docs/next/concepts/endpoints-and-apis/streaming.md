@@ -187,7 +187,7 @@ messages.listen((message) {
 await client.chat.postToRoom(roomId, 'Hello, room!');
 ```
 
-Because the channel name includes the `roomId`, each client receives updates only for the room it is watching. The same pattern works for any filter: scope the channel by the id or query you care about, and post to it whenever the data changes. To fan the updates out across multiple server instances, post with `global: true` (see [Global messages](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/server-events.md#global-messages)).
+Because the channel name includes the `roomId`, each client receives updates only for the room it is watching. The same pattern works for any filter: scope the channel by the id or query you care about, and post to it whenever the data changes. To fan the updates out across multiple server instances, enable Redis (see [Message scope](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/server-events.md#message-scope)).
 
 ## Streaming endpoints (deprecated)
 
