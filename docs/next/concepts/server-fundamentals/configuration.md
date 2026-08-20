@@ -126,8 +126,6 @@ To configure Serverpod in Dart, pass an instance of the `ServerpodConfig` class 
 ```dart
 Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   config: ServerpodConfig(
     apiServer: ServerConfig(
       port: 8080,

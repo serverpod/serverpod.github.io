@@ -20,7 +20,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.308de3ec.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.bf3bf3af.js" defer="defer"></script>
 <script src="/assets/js/main.be613c61.js" defer="defer"></script>
 </head>
 <body>
@@ -117,6 +117,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="whats-new-in-40">What&#x27;s new in 4.0<a href="#whats-new-in-40" class="hash-link" aria-label="Direct link to What&#x27;s new in 4.0" title="Direct link to What&#x27;s new in 4.0" translate="no">​</a></h2>
 <ul>
 <li class=""><strong><code>serverpod start</code> TUI</strong>: hot reload on save, <strong>R</strong> to hot restart, <strong>M</strong> to create and apply a migration, <strong>P</strong> to create and apply a repair migration.</li>
+<li class=""><strong>Simplified server initialization</strong> with the generated <code>Serverpod</code> class that pre-wires <code>Protocol</code> and <code>Endpoints</code>, so <code>server.dart</code> needs only <code>Serverpod(args)</code>. Projects that keep their existing imports can stay on <code>Serverpod(args, Protocol(), Endpoints())</code>.</li>
 <li class=""><strong>Flutter app spawning</strong> from <code>serverpod start</code> so the Flutter app runs alongside the server in the same TUI.</li>
 <li class=""><strong>AI agent skills and MCP servers</strong> scaffolded during <code>serverpod create</code>; existing projects opt in by running <code>serverpod create .</code>.</li>
 <li class=""><strong>Embedded Postgres</strong>: zero-Docker development via <code>dataPath</code>.</li>

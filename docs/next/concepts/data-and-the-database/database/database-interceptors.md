@@ -9,8 +9,6 @@ Register the interceptor when you construct `Serverpod`:
 ```dart
 var pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   databaseInterceptor: (session, inner) {
     session.log('Created a database layer for this session.');
     return inner;
@@ -27,8 +25,6 @@ To intercept the operations themselves, return your own implementation of the `D
 ```dart
 var pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   databaseInterceptor: (session, inner) {
     return PolicyDatabase(
       session: session,

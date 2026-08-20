@@ -17,8 +17,6 @@ Handlers are registered through the `experimentalFeatures` argument on the `Serv
 ```dart
 var pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   experimentalFeatures: ExperimentalFeatures(
     diagnosticEventHandlers: [
       AsEventHandler((event, {required space, required context}) {
