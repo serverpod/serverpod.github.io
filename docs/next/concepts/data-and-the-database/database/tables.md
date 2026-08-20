@@ -2,7 +2,7 @@
 
 https://docs.serverpod.dev/next/concepts/data-and-the-database/database/tables
 
-Storing a [data model](https://docs.serverpod.dev/next/concepts/data-and-the-database/models.md) in the database takes one line: add the `table` key to its model file, and the class gains a generated `db` field with typed methods for reading and writing rows. From there the path is short: create and apply a [migration](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/migrations.md) (press **M** then **A** in the `serverpod start` terminal), then call the [CRUD methods](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/crud.md) from your endpoints. The rest of this page covers what the table definition itself can do.
+Storing a [data model](https://docs.serverpod.dev/next/concepts/data-and-the-database/models.md) in the database takes one line: add the `table` key to its model file, and the class gains a generated `db` field with typed methods for reading and writing rows. From there the path is short: create and apply a [migration](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/migrations.md) (press **M** in the `serverpod start` terminal), then call the [CRUD methods](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/crud.md) from your endpoints. The rest of this page covers what the table definition itself can do.
 
 ```yaml
 class: Company

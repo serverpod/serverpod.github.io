@@ -20,7 +20,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.74a216f7.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.308de3ec.js" defer="defer"></script>
 <script src="/assets/js/main.be613c61.js" defer="defer"></script>
 </head>
 <body>
@@ -44,9 +44,9 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="manage-migrations-from-the-terminal">Manage migrations from the terminal<a href="#manage-migrations-from-the-terminal" class="hash-link" aria-label="Direct link to Manage migrations from the terminal" title="Direct link to Manage migrations from the terminal" translate="no">​</a></h2>
 <p>On the first boot of a session, <code>serverpod start</code> applies any pending migrations. While it runs, you handle further schema changes from the terminal without leaving the session:</p>
 <ul>
-<li class=""><strong>M</strong> creates a migration from your current model changes.</li>
-<li class=""><strong>A</strong> applies pending migrations to the database.</li>
-<li class=""><strong>P</strong> creates a repair migration to reconcile a database that has drifted from your migrations. This shortcut is not shown in the bottom bar; press <strong>H</strong> to see it listed.</li>
+<li class=""><strong>M</strong> creates a migration from your current model changes and applies it.</li>
+<li class=""><strong>P</strong> creates a repair migration to reconcile a database that has drifted from your migrations, and applies it. This shortcut is not shown in the bottom bar; press <strong>H</strong> to see it listed.</li>
+<li class=""><strong>A</strong> applies pending migrations. Use it to retry after a failed apply.</li>
 </ul>
 <p>Hold <strong>Shift</strong> with <strong>M</strong> or <strong>P</strong> to force the migration: it is created even when there are no changes to record, and even when Serverpod warns that information may be destroyed, so force deliberately. For how migrations work, see <a class="" href="/next/concepts/data-and-the-database/database/migrations">Migrations</a>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="choose-a-run-mode">Choose a run mode<a href="#choose-a-run-mode" class="hash-link" aria-label="Direct link to Choose a run mode" title="Direct link to Choose a run mode" translate="no">​</a></h2>

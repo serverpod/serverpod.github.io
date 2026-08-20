@@ -20,7 +20,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.74a216f7.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.308de3ec.js" defer="defer"></script>
 <script src="/assets/js/main.be613c61.js" defer="defer"></script>
 </head>
 <body>
@@ -42,8 +42,7 @@
 <p>Changing the schema requires a <a class="" href="/next/concepts/data-and-the-database/database/migrations">migration</a>: a set of SQL steps that bring the database up to date with your models. The <code>serverpod start</code> terminal has shortcuts for this, listed along the bottom. With that terminal focused:</p>
 <p><img decoding="async" loading="lazy" alt="serverpod start tui" src="/assets/images/tui-logs-5557d13d8be343bb370f77a798974cc3.png" width="2674" height="1694" class="img_ev3q"></p>
 <ul>
-<li class="">Press <strong>M</strong> to create the migration from your model change.</li>
-<li class="">Press <strong>A</strong> to apply it, which creates the <code>recipes</code> table in your database.</li>
+<li class="">Press <strong>M</strong> to create the migration and apply it, which creates the <code>recipes</code> table in your database.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="save-recipes-to-the-database">Save recipes to the database<a href="#save-recipes-to-the-database" class="hash-link" aria-label="Direct link to Save recipes to the database" title="Direct link to Save recipes to the database" translate="no">​</a></h2>
 <p>Now that <code>Recipe</code> is a table, you can write rows. In <code>recipe_endpoint.dart</code>, save the generated recipe before returning it. Replace the <code>return Recipe(...)</code> you added earlier with:</p>

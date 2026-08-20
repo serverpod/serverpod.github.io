@@ -38,8 +38,7 @@ Changing the schema requires a [migration](https://docs.serverpod.dev/next/conce
 
 ![serverpod start tui](https://docs.serverpod.dev/img/getting-started/tui-logs.png)
 
-- Press **M** to create the migration from your model change.
-- Press **A** to apply it, which creates the `recipes` table in your database.
+- Press **M** to create the migration and apply it, which creates the `recipes` table in your database.
 
 ## Save recipes to the database
 

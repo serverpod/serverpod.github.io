@@ -20,7 +20,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.74a216f7.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.308de3ec.js" defer="defer"></script>
 <script src="/assets/js/main.be613c61.js" defer="defer"></script>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">dart pub get</span><br></div></code></pre></div></div>
 <p>Start the server, which regenerates your code so the module&#x27;s endpoints and models become part of your server and client:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod start</span><br></div></code></pre></div></div>
-<p>The module adds tables to your database, so create and apply a migration: in the <code>serverpod start</code> terminal, press <strong>M</strong> to create the migration, then <strong>A</strong> to apply it.</p>
+<p>The module adds tables to your database, so create and apply a migration: in the <code>serverpod start</code> terminal, press <strong>M</strong>.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="add-the-client-package">Add the client package<a href="#add-the-client-package" class="hash-link" aria-label="Direct link to Add the client package" title="Direct link to Add the client package" translate="no">​</a></h3>
 <p>In your client&#x27;s <code>pubspec.yaml</code>, add the module&#x27;s generated client package:</p>
 <div class="language-yaml codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_OeMC">myproject_client/pubspec.yaml</div><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-yaml codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token key atrule" style="color:#00a4db">dependencies</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token key atrule" style="color:#00a4db">serverpod_auth_idp_client</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> 4.0.0</span><span class="token punctuation" style="color:#393A34">-</span><span class="token plain">beta.0</span><br></div></code></pre></div></div>
