@@ -14,14 +14,13 @@ A Serverpod Session should not be confused with the concept of "web sessions" or
 
 Serverpod creates a session for every unit of work it runs, and the type reflects what triggered it. You will see these names in your [logs](https://docs.serverpod.dev/next/concepts/operations/logging.md) and in Insights when tracing a call:
 
-| Type                    | Created for                                                                                                                                                                | Lifetime            | Typical uses                |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | --------------------------- |
-| **MethodCallSession**   | `Future` [endpoint methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis.md)                                                                                | Single request      | API calls, CRUD operations  |
-| **WebCallSession**      | [Web server](https://docs.serverpod.dev/next/concepts/web-server/overview.md) routes                                                                                       | Single request      | Web pages, form submissions |
-| **MethodStreamSession** | [Streaming methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md)                                                                              | Stream duration     | Real-time updates, chat     |
-| **StreamingSession**    | WebSocket connections of the [deprecated streaming endpoints API](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md#streaming-endpoints-deprecated) | Connection duration | Legacy real-time code       |
-| **FutureCallSession**   | [Scheduled tasks](https://docs.serverpod.dev/next/concepts/scheduling/overview.md)                                                                                         | Task execution      | Email sending, batch jobs   |
-| **InternalSession**     | [Manual creation](#create-a-session-for-background-work)                                                                                                                   | Until closed        | Background work, migrations |
+| Type                    | Created for                                                                                   | Lifetime        | Typical uses                |
+| ----------------------- | --------------------------------------------------------------------------------------------- | --------------- | --------------------------- |
+| **MethodCallSession**   | `Future` [endpoint methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis.md)   | Single request  | API calls, CRUD operations  |
+| **WebCallSession**      | [Web server](https://docs.serverpod.dev/next/concepts/web-server/overview.md) routes          | Single request  | Web pages, form submissions |
+| **MethodStreamSession** | [Streaming methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md) | Stream duration | Real-time updates, chat     |
+| **FutureCallSession**   | [Scheduled tasks](https://docs.serverpod.dev/next/concepts/scheduling/overview.md)            | Task execution  | Email sending, batch jobs   |
+| **InternalSession**     | [Manual creation](#create-a-session-for-background-work)                                      | Until closed    | Background work, migrations |
 
 You rarely choose a type yourself: your endpoint methods receive the right one, and manual creation always produces an `InternalSession`.
 

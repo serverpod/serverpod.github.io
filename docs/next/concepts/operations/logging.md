@@ -4,12 +4,11 @@ https://docs.serverpod.dev/next/concepts/operations/logging
 
 Logging is how you find out what your server did after it did it: which calls ran, which queries were slow, and what failed. Serverpod records this for you, and you add your own messages on top.
 
-There are four kinds of record, and the difference matters for everything below:
+There are three kinds of record, and the difference matters for everything below:
 
 - **Session records** describe one unit of work, such as an endpoint call: how long it took, whether it failed, and which endpoint it hit.
 - **Query records** describe individual database queries run during that session.
 - **Log messages** are the entries you write yourself with `session.log`.
-- **Stream messages** are the messages passed by [streaming](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md) sessions.
 
 ## Write your own messages
 
@@ -36,16 +35,15 @@ Messages are collected while the session runs and written when it closes, whethe
 
 Records are written to the database, to the console, to both, or to neither.
 
-In the database they land in four tables:
+In the database they land in three tables:
 
-| Table                   | Holds                                    |
-| ----------------------- | ---------------------------------------- |
-| `serverpod_session_log` | One row per completed session.           |
-| `serverpod_log`         | Your `session.log` messages.             |
-| `serverpod_query_log`   | Database queries.                        |
-| `serverpod_message_log` | Stream messages from streaming sessions. |
+| Table                   | Holds                          |
+| ----------------------- | ------------------------------ |
+| `serverpod_session_log` | One row per completed session. |
+| `serverpod_log`         | Your `session.log` messages.   |
+| `serverpod_query_log`   | Database queries.              |
 
-The last three reference the session row, so deleting a session row removes its queries and messages with it.
+The last two reference the session row, so deleting a session row removes its queries with it.
 
 :::info
 The companion app [Serverpod Insights](https://docs.serverpod.dev/next/tools/insights.md) reads and searches these tables, and can change the runtime settings described below.
@@ -55,7 +53,7 @@ The companion app [Serverpod Insights](https://docs.serverpod.dev/next/tools/ins
 
 Not every session produces a row, and the default depends on the run mode.
 
-In `development`, every completed session is recorded. In `staging`, `production`, and `test`, a session is recorded only when it ran longer than one second, it failed, or it produced a log, query, or message entry. Ordinary fast calls leave no row, which keeps the table to the sessions worth looking at.
+In `development`, every completed session is recorded. In `staging`, `production`, and `test`, a session is recorded only when it ran longer than one second, it failed, or it produced a log or query entry. Ordinary fast calls leave no row, which keeps the table to the sessions worth looking at.
 
 These thresholds are runtime settings stored in the `serverpod_runtime_settings` table, so you can change them on a running server through Insights without redeploying. They control whether all sessions are logged, whether all queries are logged, what counts as slow, and the minimum level a message must have to be kept. You can also override them per endpoint and per method.
 
@@ -96,7 +94,7 @@ Every environment variable in the table takes a real value. Setting one to an em
 
 ## Purge old records
 
-Log tables grow with every call your server handles, so Serverpod can delete old records for you. Cleanup runs on the `cleanupInterval`, and removes session rows that are either older than `retentionPeriod` or beyond the newest `retentionCount`, whichever applies first. Deleting a session row takes its query, message, and log rows with it.
+Log tables grow with every call your server handles, so Serverpod can delete old records for you. Cleanup runs on the `cleanupInterval`, and removes session rows that are either older than `retentionPeriod` or beyond the newest `retentionCount`, whichever applies first. Deleting a session row takes its query and log rows with it.
 
 | Setting           | Environment variable                     | Default                  |
 | ----------------- | ---------------------------------------- | ------------------------ |
