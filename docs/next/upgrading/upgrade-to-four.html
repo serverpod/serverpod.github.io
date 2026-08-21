@@ -20,7 +20,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.7289275a.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.82821cdc.js" defer="defer"></script>
 <script src="/assets/js/main.be613c61.js" defer="defer"></script>
 </head>
 <body>
@@ -70,9 +70,8 @@
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="choose-your-data-store">Choose your data store<a href="#choose-your-data-store" class="hash-link" aria-label="Direct link to Choose your data store" title="Direct link to Choose your data store" translate="no">​</a></h3>
 <p>You have two paths. Pick the one that fits where you are today; both work with <code>serverpod start</code>.</p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="keep-your-docker-postgres-easiest-upgrade">Keep your Docker Postgres (easiest upgrade)<a href="#keep-your-docker-postgres-easiest-upgrade" class="hash-link" aria-label="Direct link to Keep your Docker Postgres (easiest upgrade)" title="Direct link to Keep your Docker Postgres (easiest upgrade)" translate="no">​</a></h4>
-<p>If you&#x27;ve been developing against a Docker Postgres on 3.4, you can keep it without changing your config. Pass <code>--docker</code> to <code>serverpod start</code> so it uses your existing <code>docker-compose.yaml</code>:</p>
-<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ serverpod start </span><span class="token parameter variable" style="color:#36acaa">--docker</span><br></div></code></pre></div></div>
-<p>With <code>--docker</code>, <code>serverpod start</code> brings up Docker if it isn&#x27;t running, and tears down the compose stack on exit if the command brought it up.</p>
+<p>If you&#x27;ve been developing against a Docker Postgres on 3.4, you can keep it without changing your config.</p>
+<p>On projects whose config points at a Postgres on <code>localhost</code> with no <code>dataPath</code>, <code>serverpod start</code> brings up the <code>docker-compose</code> stack if it isn&#x27;t running, and tears it down on exit if the command brought it up.</p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="switch-to-the-embedded-postgres-recommended-for-new-development">Switch to the embedded Postgres (recommended for new development)<a href="#switch-to-the-embedded-postgres-recommended-for-new-development" class="hash-link" aria-label="Direct link to Switch to the embedded Postgres (recommended for new development)" title="Direct link to Switch to the embedded Postgres (recommended for new development)" translate="no">​</a></h4>
 <p>Version 4.0 ships a built-in Postgres that runs as a child process of your Dart server, using the same Postgres dialect as production. It has practical advantages over Docker for day-to-day development:</p>
 <p><strong>Pros:</strong></p>

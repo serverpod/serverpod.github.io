@@ -20,7 +20,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.7289275a.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.82821cdc.js" defer="defer"></script>
 <script src="/assets/js/main.be613c61.js" defer="defer"></script>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <p>By default, <code>serverpod start</code> also launches the companion Flutter apps marked <code>auto_launch: true</code> in the server&#x27;s <code>pubspec.yaml</code>. To start only the server, disable that:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod start --no-flutter</span><br></div></code></pre></div></div>
 <p>You can still launch an app on demand: press <strong>Ctrl+R</strong> in the terminal to open the app launch panel.</p>
-<p>If your project runs auxiliary services from a <code>docker-compose.yaml</code>, such as Redis, pass <code>--docker</code> to start them with the session.</p>
+<p>If your project has a <code>docker-compose.yaml</code>, <code>serverpod start</code> brings it up automatically when your database is a Postgres on <code>localhost</code> with no <code>dataPath</code>, and tears it down on exit if it was the one that started it. When that does not apply, for example an embedded or remote database with Redis in Compose, pass <code>--docker</code> to start the stack anyway, or <code>--no-docker</code> to keep it off.</p>
 <p>To run without the interactive terminal, pass <code>--no-tui</code>. When the output is not a terminal, for example in CI, <code>serverpod start</code> falls back to plain output on its own.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="run-the-server-directly">Run the server directly<a href="#run-the-server-directly" class="hash-link" aria-label="Direct link to Run the server directly" title="Direct link to Run the server directly" translate="no">​</a></h2>
 <p>Outside <code>serverpod start</code>, the server is a plain Dart program you can run yourself from the server package directory:</p>
