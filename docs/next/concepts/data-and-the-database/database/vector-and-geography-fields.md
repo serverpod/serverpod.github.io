@@ -2,7 +2,7 @@
 
 https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields
 
-Serverpod supports two families of specialized field types backed by PostgreSQL extensions: vector fields for high-dimensional embeddings (via pgvector) and geography fields for geospatial data (via PostGIS).
+Serverpod supports two families of specialized field types backed by PostgreSQL extensions: vector fields for high-dimensional embeddings (via pgvector) and geography fields for geospatial data (via PostGIS). Column types, JSON encodings, and SQLite storage are listed in [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md).
 
 ## Vector fields
 

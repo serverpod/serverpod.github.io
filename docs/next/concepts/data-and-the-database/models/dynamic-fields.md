@@ -113,6 +113,7 @@ var cleared = object.copyWith(payload: null);
 ## Related
 
 - [Working with models](https://docs.serverpod.dev/next/concepts/data-and-the-database/models.md): model file syntax and supported types.
+- [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md): YAML types mapped to Dart, Postgres, SQLite, and JSON.
 - [Working with endpoints](https://docs.serverpod.dev/next/concepts/endpoints-and-apis.md): endpoint parameters and return values.
 - [Database tables](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/tables.md): how model fields map to columns, including JSONB storage.
 - [Custom serialization](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/custom-serialization.md): registering custom serializable classes.

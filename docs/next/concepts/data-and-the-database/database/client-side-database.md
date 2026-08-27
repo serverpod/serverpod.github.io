@@ -83,3 +83,4 @@ var companies = await Company.db.find(
 - Transaction isolation levels are ignored, and transactions always run serialized. See [transactions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/transactions.md#transaction-isolation).
 - [Row locking](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/row-locking.md) calls do nothing, since SQLite allows only one write transaction at a time.
 - [Vector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#vector-fields) queries are not supported, and [geography](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geography-fields) values round-trip through CRUD but throw on spatial query operations.
+- Column types and encodings differ from Postgres. See [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md#postgres-vs-sqlite).

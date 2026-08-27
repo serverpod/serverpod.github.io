@@ -10,6 +10,7 @@ The Serverpod CLI reads the model files when generating code and creating migrat
 
 This page covers the model file format: classes, exceptions, enums, default values, and the generated Dart code. The other pages in this group build on it:
 
+- [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md): YAML types mapped to Dart, Postgres, SQLite, and JSON.
 - [Inheritance and polymorphism](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/inheritance-and-polymorphism.md): share fields between models with `extends` and `sealed`, and use parent types in endpoints.
 - [Custom serialization](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/custom-serialization.md): pass hand-written Dart classes through endpoints and models.
 - [Shared packages](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/shared-packages.md): define models in a package that both the server and the app depend on.
@@ -26,18 +27,17 @@ fields:
 
 ### Supported types
 
-The following types can be used as field types:
+The following types can be used as field types. See [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md) for the YAML-to-Dart, Postgres, SQLite, and JSON mapping of each type, including defaults and query operators.
 
 - **Core Dart types**: [bool](https://api.dart.dev/dart-core/bool-class.html), [int](https://api.dart.dev/dart-core/int-class.html), [double](https://api.dart.dev/dart-core/double-class.html), [String](https://api.dart.dev/dart-core/String-class.html), [Duration](https://api.dart.dev/dart-core/Duration-class.html), [DateTime](https://api.dart.dev/dart-core/DateTime-class.html), [ByteData](https://api.dart.dev/dart-typed_data/ByteData-class.html), [UuidValue](https://pub.dev/documentation/uuid/latest/uuid_value/UuidValue-class.html), [Uri](https://api.dart.dev/dart-core/Uri-class.html), and [BigInt](https://api.dart.dev/dart-core/BigInt-class.html).
-- **Vector types**: [Vector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#vector), [HalfVector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#halfvector), [SparseVector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#sparsevector), and [Bit](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#bit).
-- **Geography types**: [GeographyPoint](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geographypoint), [GeographyLineString](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geographylinestring), [GeographyPolygon](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geographypolygon), and [GeographyGeometryCollection](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geographygeometrycollection).
+- **Vector and geography types**: [Vector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#vector), [HalfVector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#halfvector), [SparseVector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#sparsevector), [Bit](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#bit), and the [geography types](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geography-fields).
 - **Your own types**: other serializable [classes](#class), [exceptions](#exception), and [enums](#enum).
 - **Collections**: [List](https://api.dart.dev/dart-core/List-class.html)s, [Map](https://api.dart.dev/dart-core/Map-class.html)s, and [Set](https://api.dart.dev/dart-core/Set-class.html)s of the supported types, with the type arguments specified. All supported types can also be used inside [Record](https://api.dart.dev/dart-core/Record-class.html)s.
 - **[dynamic](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/dynamic-fields.md)**: holds any serializable value when the type is not known at compile time.
 
 Null safety is supported: append `?` to any type to make the field nullable. Once your classes are generated, you can use them as parameters or return types to [endpoint methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis.md).
 
-When values are sent between the server and the client, some types are converted to a specific JSON form:
+When values are sent between the server and the client, `bool`, `int`, `double`, and `String` pass through as native JSON. Other types convert:
 
 | Type        | Sent as                           |
 | ----------- | --------------------------------- |
@@ -47,6 +47,8 @@ When values are sent between the server and the client, some types are converted
 | `UuidValue` | UUID string                       |
 | `Uri`       | String                            |
 | `BigInt`    | String                            |
+
+The [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md#serialization) catalog lists every mapping, including enums, collections, records, vectors, and geography.
 
 ### Required fields
 
@@ -459,6 +461,7 @@ extension MyExtension on MyClass {
 
 ## Related
 
+- [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md): YAML types mapped to Dart, Postgres, SQLite, and JSON.
 - [Model reference](https://docs.serverpod.dev/next/concepts/lookups/model-reference.md): every keyword available in a model file, and whether it applies to a `class`, `exception`, or `enum`.
 - [Tables](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/tables.md): store a model in the database.
 - [Backward compatibility](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/backward-compatibility.md): evolve models without breaking older app versions.
