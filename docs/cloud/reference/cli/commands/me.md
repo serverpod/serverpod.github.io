@@ -12,7 +12,9 @@ If the CLI isn't authenticated, the command exits with an error. Log in with [`s
 Show information about the current user.
 
 Usage: scloud me [arguments]
--h, --help    Print this usage information.
+-h, --help                       Print this usage information.
+    --format=<text|json|yaml>    Selects the command output format.
+                                 (defaults to "text")
 
 Run "scloud help" to see global options.
 

@@ -174,8 +174,8 @@
 - [scloud me](https://docs.serverpod.dev/cloud/reference/cli/commands/me.md)
 - [scloud password](https://docs.serverpod.dev/cloud/reference/cli/commands/password.md)
 - [scloud project](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)
-- [scloud secret](https://docs.serverpod.dev/cloud/reference/cli/commands/secret.md)
 - [scloud settings](https://docs.serverpod.dev/cloud/reference/cli/commands/settings.md)
+- [reference/cli/commands/status/status](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
 - [scloud variable](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md)
 - [scloud version](https://docs.serverpod.dev/cloud/reference/cli/commands/version.md)
 
