@@ -225,6 +225,10 @@ void main() async {
 
 The `FlutterAuthSessionManager` provides useful properties and methods for managing authentication state.
 
+:::info Web apps
+On the web, enable [cookie-based authentication](https://docs.serverpod.dev/next/concepts/authentication/web-authentication.md) so sign-in tokens are kept in `httpOnly` cookies instead of JavaScript-readable storage.
+:::
+
 :::tip
 The `client.auth` getter is a shortcut for `client.authSessionManager`. If your project defines its own endpoint class named `AuthEndpoint`, the generated client uses the `auth` name for that endpoint instead. In that case, call `client.authSessionManager.initialize()` in the example above.
 :::
@@ -341,4 +345,5 @@ Do not navigate to another screen from the `onAuthenticated` callback, or the us
 - [Get started](https://docs.serverpod.dev/next/concepts/authentication/get-started.md): the quick path for projects created with `serverpod create`.
 - [The basics](https://docs.serverpod.dev/next/concepts/authentication/basics.md): how authentication works on the server and in the app.
 - [Token managers](https://docs.serverpod.dev/next/concepts/authentication/token-managers/managing-tokens.md): choose between JWT and server-side sessions.
+- [Web setup](https://docs.serverpod.dev/next/concepts/authentication/web-authentication.md): keep web sign-in tokens in httpOnly cookies.
 - [UI components](https://docs.serverpod.dev/next/concepts/authentication/ui-components.md): customize or replace the sign-in UI.

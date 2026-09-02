@@ -8,6 +8,10 @@ The `ServerSideSessionsTokenManager` validates each token against a server-side 
 - Immediate session revocation.
 - Support for session expiration and inactivity timeouts.
 
+:::info Web apps
+With [cookie-based web authentication](https://docs.serverpod.dev/next/concepts/authentication/web-authentication.md) enabled, browsers receive the session token as an `httpOnly` cookie instead of in the response body.
+:::
+
 ## Server-side configuration
 
 The `ServerSideSessionsTokenManager` is created by passing a `ServerSideSessionsConfig` object in the `tokenManagerBuilders` list of `pod.initializeAuthServices()`:
