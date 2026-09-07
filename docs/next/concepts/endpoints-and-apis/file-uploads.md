@@ -2,7 +2,7 @@
 
 https://docs.serverpod.dev/next/concepts/endpoints-and-apis/file-uploads
 
-Let your users upload avatars, documents, or any other files. The app sends the file straight to storage instead of through your endpoint methods, which keeps large files out of your API calls. Out of the box, your server stores files in the database, which works well for development. In production, configure Google Cloud Storage, AWS S3, or Cloudflare R2 instead. To keep files on local disk or a NAS, see [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md).
+Let your users upload avatars, documents, or any other files. The app sends the file straight to storage instead of through your endpoint methods, which keeps large files out of your API calls. Out of the box, your server stores files in the database, which works well for development. In production, configure Google Cloud Storage, AWS S3, or Cloudflare R2 instead.
 
 ## Upload a file
 
@@ -24,7 +24,7 @@ Future<String> getUploadDescription(Session session, String path) async {
 The `createUploadDescription` method also accepts an optional `UploadOptions` object to control the upload:
 
 - **`UploadOptions.expirationDuration`**: How long the upload URL is valid. Defaults to 10 minutes.
-- **`UploadOptions.maxFileSize`**: Maximum allowed file size in bytes. Defaults to 10 MiB.
+- **`UploadOptions.maxFileSize`**: Maximum allowed file size in bytes. Defaults to 10 MB.
 - **`UploadOptions.contentLength`**: The exact file size in bytes. When provided, the storage provider validates the upload size against `maxFileSize`.
 - **`UploadOptions.preventOverwrite`**: When `true`, the upload will fail if a file already exists at the given path. Defaults to `false`.
 - **`UploadOptions.metadata`**: HTTP metadata and custom key-value data to store with the file.
@@ -69,7 +69,7 @@ Future<bool> verifyUpload(Session session, String path) async {
 
 ### Client-side code
 
-To upload a file from the app side, first request the upload description. Next, upload the file, from either a `Stream` or a `ByteData` object. When uploading from a `Stream`, pass the file length if you know it: without a length, a multipart upload buffers the whole file in memory. The uploader does not report upload progress. On failure it returns `false` with no status code and no exception, so a network error and a file that is too large look the same. Finally, verify the upload with the server.
+To upload a file from the app side, first request the upload description. Next, upload the file, from either a `Stream` or a `ByteData` object. When uploading from a `Stream`, pass the file length if you know it: without a length, a multipart upload buffers the whole file in memory. The uploader does not report upload progress. Finally, verify the upload with the server.
 
 ```dart
 final uploadDescription = await client.myEndpoint.getUploadDescription('myfile');
@@ -87,19 +87,6 @@ In a real-world app, you most likely want to create the file paths on your serve
 ```
 
 :::
-
-## Size limits
-
-When the app uploads through your API server (the default database storage), two size limits apply. The upload uses the smaller of the two.
-
-| Limit                       | Default          | Set in                                                   |
-| --------------------------- | ---------------- | -------------------------------------------------------- |
-| `maxRequestSize`            | 524288 (512 KiB) | `config/<run-mode>.yaml` or `SERVERPOD_MAX_REQUEST_SIZE` |
-| `UploadOptions.maxFileSize` | 10 MiB           | `createUploadDescription`                                |
-
-A 5 MB file with default config is rejected even though `maxFileSize` is 10 MiB. Raise `maxRequestSize` in every run-mode YAML you use to at least the largest file you accept. See the [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md).
-
-Uploads to S3, Google Cloud Storage, and R2 go to the provider, so `maxRequestSize` does not apply to the file body.
 
 ## Access stored files
 
@@ -190,7 +177,7 @@ To delete a stored file, use `deleteFile` with the same `storageId` and `path`.
 
 ## Configure a storage provider
 
-Each storage is identified by a `storageId`. Serverpod comes with two default storages, `public` and `private`. Replace these with a cloud-backed implementation, or add additional storages with custom IDs. Calling `pod.addCloudStorage` with `public` or `private` replaces that default. Call it before `pod.start()`. For local disk or a NAS, see [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md).
+Each storage is identified by a `storageId`. Serverpod comes with two default storages, `public` and `private`. Replace these with a cloud-backed implementation, or add additional storages with custom IDs. Call `pod.addCloudStorage()` before `pod.start()`.
 
 Pick the package that matches your provider. Use [serverpod\_cloud\_storage\_s3](https://pub.dev/packages/serverpod_cloud_storage_s3) for AWS S3, [serverpod\_cloud\_storage\_gcp](https://pub.dev/packages/serverpod_cloud_storage_gcp) for Google Cloud Storage, or [serverpod\_cloud\_storage\_r2](https://pub.dev/packages/serverpod_cloud_storage_r2) for Cloudflare R2.
 
@@ -398,6 +385,5 @@ pod.addCloudStorage(
 
 ## Related
 
-- [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md): local disk, NAS, and implementing `CloudStorage`.
 - [Configuration](https://docs.serverpod.dev/next/concepts/server-fundamentals/configuration.md): passwords file and environment variables for storage keys.
 - [Sessions](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/sessions.md): the `storage` member used in the examples above.

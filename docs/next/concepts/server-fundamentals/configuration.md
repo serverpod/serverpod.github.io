@@ -85,7 +85,7 @@ sessionLogs:
   consoleLogFormat: text
 ```
 
-The three server blocks configure Serverpod's three servers: the API server your app talks to, the [Insights](https://docs.serverpod.dev/next/tools/insights.md) server used by Serverpod's tooling, and the [web server](https://docs.serverpod.dev/next/concepts/web-server/overview.md) for serving web content. Redis is optional and ships disabled; see [Redis](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis.md) for how to enable it and connect a client. The `sessionLogs` block controls how session logs are stored and printed; see [Logging](https://docs.serverpod.dev/next/concepts/operations/logging.md). Keys not in the scaffolded file cover future calls, websocket ping intervals, and more; see the [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md) for the full list with defaults.
+The three server blocks configure Serverpod's three servers: the API server your app talks to, the [Insights](https://docs.serverpod.dev/next/tools/insights.md) server used by Serverpod's tooling, and the [web server](https://docs.serverpod.dev/next/concepts/web-server/overview.md) for serving web content. The `sessionLogs` block controls how session logs are stored and printed; see [Logging](https://docs.serverpod.dev/next/concepts/operations/logging.md). Keys not in the scaffolded file cover future calls, websocket ping intervals, and more; see the [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md) for the full list with defaults.
 
 ### Database backends
 
@@ -188,7 +188,7 @@ Each built-in secret also has a dedicated environment variable: `SERVERPOD_DATAB
 
 For secrets related to first-party Serverpod packages, see their respective documentation:
 
-- **Cloud storage**: see [File uploads](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/file-uploads.md) for Google Cloud Storage, AWS S3, and Cloudflare R2 secrets, and [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md) for local disk.
+- **Cloud storage**: see [Uploading files](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/file-uploads.md) for Google Cloud Storage, AWS S3, and Cloudflare R2 secrets.
 - **Authentication**: see [Storing Secrets](https://docs.serverpod.dev/next/concepts/authentication/setup.md#storing-secrets) on the Authentication setup page.
 
 ### Custom secrets
@@ -345,5 +345,4 @@ Experimental features may change or be removed in future versions.
 - [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md): every option with its environment variable, config key, and default.
 - [Running your server](https://docs.serverpod.dev/next/concepts/server-fundamentals/running-your-server.md): how the server starts and how `--mode` is passed.
 - [Database connection](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/connection.md): connecting to your database in depth.
-- [Redis](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis.md): enabling Redis, the password, and connecting a GUI.
 - [Configure HTTP calls](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/configure-http-calls.md): the API server's response headers and CORS defaults.
