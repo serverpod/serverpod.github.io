@@ -21,8 +21,8 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.f58d0fcc.js" defer="defer"></script>
-<script src="/assets/js/main.bc76da83.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.81c380d6.js" defer="defer"></script>
+<script src="/assets/js/main.532488be.js" defer="defer"></script>
 </head>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WG5VRRKX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -45,6 +45,7 @@
 <table><thead><tr><th style="text-align:left">Role</th><th style="text-align:left">Function</th></tr></thead><tbody><tr><td style="text-align:left"><code>monolith</code></td><td style="text-align:left">Handles incoming connections and maintenance tasks. Allows the server to contain a state. Default role.</td></tr><tr><td style="text-align:left"><code>serverless</code></td><td style="text-align:left">Only handles incoming connections.</td></tr><tr><td style="text-align:left"><code>maintenance</code></td><td style="text-align:left">Runs the maintenance tasks once, then exits.</td></tr></tbody></table>
 <p>You can specify the role of your server when you launch it by setting the <code>--role</code> argument.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ dart bin/main.dart </span><span class="token parameter variable" style="color:#36acaa">--role</span><span class="token plain"> serverless</span><br></div></code></pre></div></div>
+<p>For connection pools, Redis, isolates, and other production scale concerns beyond roles, see <a class="" href="/next/concepts/operations/scalability">Scalability</a>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="docker-container">Docker container<a href="#docker-container" class="hash-link" aria-label="Direct link to Docker container" title="Direct link to Docker container" translate="no">​</a></h2>
 <p>Running Serverpod through a Docker container is often the best option as it provides a well-defined environment. It&#x27;s also easy to integrate into your build and deployment process and runs well on most platforms.</p>
 <p>You will get a <code>Dockerfile</code> created in your server directory when you set up a new project. The file works out of the box but can be tailored to your needs. The file has no build options, but you can define environment variables when running it. The following variables are supported.</p>
