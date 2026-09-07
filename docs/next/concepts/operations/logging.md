@@ -118,3 +118,4 @@ Cleanup is triggered by log writes rather than by a timer, so a server that is n
 - [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md): every session-log key with its environment variable.
 - [Sessions](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/sessions.md): what a session is, and the `log` method.
 - [Insights](https://docs.serverpod.dev/next/tools/insights.md): reading logs and editing runtime settings.
+- [Load testing](https://docs.serverpod.dev/next/concepts/operations/load-testing.md): why persisting every session during a run becomes the bottleneck.

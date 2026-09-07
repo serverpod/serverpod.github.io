@@ -58,3 +58,4 @@ New projects set `dataPath` under `database` in `config/test.yaml`, which makes 
 - [Configuration](https://docs.serverpod.dev/next/concepts/testing/configuration.md): the options `withServerpod` accepts.
 - [Advanced examples](https://docs.serverpod.dev/next/concepts/testing/advanced-examples.md): streams, future calls, and business logic.
 - [Best practices](https://docs.serverpod.dev/next/concepts/testing/best-practices.md): conventions worth following.
+- [Load testing](https://docs.serverpod.dev/next/concepts/operations/load-testing.md): measuring a live server under concurrent traffic.

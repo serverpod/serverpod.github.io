@@ -70,7 +70,7 @@ Serverpod registers these based on your configuration:
 
 - `serverpod:startup` records that the server has begun starting.
 - `database:connection` checks the database, when one is configured.
-- `redis:connection` checks Redis, when it is enabled.
+- `redis:connection` checks Redis, when it is [enabled](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis.md).
 
 ### Add your own indicator
 
@@ -175,4 +175,5 @@ The two APIs read alike but are not related. Use `healthConfig` with `HealthIndi
 
 - [Logging](https://docs.serverpod.dev/next/concepts/operations/logging.md): the other half of knowing what your server is doing.
 - [Insights](https://docs.serverpod.dev/next/tools/insights.md): charts for the collected metrics.
+- [Load testing](https://docs.serverpod.dev/next/concepts/operations/load-testing.md): reading these probes and metrics while generating concurrent traffic.
 - [Custom hosting](https://docs.serverpod.dev/next/deployments/custom-hosting/choosing-a-strategy.md): wiring the probes up to your host.
