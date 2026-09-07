@@ -153,6 +153,7 @@ The generated test tools call your endpoints the same way production code does, 
 - [Error handling and exceptions](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/error-handling-and-exceptions.md): typed errors between server and app.
 - [Streaming](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md): push live data to your app.
 - [File uploads](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/file-uploads.md): direct-to-storage uploads.
+- [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md): local disk, NAS, and custom backends.
 - [Endpoint inheritance](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/endpoint-inheritance.md): share behavior across endpoints and reshape module endpoints.
 - [Server events](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/server-events.md): publish and subscribe to messages across sessions and servers.
 - [Endpoint middleware](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/endpoint-middleware.md): wrap every API request for logging or rate limiting.

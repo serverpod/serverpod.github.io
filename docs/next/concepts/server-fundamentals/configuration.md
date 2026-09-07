@@ -188,7 +188,7 @@ Each built-in secret also has a dedicated environment variable: `SERVERPOD_DATAB
 
 For secrets related to first-party Serverpod packages, see their respective documentation:
 
-- **Cloud storage**: see [Uploading files](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/file-uploads.md) for Google Cloud Storage, AWS S3, and Cloudflare R2 secrets.
+- **Cloud storage**: see [File uploads](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/file-uploads.md) for Google Cloud Storage, AWS S3, and Cloudflare R2 secrets, and [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md) for local disk.
 - **Authentication**: see [Storing Secrets](https://docs.serverpod.dev/next/concepts/authentication/setup.md#storing-secrets) on the Authentication setup page.
 
 ### Custom secrets
