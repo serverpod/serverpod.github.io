@@ -85,7 +85,7 @@ Get your Serverpod app live on Cloud in a few minutes.
 You need:
 
 - `scloud`, Serverpod Cloud's command-line tool, installed and signed in. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
-- A Serverpod project on your machine. See the Serverpod [Quickstart](https://docs.serverpod.dev/get-started/quickstart) to create one.
+- A Serverpod project on your machine. See [Creating a new project](https://docs.serverpod.dev/index.md#creating-a-new-project) in the Serverpod installation guide.
 
 ## Launch your project
 
@@ -449,7 +449,7 @@ Two environment variables control session logging. With a database enabled (the 
 
 To change either default, set the value with `scloud variable set`. See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for variable management.
 
-For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/operations/logging) in the framework documentation.
+For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/logging.md) in the framework documentation.
 
 ## Troubleshooting
 
@@ -1136,7 +1136,7 @@ cacheControlFactory: StaticRoute.public(maxAge: const Duration(minutes: 1)),
 Flutter's build uses fixed file names with no content hashes, so a long browser `max-age` can leave a visitor on an old build after you deploy. Keep the browser lifetime short and let the deploy purge handle the edge.
 :::
 
-Caching more aggressively takes cache busting, where each asset URL includes a hash of the file's content, so a new build gets new URLs and old cached copies are never requested again. The web server supports this for static files, and hashed assets can use `publicImmutable` with a long lifetime, because a file at a hashed URL never changes. Flutter's build does not produce hashed names, so for a Flutter build that means post-processing the build output yourself, and the short browser lifetime above is the simpler choice. See the framework [Static files](https://docs.serverpod.dev/concepts/web-server/static-files) guide for the full `cacheControlFactory` and cache-busting reference.
+Caching more aggressively takes cache busting, where each asset URL includes a hash of the file's content, so a new build gets new URLs and old cached copies are never requested again. The web server supports this for static files, and hashed assets can use `publicImmutable` with a long lifetime, because a file at a hashed URL never changes. Flutter's build does not produce hashed names, so for a Flutter build that means post-processing the build output yourself, and the short browser lifetime above is the simpler choice. See the framework [Static files](https://docs.serverpod.dev/concepts/webserver/static-files.md) guide for the full `cacheControlFactory` and cache-busting reference.
 
 ## Verify caching is working
 
@@ -1173,9 +1173,9 @@ How to read the responses:
 
 - [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md): the deploy that clears the cache.
 - [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md): the CDN covers your custom domains too.
-- [Static files](https://docs.serverpod.dev/concepts/web-server/static-files): the framework reference for `cacheControlFactory` and cache busting.
-- [Single-page apps](https://docs.serverpod.dev/concepts/web-server/single-page-apps): serving another framework's single-page app with `SpaRoute`.
-- [Flutter web apps](https://docs.serverpod.dev/concepts/web-server/flutter-web): serving a Flutter build from the framework web server.
+- [Static files](https://docs.serverpod.dev/concepts/webserver/static-files.md): the framework reference for `cacheControlFactory` and cache busting.
+- [Single-page apps](https://docs.serverpod.dev/concepts/webserver/single-page-apps.md): serving another framework's single-page app with `SpaRoute`.
+- [Flutter web apps](https://docs.serverpod.dev/concepts/webserver/flutter-web.md): serving a Flutter build from the framework web server.
 
 ---
 
@@ -1316,9 +1316,9 @@ After a successful deploy, your server will use Upstash for Redis-backed caching
 
 ## Related
 
-- [Redis](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis) for enabling Redis, the password, and connecting a GUI.
-- [Serverpod configuration](https://docs.serverpod.dev/concepts/server-fundamentals/configuration) for Redis options and environment variables.
-- [Serverpod caching](https://docs.serverpod.dev/concepts/endpoints-and-apis/caching) for local and Redis-backed caches.
+- [Redis](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis.md) for enabling Redis, the password, and connecting a GUI.
+- [Serverpod configuration](https://docs.serverpod.dev/concepts/configuration.md) for Redis options and environment variables.
+- [Serverpod caching](https://docs.serverpod.dev/concepts/caching.md) for local and Redis-backed caches.
 - [Upstash: Connect your client](https://upstash.com/docs/redis/howto/connectclient) for connection details and TLS.
 - [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for how Serverpod Cloud injects passwords and variables.
 

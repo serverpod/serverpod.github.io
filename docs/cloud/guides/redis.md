@@ -69,8 +69,8 @@ After a successful deploy, your server will use Upstash for Redis-backed caching
 
 ## Related
 
-- [Redis](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis) for enabling Redis, the password, and connecting a GUI.
-- [Serverpod configuration](https://docs.serverpod.dev/concepts/server-fundamentals/configuration) for Redis options and environment variables.
-- [Serverpod caching](https://docs.serverpod.dev/concepts/endpoints-and-apis/caching) for local and Redis-backed caches.
+- [Redis](https://docs.serverpod.dev/next/concepts/server-fundamentals/redis.md) for enabling Redis, the password, and connecting a GUI.
+- [Serverpod configuration](https://docs.serverpod.dev/concepts/configuration.md) for Redis options and environment variables.
+- [Serverpod caching](https://docs.serverpod.dev/concepts/caching.md) for local and Redis-backed caches.
 - [Upstash: Connect your client](https://upstash.com/docs/redis/howto/connectclient) for connection details and TLS.
 - [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for how Serverpod Cloud injects passwords and variables.

@@ -9,7 +9,7 @@ Get your Serverpod app live on Cloud in a few minutes.
 You need:
 
 - `scloud`, Serverpod Cloud's command-line tool, installed and signed in. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
-- A Serverpod project on your machine. See the Serverpod [Quickstart](https://docs.serverpod.dev/get-started/quickstart) to create one.
+- A Serverpod project on your machine. See [Creating a new project](https://docs.serverpod.dev/index.md#creating-a-new-project) in the Serverpod installation guide.
 
 ## Launch your project
 
