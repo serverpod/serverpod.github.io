@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.f1a3a314.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.466b5f6d.js" defer="defer"></script>
 <script src="/assets/js/main.3e8cfe42.js" defer="defer"></script>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ serverpod create-migration </span><span class="token parameter variable" style="color:#36acaa">--force</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">$ serverpod create-migration </span><span class="token parameter variable" style="color:#36acaa">--empty</span><br></div></code></pre></div></div>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="tag-migration">Tag migration<a href="#tag-migration" class="hash-link" aria-label="Direct link to Tag migration" title="Direct link to Tag migration" translate="no">​</a></h3>
-<p>Tags can be useful to identify migrations that introduced specific changes to the project. Tags are appended to the migration name and can be added with the <code>--tag</code> option.</p>
+<p>Tags can be useful to identify migrations that introduced specific changes to the project. Tags are appended to the migration name and can be added with the <code>--tag</code> option. A tag can contain only lowercase letters, numbers, and dashes.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ serverpod create-migration </span><span class="token parameter variable" style="color:#36acaa">--tag</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;v1-0-0&quot;</span><br></div></code></pre></div></div>
 <p>This would create a migration named <code>&lt;timestamp&gt;-v1-0-0</code>:</p>
 <div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">├── migrations</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">│    └── 20231205080937028-v1-0-0</span><br></div></code></pre></div></div>

@@ -99,16 +99,16 @@ Keep `websocketPingInterval` (default 30 seconds) in mind under high connection 
 
 ## Configuration cheat sheet
 
-| Setting                          | Default                          | Why it matters at scale                                                 |
-| -------------------------------- | -------------------------------- | ----------------------------------------------------------------------- |
-| `role` / `SERVERPOD_SERVER_ROLE` | `monolith`                       | Split request nodes from maintenance work.                              |
-| `database.maxConnectionCount`    | `10`                             | Pool size times node count must fit Postgres.                           |
-| `redis.enabled`                  | `false`                          | Required for shared cache and global events.                            |
-| `maxRequestSize`                 | `524288`                         | Large uploads increase memory pressure.                                 |
-| `websocketPingInterval`          | `30` (seconds)                   | Keepalive cost under many open streams.                                 |
-| `futureCall.concurrencyLimit`    | `1`                              | Caps background CPU and database load.                                  |
-| `sessionLogs.persistentEnabled`  | on when a database is configured | Extra database writes per request when on.                              |
-| `healthCheckInterval`            | 1 minute                         | Metrics write load; aggressive liveness elsewhere can cascade restarts. |
+| Setting                          | Default                                  | Why it matters at scale                                                 |
+| -------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------- |
+| `role` / `SERVERPOD_SERVER_ROLE` | `monolith`                               | Split request nodes from maintenance work.                              |
+| `database.maxConnectionCount`    | `10`                                     | Pool size times node count must fit Postgres.                           |
+| `redis.enabled`                  | `true` when a `redis` section is present | Required for shared cache and global events.                            |
+| `maxRequestSize`                 | `524288`                                 | Large uploads increase memory pressure.                                 |
+| `websocketPingInterval`          | `30` (seconds)                           | Keepalive cost under many open streams.                                 |
+| `futureCall.concurrencyLimit`    | `1`                                      | Caps background CPU and database load.                                  |
+| `sessionLogs.persistentEnabled`  | on when a database is configured         | Extra database writes per request when on.                              |
+| `healthCheckInterval`            | 1 minute                                 | Metrics write load; aggressive liveness elsewhere can cascade restarts. |
 
 Full keys and environment variables: [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md).
 
