@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.60f98577.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.35ce58d8.js" defer="defer"></script>
 <script src="/assets/js/main.3e8cfe42.js" defer="defer"></script>
 </head>
 <body>
@@ -147,7 +147,7 @@
 <p>You can also supply it at build time with <code>--dart-define=GOOGLE_SERVER_CLIENT_ID=...</code>. See <a class="" href="/next/concepts/authentication/providers/google/customizations#configuring-client-ids-on-the-app">Configuring client IDs on the app</a>.</p>
 <p>For Firebase-based projects using the Gradle plugin, make sure a Web application OAuth client exists in the same Google Cloud project and re-download <code>google-services.json</code> so it includes the web client entry.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="endpoint-calls-fail-on-android-with-connection-refused">Endpoint calls fail on Android with connection refused<a href="#endpoint-calls-fail-on-android-with-connection-refused" class="hash-link" aria-label="Direct link to Endpoint calls fail on Android with connection refused" title="Direct link to Endpoint calls fail on Android with connection refused" translate="no">​</a></h2>
-<p><strong>Problem:</strong> Sign-in completes at Google, but the app then fails with <code>ServerpodClientException: ... Connection refused ... uri=http://localhost:8080/...</code>.</p>
+<p><strong>Problem:</strong> Sign-in completes at Google, but the app then fails with <code>ServerpodClientNetworkException: ... Connection refused ... uri=http://localhost:8080/...</code>.</p>
 <p><strong>Cause:</strong> On Android, <code>localhost</code> is the emulator or device itself, not the machine running your server. The project template&#x27;s <code>assets/config.json</code> sets <code>apiUrl</code> to <code>http://localhost:8080</code>, and that value takes precedence over the framework&#x27;s platform-aware default (see <a class="" href="/next/concepts/endpoints-and-apis">server URL resolution</a>).</p>
 <p><strong>Resolution:</strong> Point the app at your server explicitly when running on Android:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">flutter run --dart-define</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">SERVER_URL</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">http://10.0.2.2:8080/</span><br></div></code></pre></div></div>
@@ -160,7 +160,7 @@
 <p><strong>Problem:</strong> The <code>SignInWidget</code> renders, but the Google button is missing.</p>
 <p><strong>Cause:</strong> The <code>SignInWidget</code> shows the Google button when the client has a registered <code>GoogleIdpEndpoint</code> and the Google sign-in service is initialized. The common misses:</p>
 <ul>
-<li class="">The app was hot reloaded after adding <code>initializeGoogleSignIn</code> to <code>main.dart</code>. Hot reload does not re-run <code>main()</code>, so the service is never initialized.</li>
+<li class="">The app was hot reloaded after adding <code>initializeGoogleSignIn</code> to <code>client.dart</code>. Hot reload does not re-run <code>initializeClient()</code>, so the service is never initialized.</li>
 <li class=""><code>GoogleIdpEndpoint</code> is missing on the server, or the client was not regenerated after adding it.</li>
 <li class="">On web, <code>initializeGoogleSignIn</code> was called without <code>clientId</code> and <code>redirectUri</code>. The widget renders nothing without them.</li>
 </ul>
