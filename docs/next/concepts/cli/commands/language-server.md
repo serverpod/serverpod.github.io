@@ -2,7 +2,7 @@
 
 https://docs.serverpod.dev/next/concepts/cli/commands/language-server
 
-`serverpod language-server` starts a Serverpod language server that communicates over JSON-RPC 2.0. It is meant to be launched by an IDE integration rather than run directly, and it powers features like diagnostics in your model and endpoint files.
+`serverpod language-server` starts a Serverpod language server that communicates over JSON-RPC 2.0. It is meant to be launched by an IDE integration rather than run directly, and it powers features like diagnostics in your model files (`.spy.yaml`, `.spy.yml`, and `.spy`).
 
 See [Language server](https://docs.serverpod.dev/tools/lsp.md).
 

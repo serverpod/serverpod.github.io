@@ -3,7 +3,7 @@
 https://docs.serverpod.dev/next/concepts/authentication/providers/anonymous/setup
 
 :::warning
-The anonymous identity provider is **experimental** and can not be completely used yet due to the missing support for account linking. The missing parts will be added in the next releases.
+The anonymous identity provider is **experimental**. It doesn't support account linking yet. To move an anonymous user's data to an account from another provider, merge the accounts. See [Merging accounts](https://docs.serverpod.dev/next/concepts/authentication/working-with-users.md#merging-accounts).
 :::
 
 To properly configure anonymous authentication, you must allow anonymous access in your Serverpod auth configuration.
