@@ -41,7 +41,7 @@ Also bump the Dart SDK constraint in the root `pubspec.yaml` and `<project>_serv
 
 ```yaml
 environment:
-  sdk: '^3.10.3'
+  sdk: '^3.12.2'
 ```
 
 ### If you use the legacy auth module
@@ -67,7 +67,7 @@ The module keeps working on 4.0, so this can be done independently of moving to 
 
 ### If you use the new auth module on Android
 
-`serverpod_auth_core_flutter` now requires `flutter_secure_storage` 10.0.0 or newer and allows 11.x. Most projects already resolve 10.x and are not affected.
+The `serverpod_auth_core_flutter` package now requires `flutter_secure_storage` 10.0.0 or newer and allows 11.x. Most projects already resolve 10.x and are not affected.
 
 If your Flutter app is still on 9.x, you have two options:
 
@@ -97,13 +97,29 @@ Then refresh the generated server and client code:
 $ serverpod generate
 ```
 
-### If you use the legacy streaming endpoints API
+## Other breaking changes
+
+The following changes can break code that worked on 3.4. Read the sections that apply to your project.
+
+### Model files use the `.spy.yaml` extension
+
+Model files must use the `.spy.yaml` extension in 4.0 (`.spy.yml` and `.spy` are also accepted). Files with a plain `.yaml` or `.yml` extension in `lib/src/models` or `lib/src/protocol` are ignored, and `serverpod generate` and `serverpod start` stop with an error listing them:
+
+```text
+Model files must use the .spy.yaml extension. The following files are ignored:
+  lib/src/models/company.yaml
+Rename the files to use the .spy.yaml extension and run the command again.
+```
+
+Rename the files and run `serverpod generate` again. The contents do not change.
+
+### Legacy streaming endpoints are removed
 
 Serverpod's legacy streaming endpoints API was deprecated in 3.0 and is removed in 4.0. Endpoints that use the `StreamingSession` type no longer compile, and all the related server and client methods (e.g. `streamOpened`, `streamClosed`, `handleStreamMessage`, `sendStreamMessage`, `getUserObject`, `setUserObject`, `openStreamingConnection`) are gone.
 
 Port that code to [streaming methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md), where the endpoint declares `Stream` parameters and return types, and Serverpod manages the connection. State that used to live in a user object becomes a local variable in the streaming method, which stays alive as long as the stream is open. The old API stays documented in [Streaming endpoints](https://docs.serverpod.dev/next/upgrading/archive/streaming-endpoints.md) while you port.
 
-### If you use the Insights database endpoints from a service client
+### Insights database endpoints are disabled by default
 
 The Insights server endpoints that give direct database access (`fetchDatabaseBulkData`, `runQueries`, `getDatabaseRowCount`, and `executeSql`) are disabled by default in 4.0 and throw an `AccessDeniedException` until enabled. The Insights app doesn't use these endpoints, so most projects need no change. If you have custom tooling that calls them through the `serverpod_service_client` package, opt in per environment with `enableDatabaseAccess` in the `insightsServer` block of the config file (or the `SERVERPOD_INSIGHTS_SERVER_ENABLE_DATABASE_ACCESS` environment variable):
 
@@ -118,9 +134,42 @@ insightsServer:
 
 The `hotReload`, `getOpenSessionLog`, and `shutdown` Insights methods are removed. See [Insights](https://docs.serverpod.dev/next/tools/insights.md#database-access) for details.
 
+### Message central delivers globally by default
+
+Calls to `session.messages.postMessage` now default to `MessageScope.auto`: the message goes through Redis to every server instance when Redis is enabled, and stays local otherwise. Code that relied on local-only delivery must pass `scope: MessageScope.local`, and the removed `global: true` argument becomes `scope: MessageScope.global`. See [Message scope](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/server-events.md#message-scope).
+
+### Client exceptions are a sealed hierarchy
+
+The `ServerpodClientException` class is sealed and carries only `message`. Failures to reach the server throw `ServerpodClientNetworkException`; error responses throw a subclass of the sealed `ServerpodClientHttpException`, which owns `statusCode`. The `statusCode == -1` check for connection failures no longer compiles. See [Error handling and exceptions](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/error-handling-and-exceptions.md#handle-errors-in-your-app).
+
+### Database exceptions are typed
+
+The `DatabaseInsertRowException`, `DatabaseUpdateRowException`, `DatabaseDeleteRowException`, and `DatabaseUpsertRowException` classes are replaced by `DatabaseUnexpectedResultException`. Constraint failures throw `DatabaseUniqueViolationException` and `DatabaseForeignKeyViolationException`, and SQLite lock failures throw `SqliteDatabaseLockedException`, all subclasses of `DatabaseQueryException`. See [Database exceptions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/exceptions.md).
+
+### `CloudStorage` methods take an options parameter
+
+The `*WithOptions` variants on `CloudStorage` are merged into the base methods: `storeFile`, `temporaryDownloadUrl`, and `createUploadDescription` now take an `options` parameter. Custom `CloudStorage` implementations must fold the two overrides into one. See [Custom cloud storage](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/custom-cloud-storage.md#implement-the-cloudstorage-methods).
+
+### Google sign-in on the web uses the OAuth2 redirect flow
+
+The `serverpod_auth_idp_flutter` package no longer ships the native Google Sign-In web implementation. On the web, `initializeGoogleSignIn` requires `clientId` and `redirectUri`, and the server needs a `FlutterWebAuth2CallbackRoute`. The legacy `serverpod_auth` module is unaffected. See [Google web setup](https://docs.serverpod.dev/next/concepts/authentication/providers/google/setup.md#web).
+
+### Removed deprecated APIs
+
+- The deprecated future call methods on `Serverpod` are gone; use the generated `pod.futureCalls` API. See [Future calls](https://docs.serverpod.dev/next/concepts/scheduling/future-calls.md).
+- The `orderDescending` parameter on ORM methods is removed, and `Order` can no longer be constructed directly. Use `column.asc()` and `column.desc()`. See [Sorting](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/sorting.md).
+- The `ignoreEndpoint` annotation is removed; use `@doNotGenerate`. See [Exclude an endpoint from generation](https://docs.serverpod.dev/next/concepts/endpoints-and-apis.md#exclude-an-endpoint-from-generation).
+- The `SerializationManagerServer` class is removed. The generated `Protocol` class now extends `DatabaseSerializationManager` from `serverpod_database`; code that referenced the old class can use `Protocol` instead.
+- The legacy web-server widgets and static directory classes (`Widget`, `WidgetJson`, `WidgetRedirect`, `RouteStaticDirectory`, and friends) are removed in favor of `WebWidget`, `JsonWidget`, `RedirectWidget`, and `StaticRoute`. `WidgetRoute.build` now returns `WebWidget?`, where `null` yields a 404. See [Web server](https://docs.serverpod.dev/next/concepts/web-server/overview.md).
+- The `--mini` flag on `serverpod create` is removed. Create a project without a database with `--no-database`, or without a Flutter app with `--template server`.
+
+### PostgreSQL Docker image
+
+New projects use `ghcr.io/serverpod/postgres:16`, which bundles pgvector and PostGIS, instead of `pgvector/pgvector:pg16`. Existing Docker setups keep working; switch the image when you need PostGIS. See [Upgrade to PostGIS](https://docs.serverpod.dev/next/upgrading/upgrade-to-postgis.md).
+
 ## Generate the 4.0 migration
 
-Version 4.0 adds a few new internal Serverpod tables and updates some indexes to greatly improve logs performance on Insights. Create a migration that captures these schema deltas so your database can be brought up to date:
+Version 4.0 adds a few new internal Serverpod tables and updates some indexes to greatly improve logs performance on Insights. The migration reads the protocol you generated above, so run `serverpod generate` first. Create a migration that captures these schema deltas so your database can be brought up to date:
 
 ```bash
 $ serverpod create-migration --tag "upgrade-4-0"
@@ -249,7 +298,7 @@ Replace `cursor` with the editor you use: `antigravity`, `claude`, `cline`, `cod
 
 Your production build needs to switch from `dart compile exe` to `dart build cli`. The 4.0 server includes native build hooks that `dart compile` doesn't support, and produces a bundle (executable plus its native libraries) rather than a single static binary, so your Dockerfile needs a few updates.
 
-Copy the updated Dockerfile from the [4.0 framework template](https://github.com/serverpod/serverpod/blob/main/templates/serverpod_templates/projectname_server/Dockerfile) or a fresh 4.0 project's `<project>_server/Dockerfile`. The key changes vs. the 3.4 pattern: build from the project root (not the server directory), copy the bundle directory, update `ENTRYPOINT` to point at the bundled binary, and bump the Dart SDK base image to 3.10.x or newer.
+Copy the updated Dockerfile from the [4.0 framework template](https://github.com/serverpod/serverpod/blob/main/templates/serverpod_templates/projectname_server/Dockerfile) or a fresh 4.0 project's `<project>_server/Dockerfile`. The key changes vs. the 3.4 pattern: build from the project root (not the server directory), copy the bundle directory, update `ENTRYPOINT` to point at the bundled binary, and build from the `dart:3.12.2` base image or newer.
 
 ## Authentication changes
 
@@ -275,6 +324,7 @@ Copy the updated Dockerfile from the [4.0 framework template](https://github.com
 - **`upsert` and `upsertRow`** on the ORM, and **`asc()` / `desc()`** convenience methods on orderable columns.
 - **Recurring future calls** via the new claim-based scheduling.
 - **OAuth2 PKCE Flutter web redirect** for sign-in flows.
+- **Account merging** in the auth module, so a user can link a second sign-in method to an existing account. See [Merging accounts](https://docs.serverpod.dev/next/concepts/authentication/working-with-users.md#merging-accounts).
 - **httpOnly cookie authentication for the web**, keeping browser sign-in tokens out of JavaScript-readable storage. See [web authentication](https://docs.serverpod.dev/next/concepts/authentication/web-authentication.md).
 - **Health endpoints** on the built-in webserver.
 - **IDE and agent selection** in `serverpod create`.

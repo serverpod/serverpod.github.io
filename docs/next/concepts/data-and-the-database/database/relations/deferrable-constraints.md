@@ -11,7 +11,7 @@ This is what makes circular references between two tables writable: with a per-s
 Add `deferrable` or `deferred` to the relation on the side that holds the foreign key:
 
 ```yaml
-# employee.yaml
+# employee.spy.yaml
 class: Employee
 table: employee
 fields:
@@ -29,7 +29,7 @@ The two keywords are mutually exclusive. A relation declared with neither keywor
 Both work on [id relations](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/one-to-one.md#with-an-id-field) and [object relations](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/relations/one-to-one.md#with-an-object). Like `onUpdate` and `onDelete`, they can only be set on the side holding the foreign key:
 
 ```yaml
-# employee.yaml
+# employee.spy.yaml
 class: Employee
 table: employee
 fields:
