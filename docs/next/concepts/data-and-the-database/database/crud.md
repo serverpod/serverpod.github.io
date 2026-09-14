@@ -168,7 +168,7 @@ var updatedCompany = await Company.db.updateById(
 );
 ```
 
-The `updateById` method updates only the specified columns for the row with the given ID. The method returns the updated row, or throws a `DatabaseUpdateRowException` if no row with the given ID exists. At least one column must be specified in the `columnValues` parameter, otherwise an `ArgumentError` will be thrown.
+The `updateById` method updates only the specified columns for the row with the given ID. The method returns the updated row, or throws a `DatabaseUnexpectedResultException` if no row with the given ID exists. At least one column must be specified in the `columnValues` parameter, otherwise an `ArgumentError` will be thrown.
 
 See [Database exceptions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/exceptions.md) for the full set of database exception types and when they are thrown.
 
@@ -282,7 +282,7 @@ The batch method takes the same `updateColumns` and `updateWhere` parameters as 
 
 Like the other batch operations, `upsert` accepts a `transaction` parameter to join a larger [transaction](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/transactions.md). For models with [non-persistent fields](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/tables.md#non-persistent-fields), the input values of those fields are carried over to the returned objects. They take no part in conflict detection and are never written to the database, and such batches are upserted row by row internally, which can be slow for large inputs.
 
-A single-row upsert that unexpectedly matches multiple rows throws a `DatabaseUpsertRowException`. See [exceptions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/exceptions.md).
+A single-row upsert that unexpectedly matches multiple rows throws a `DatabaseUnexpectedResultException`. See [exceptions](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/exceptions.md).
 
 ## Delete
 
