@@ -51,7 +51,7 @@ Add the dependencies to your `pubspec.yaml` in your **client** project.
 ```yaml
 dependencies:
   ...
-  serverpod_auth_client: 4.0.0-beta.1
+  serverpod_auth_client: 4.0.0
 ```
 
 Add the dependencies to your `pubspec.yaml` in your **Flutter** project.
@@ -59,8 +59,8 @@ Add the dependencies to your `pubspec.yaml` in your **Flutter** project.
 ```yaml
 dependencies:
   ...
-  serverpod_auth_email_flutter: 4.0.0-beta.1
-  serverpod_auth_shared_flutter: 4.0.0-beta.1
+  serverpod_auth_email_flutter: 4.0.0
+  serverpod_auth_shared_flutter: 4.0.0
 ```
 
 ### Prebuilt sign in button
