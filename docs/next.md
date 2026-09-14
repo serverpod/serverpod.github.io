@@ -2,9 +2,15 @@
 
 https://docs.serverpod.dev/next
 
-Serverpod is an open-source backend framework for Flutter developers. You write server logic in Dart, define data models in YAML, and call your endpoints from your Flutter app through generated, type-safe Dart code. No REST contracts to hand-write, no language-switching, no boilerplate to maintain.
+Serverpod is an open-source full-stack framework for Flutter, built from the ground up for agentic coding. You write your entire stack in Dart, define your data models in YAML, and call your server endpoints from your Flutter app through generated, type-safe Dart code. No REST contracts to maintain, no language-switching, and no boilerplate code.
 
-[Watch the video](https://www.youtube-nocookie.com/embed/teOnBD5d8b8)
+:::tip
+
+If you are a Flutter developer, check out our **[Quickstart guide](https://docs.serverpod.dev/next/quickstart.md)** to get up and running in minutes. If you don't have Flutter installed and just want to try things out, get started with **[App Studio](https://serverpod.dev/appstudio)**.
+
+:::
+
+[Watch the video](https://www.youtube-nocookie.com/embed/fQBlQUNxYWE)
 
 ## Build with Dart everywhere
 
