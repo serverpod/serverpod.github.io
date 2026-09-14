@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.5a72c324.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8bb1355f.js" defer="defer"></script>
 <script src="/assets/js/main.3eac14b9.js" defer="defer"></script>
 </head>
 <body>
@@ -54,7 +54,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="start-the-app">Start the app<a href="#start-the-app" class="hash-link" aria-label="Direct link to Start the app" title="Direct link to Start the app" translate="no">​</a></h2>
 <p>From the project&#x27;s root folder, start everything with one command:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ serverpod start</span><br></div></code></pre></div></div>
-<p><code>serverpod start</code> generates your code, starts the server with its built-in PostgreSQL database (no Docker required), and opens the Flutter app in Chrome. The app that opens is the default Serverpod starter: enter your name, tap <strong>Send to Server</strong>, and the server responds with a greeting.</p>
+<p><code>serverpod start</code> generates your code, starts the server with its built-in PostgreSQL database (no Docker required), and opens the Flutter app in your default browser. The app that opens is the default Serverpod starter: enter your name and click the send button (or press Enter), and the server responds with a greeting.</p>
 <p>Leave <code>serverpod start</code> running. It watches your project, so every time you save a file it regenerates the necessary code and hot reloads the app. You&#x27;ll rely on this for the rest of the guide instead of restarting anything by hand.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="add-an-endpoint">Add an endpoint<a href="#add-an-endpoint" class="hash-link" aria-label="Direct link to Add an endpoint" title="Direct link to Add an endpoint" translate="no">​</a></h2>
 <p>Server endpoints live in <code>lib/src/&lt;feature&gt;/</code>, like the <code>greetings</code> endpoint the template generated. Create a file at <code>magic_recipe_server/lib/src/recipes/recipe_endpoint.dart</code>:</p>

@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.5a72c324.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8bb1355f.js" defer="defer"></script>
 <script src="/assets/js/main.3eac14b9.js" defer="defer"></script>
 </head>
 <body>
@@ -101,7 +101,7 @@
 <p>A new project&#x27;s <code>.gitignore</code> excludes <code>config/passwords.yaml</code> and credential files such as <code>config/firebase_service_account_key.json</code>, so secrets are not committed by default. Keep production secrets out of source control.</p>
 <p>In production, set secrets through <code>SERVERPOD_PASSWORD_*</code> environment variables, or your host&#x27;s secret manager, rather than a checked-in passwords file.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="passwords-on-serverpod-cloud">Passwords on Serverpod Cloud<a href="#passwords-on-serverpod-cloud" class="hash-link" aria-label="Direct link to Passwords on Serverpod Cloud" title="Direct link to Passwords on Serverpod Cloud" translate="no">​</a></h3>
-<p>On <a class="" href="/cloud">Serverpod Cloud</a>, you set the values that <code>getPassword</code> reads from the command line, with <code>scloud password set</code>, instead of editing a passwords file. See <a class="" href="/cloud/concepts/passwords-secrets-env-vars">Passwords, secrets, and environment variables</a> for the full reference.</p>
+<p>On <a class="" href="/cloud">Serverpod Cloud</a>, you set the values that <code>getPassword</code> reads from the command line, with <code>serverpod cloud password set</code>, instead of editing a passwords file. See <a class="" href="/cloud/concepts/passwords-secrets-env-vars">Passwords, secrets, and environment variables</a> for the full reference.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="configure-code-generation">Configure code generation<a href="#configure-code-generation" class="hash-link" aria-label="Direct link to Configure code generation" title="Direct link to Configure code generation" translate="no">​</a></h2>
 <p>Serverpod uses a <code>generator.yaml</code> file to configure code generation. Place this file in the <code>config</code> directory of your server project.</p>
 <p>For every <code>generator.yaml</code> option, its type and default, see the <a class="" href="/next/concepts/lookups/configuration-reference#code-generation">Configuration reference</a>. The sections below explain the options you set most often.</p>

@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.5a72c324.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8bb1355f.js" defer="defer"></script>
 <script src="/assets/js/main.3eac14b9.js" defer="defer"></script>
 </head>
 <body>
@@ -152,8 +152,8 @@
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="self-hosted">Self-hosted<a href="#self-hosted" class="hash-link" aria-label="Direct link to Self-hosted" title="Direct link to Self-hosted" translate="no">​</a></h4>
 <p>Add <code>firebaseServiceAccountKey</code> to the <code>production:</code> section of <code>config/passwords.yaml</code> using the same <code>|</code> block scalar shown earlier, or set it as the <code>SERVERPOD_PASSWORD_firebaseServiceAccountKey</code> environment variable on the production server. The env var path avoids committing the JSON to disk on the server. Whichever path you pick, keep <code>passwords.yaml</code> out of version control.</p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="serverpod-cloud">Serverpod Cloud<a href="#serverpod-cloud" class="hash-link" aria-label="Direct link to Serverpod Cloud" title="Direct link to Serverpod Cloud" translate="no">​</a></h4>
-<p>Use <code>scloud password set</code> and pass the JSON file with <code>--from-file</code>:</p>
-<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">scloud password </span><span class="token builtin class-name">set</span><span class="token plain"> firebaseServiceAccountKey --from-file ./firebase-service-account.json</span><br></div></code></pre></div></div>
+<p>Use <code>serverpod cloud password set</code> and pass the JSON file with <code>--from-file</code>:</p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod cloud password </span><span class="token builtin class-name">set</span><span class="token plain"> firebaseServiceAccountKey --from-file ./firebase-service-account.json</span><br></div></code></pre></div></div>
 <p>Run this from your linked server project directory, or pass <code>--project &lt;project-id&gt;</code> on each call. See the <a class="" href="/cloud/concepts/passwords-secrets-env-vars">Serverpod Cloud passwords guide</a> for project linking and when to use passwords, secrets, or variables.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="3-authorize-your-production-domain">3. Authorize your production domain<a href="#3-authorize-your-production-domain" class="hash-link" aria-label="Direct link to 3. Authorize your production domain" title="Direct link to 3. Authorize your production domain" translate="no">​</a></h3>
 <p>In the Firebase Console, go to <strong>Authentication</strong> &gt; <strong>Settings</strong> &gt; <strong>Authorized domains</strong> and add the domain your app runs on (e.g., <code>my-awesome-project.serverpod.space</code>). Without this entry, OAuth-based sign-in (Google, Apple, etc.) will fail with a redirect URI mismatch in production.</p>
