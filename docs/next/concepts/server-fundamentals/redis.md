@@ -4,7 +4,7 @@ https://docs.serverpod.dev/next/concepts/server-fundamentals/redis
 
 Turn Redis on when more than one Serverpod instance must share a cache, pass messages, or revoke authentication together. Redis is optional. Without it, those features stay local to each process, so a second instance does not see the first instance's cache or events. This page covers enabling Redis, the password, the development Docker instance, and connecting a client such as RedisInsight. For using the cache and messages once Redis is up, see [Caching](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/caching.md) and [Server events](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/server-events.md).
 
-New projects include Redis configuration only if you opted in at create: pass `--no-interactive --redis` to `serverpod create`, select Redis in the create TUI, or use `serverpod quickstart`. The TUI leaves Redis off unless you select it. When `serverpod create` runs without the TUI, Redis is included by default. Opting in copies the config, Compose service, and a generated password. It does not turn Redis on.
+New projects include Redis configuration only if you opted in at create: pass `--redis` to `serverpod create`, select Redis in the create TUI, or use `serverpod quickstart`. The TUI leaves Redis off unless you select it. When `serverpod create` runs without the TUI, Redis is included by default. Opting in copies the config, Compose service, and a generated password. It does not turn Redis on.
 
 ## Connection details
 
