@@ -118,10 +118,10 @@ When the server has started, you can access it at:
 The server isn't live yet. Watch the deployment finish:
 
 ```bash
-scloud deployment show
+scloud status deployment show
 ```
 
-The command tracks the deployment through four stages, updating each line as it progresses:
+The command tracks the deployment through three stages, updating each line as it progresses:
 
 ```text
 Tracking my-app deployment 4583d0a1-3d0a-400e-a9a5-9880da6abc94
@@ -129,11 +129,10 @@ Tracking my-app deployment 4583d0a1-3d0a-400e-a9a5-9880da6abc94
 
 Upload successful.
 Cloud build successful.
-Infra deploy successful.
-Service rollout successful. 🚀
+Rollout successful. 🚀
 ```
 
-When you see the rocket on **Service rollout**, your app is live.
+When you see the rocket on **Rollout**, your app is live.
 
 ## Open your app
 
@@ -193,10 +192,10 @@ To regenerate code or run other tasks before each deploy, configure a pre-deploy
 Watch the latest deployment as it runs:
 
 ```bash
-scloud deployment show
+scloud status deployment show
 ```
 
-The command tracks the deployment through its four lifecycle stages and updates each line as it progresses. When complete:
+The command tracks the deployment through its three lifecycle stages and updates each line as it progresses. When complete:
 
 ```text
 Tracking my-app deployment 4583d0a1-3d0a-400e-a9a5-9880da6abc94
@@ -204,16 +203,15 @@ Tracking my-app deployment 4583d0a1-3d0a-400e-a9a5-9880da6abc94
 
 Upload successful.
 Cloud build successful.
-Infra deploy successful.
-Service rollout successful. 🚀
+Rollout successful. 🚀
 ```
 
-The four stages are **Upload** (your project package reaches Cloud), **Cloud build** (Cloud builds the container), **Infra deploy** (Cloud prepares the infrastructure for the new version), and **Service rollout** (the new version starts serving requests).
+The three stages are **Upload** (your project package reaches Cloud), **Cloud build** (Cloud builds the container), and **Rollout** (Cloud prepares the infrastructure and the new version starts serving requests).
 
 List recent deployments:
 
 ```bash
-scloud deployment list
+scloud status deployment list
 ```
 
 The list shows deploy IDs alongside status and timestamps:
@@ -228,21 +226,21 @@ The list shows deploy IDs alongside status and timestamps:
 Inspect a specific deployment by its ID:
 
 ```bash
-scloud deployment show <deployment-id>
+scloud status deployment show <deployment-id>
 ```
 
 Stream the build log for a deployment that failed during the build stage:
 
 ```bash
-scloud deployment build-log
+scloud build log
 ```
 
 ## Validate before deploying
 
-A dry run packages your project and validates the package without uploading or building it:
+A wet run performs every step except the deployment itself, leaving the running app untouched:
 
 ```bash
-scloud deploy --dry-run
+scloud deploy --wet-run
 ```
 
 Preview the file tree that will be uploaded, with ignored files marked:
@@ -254,13 +252,13 @@ scloud deploy --show-files
 Combine the two flags to inspect what will be uploaded without deploying:
 
 ```bash
-scloud deploy --dry-run --show-files
+scloud deploy --wet-run --show-files
 ```
 
 Save the package to a local zip (useful for CI inspection or air-gapped environments):
 
 ```bash
-scloud deploy --output deployment.zip --dry-run
+scloud deploy --output deployment.zip --wet-run
 ```
 
 ## Configure what's included
@@ -293,7 +291,7 @@ The `scloud` CLI may generate intermediate files under `.scloud/` directories. A
 Verify your ignore patterns:
 
 ```bash
-scloud deploy --dry-run --show-files
+scloud deploy --wet-run --show-files
 ```
 
 ## Troubleshooting
@@ -301,7 +299,7 @@ scloud deploy --dry-run --show-files
 **Build failure.** Stream the build log and look for lines beginning with `ERROR:` or `FAILED:`:
 
 ```bash
-scloud deployment build-log
+scloud build log
 ```
 
 Common causes are missing dependencies in `pubspec.yaml` or compile errors in your code.
@@ -342,21 +340,21 @@ Use Serverpod Insights for root-cause analysis. The session-grouped view makes i
 Build logs are emitted while Cloud builds your deployment package: package installation, compilation, warnings, and errors. They're the first place to look when a deploy fails. Fetch the latest build log:
 
 ```bash
-scloud deployment build-log
+scloud build log
 ```
 
-Pass a sequence number (where `0` is the latest) or a UUID to inspect a specific deployment; `scloud deployment list` shows the IDs:
+Pass a sequence number (where `0` is the latest) or a UUID to inspect a specific deployment; `scloud status deployment list` shows the IDs:
 
 ```bash
-scloud deployment build-log 3
-scloud deployment build-log 550e8400-e29b-41d4-a716-446655440000
+scloud build log 3
+scloud build log 550e8400-e29b-41d4-a716-446655440000
 ```
 
 For longer build logs, redirect to a file or filter inline:
 
 ```bash
-scloud deployment build-log > build-log.txt
-scloud deployment build-log | grep ERROR
+scloud build log > build-log.txt
+scloud build log | grep ERROR
 ```
 
 For a step-by-step walkthrough of diagnosing and recovering from a failed deploy, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
@@ -460,7 +458,8 @@ For what the server records, which tables it writes to, and how retention works,
 ## Related
 
 - [CLI reference: `log` command](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md)
-- [CLI reference: `deployment` command](https://docs.serverpod.dev/cloud/reference/cli/commands/deployment.md)
+- [CLI reference: `build` command](https://docs.serverpod.dev/cloud/reference/cli/commands/build.md)
+- [CLI reference: `status` command](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
 
 ---
 
@@ -1364,7 +1363,7 @@ Cloud zips your project directory and includes every file that isn't excluded fr
 To preview which files Cloud will upload before deploying:
 
 ```bash
-scloud deploy --dry-run --show-files
+scloud deploy --wet-run --show-files
 ```
 
 ## Read an asset at runtime
@@ -1445,7 +1444,7 @@ Asset files count toward your deployment package size. Large folders slow upload
 
 ## Troubleshooting
 
-**File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `scloud deploy --dry-run --show-files` before debugging at runtime.
+**File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `scloud deploy --wet-run --show-files` before debugging at runtime.
 
 **Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**`.
 
@@ -1516,10 +1515,10 @@ What each step does:
 Commit the workflow file and push to `main`. Open the **Actions** tab in your repository to watch the run. When it succeeds, confirm the deploy went live:
 
 ```bash
-scloud deployment show
+scloud status deployment show
 ```
 
-You should see a recent deployment moving through Upload → Cloud build → Infra deploy → Service rollout, finishing with the rocket on **Service rollout**.
+You should see a recent deployment moving through Upload → Cloud build → Rollout, finishing with the rocket on **Rollout**.
 
 ## Run `serverpod generate` in CI (variant)
 
@@ -1607,7 +1606,7 @@ Your `scloud deploy` just failed. This guide walks you through finding what brok
 List recent deployments to see status:
 
 ```bash
-scloud deployment list
+scloud status deployment list
 ```
 
 A failed deploy shows `FAILURE` in the Status column and a short reason in the Info column:
@@ -1618,28 +1617,28 @@ A failed deploy shows `FAILURE` in the Status column and a short reason in the I
 0 | my-app  | 73e66b41-64fc-4920-b6ef-4918cc6ceca1 | FAILURE | 2026-06-15 15:19:37 | 2026-06-15 15:20:34 | User build FAILURE - see build log
 ```
 
-The Info column points at which lifecycle stage failed: Upload, Cloud build, Infra deploy, or Service rollout.
+The Info column points at which lifecycle stage failed: Upload, Cloud build, or Rollout.
 
 ## Read the build log
 
 Build logs are the only surface for build-time errors. Fetch the latest:
 
 ```bash
-scloud deployment build-log
+scloud build log
 ```
 
-For a specific deploy, pass a sequence number (`0` is the latest) or the deploy UUID from `scloud deployment list`:
+For a specific deploy, pass a sequence number (`0` is the latest) or the deploy UUID from `scloud status deployment list`:
 
 ```bash
-scloud deployment build-log 3
-scloud deployment build-log 73e66b41-64fc-4920-b6ef-4918cc6ceca1
+scloud build log 3
+scloud build log 73e66b41-64fc-4920-b6ef-4918cc6ceca1
 ```
 
 For long logs, redirect to a file or grep for errors:
 
 ```bash
-scloud deployment build-log > build-log.txt
-scloud deployment build-log | grep ERROR
+scloud build log > build-log.txt
+scloud build log | grep ERROR
 ```
 
 ## Identify the failure type
@@ -1673,14 +1672,14 @@ scloud deploy
 Watch the new attempt:
 
 ```bash
-scloud deployment show
+scloud status deployment show
 ```
 
-When **Service rollout** reports success, Cloud switches traffic to the new version.
+When **Rollout** reports success, Cloud switches traffic to the new version.
 
 ## Related
 
-- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle and `scloud deploy --dry-run` to validate before shipping.
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle and `scloud deploy --wet-run` to validate before shipping.
 - [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md) for the build-log and runtime-log surfaces.
 - [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for pre- and post-deploy hook failure semantics.
 - [Database](https://docs.serverpod.dev/cloud/concepts/database.md) for the migration model and how to reverse a schema change.
@@ -1810,30 +1809,30 @@ and at rest.
 
 ### CLI commands for build secrets
 
-Use the `scloud deployment build-secret` commands to manage your build secrets.
+Use the `scloud build secret` commands to manage your build secrets.
 
 #### List the current build secrets
 
 ```sh
-$ scloud deployment build-secret list
+$ scloud build secret list
 ```
 
 #### Add or modify a build secret
 
 ```sh
-$ scloud deployment build-secret set MY_SECRET_NAME "my-private-ssh-key"
+$ scloud build secret set MY_SECRET_NAME "my-private-ssh-key"
 ```
 
 #### Add or modify a build secret with the value in a file
 
 ```sh
-$ scloud deployment build-secret set MY_SECRET_NAME --from-file my_private_ssh_key_file
+$ scloud build secret set MY_SECRET_NAME --from-file my_private_ssh_key_file
 ```
 
 #### Remove a build secret
 
 ```sh
-$ scloud deployment build-secret unset MY_SECRET_NAME
+$ scloud build secret unset MY_SECRET_NAME
 ```
 
 ### Accessing a private repository in GitHub
@@ -2149,12 +2148,15 @@ Global options:
                                           (defaults to <server-package>/scloud.yaml)
     --timeout=<integer[us|ms|s|m|h|d]>    The timeout for the connection to the Serverpod Cloud API.
                                           (defaults to "1m")
-    --yes                                 Automatically accept confirmation prompts. For use in
-                                          non-interactive environments.
+    --yes                                 Automatically accept confirmation prompts.
+    --non-interactive                     Never wait for user input, fail with an error instead. For
+                                          use in non-interactive environments such as CI. Combine
+                                          with --yes to accept confirmation prompts.
+    --format=<text|json|yaml>             Selects the command output format.
+                                          (defaults to "text")
 
 Available commands:
   completion   Command line completion commands
-  context      Manage the global project context.
   settings     Manage local CLI user settings.
   version      Prints the version of the Serverpod Cloud CLI.
 
@@ -2167,13 +2169,14 @@ Management
   project      Manage Serverpod Cloud projects.
 
 Mission Control
+  build        View build logs and manage build secrets.
   db           Manage Serverpod Cloud DBs.
   deploy       Deploy a Serverpod project to the cloud.
-  deployment   Manage deployments.
   domain       Bring your own domain to Serverpod Cloud.
   log          Fetch Serverpod Cloud logs.
   password     Manage Serverpod Cloud passwords.
-  status       Show the live status of the project's podlets.
+  status       Show project and deployment status.
+  storage      Manage file storage for a project.
   variable     Manage Serverpod Cloud environment variables and secrets for a project.
 
 Run "scloud help <command>" for more information about a command.
@@ -2239,7 +2242,7 @@ Usage: scloud auth <subcommand> [arguments]
 Available subcommands:
   create-token   Create a personal access token.
   list           List the current authentication sessions.
-  login          Log in to Serverpod cloud.
+  login          Log in to Serverpod Cloud.
   logout         Log out from Serverpod Cloud.
   revoke-token   Revoke an authentication token.
 
@@ -2254,7 +2257,7 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 #### `login`
 
 ```console
-Log in to Serverpod cloud.
+Log in to Serverpod Cloud.
 
 Usage: scloud auth login [arguments]
 -h, --help                                   Print this usage information.
@@ -2297,10 +2300,9 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 List the current authentication sessions.
 
 Usage: scloud auth list [arguments]
--h, --help                       Print this usage information.
--u, --[no-]utc                   Display timestamps in UTC timezone instead of local.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help        Print this usage information.
+-u, --[no-]utc    Display timestamps in UTC timezone instead of local. Set
+                  SERVERPOD_CLOUD_DISPLAY_UTC=true to make UTC the default for all commands.
 
 Run "scloud help" to see global options.
 
@@ -2356,6 +2358,120 @@ Examples
 
 
 See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/auth
+
+```
+
+---
+
+# reference/cli/commands/build/build
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/build
+
+## Usage
+
+```console
+View build logs and manage build secrets.
+
+Usage: scloud build <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  log      View a deployment's build log.
+  secret   Manage build secrets.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  View the build log of the latest deployment.
+
+    $ scloud build log
+
+
+  List the current build secrets.
+
+    $ scloud build secret list
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/build
+
+```
+
+### Sub commands
+
+#### `log`
+
+```console
+View a deployment's build log.
+
+Usage: scloud build log [arguments]
+-h, --help                       Print this usage information.
+-p, --project (mandatory)        The ID of the project.
+                                 Can be omitted for existing projects that are linked (see the
+                                 "project link" command) or if a global project context is set (see
+                                 the "settings set projectContext" command).
+-u, --[no-]utc                   Display timestamps in UTC timezone instead of local. Set
+                                 SERVERPOD_CLOUD_DISPLAY_UTC=true to make UTC the default for all
+                                 commands.
+    --deploy=<<uuid|integer>>    View a specific deployment, with uuid or sequence number, 0 for
+                                 latest. Can be passed as the first argument.
+                                 (defaults to "0")
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  View the build log of the latest deployment.
+
+    $ scloud build log
+
+  View the build log of a specific deployment by sequence number.
+
+    $ scloud build log 3
+
+  View the build log of a specific deployment by UUID.
+
+    $ scloud build log 550e8400-e29b-41d4-a716-446655440000
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/build
+
+```
+
+#### `secret`
+
+```console
+Manage build secrets.
+
+Build secrets are used to securely store sensitive information that needs to be
+available when building your server, for example SSH keys.
+
+Build secrets are not available at runtime.
+(See `scloud variable set --secret` for managing runtime secrets:
+https://docs.serverpod.dev/cloud/reference/cli/commands/variable)
+
+Usage: scloud build secret <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    List all build secrets.
+  set     Set a build secret (create or update).
+  unset   Remove a build secret.
+
+Run "scloud help" to see global options.
+
+Examples
+
+  List the current build secrets.
+
+    $ scloud build secret list
+
+  Add or modify a build secret.
+
+    $ scloud build secret set MY_SECRET_NAME "my-secret-value"
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/build
 
 ```
 
@@ -2510,101 +2626,6 @@ Run "scloud help" to see global options.
 
 ---
 
-# scloud context
-
-https://docs.serverpod.dev/cloud/reference/cli/commands/context
-
-`scloud context` manages a locally stored default project. Project-scoped commands fall back to it when no `--project` flag, environment variable, or `scloud.yaml` selects one, so set it once to work on a project from any directory.
-
-For a per-repository default, link the directory instead with [`scloud project link`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md).
-
-## Usage
-
-```console
-Manage the global project context.
-
-The global project context is a locally stored setting that selects the project to use when it is
-not specified by other means. Commands that act on a project use it as a last resort, after command
-line arguments, environment variables, and the scloud.yaml project configuration file.
-
-Usage: scloud context <subcommand> [arguments]
--h, --help    Print this usage information.
-
-Available subcommands:
-  list    List the Serverpod Cloud projects available as context.
-  set     Set the global project context to the given project ID.
-  show    Show the current global project context.
-  unset   Unset the global project context.
-
-Run "scloud help" to see global options.
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
-
-```
-
-### Sub commands
-
-#### `list`
-
-```console
-List the Serverpod Cloud projects available as context.
-
-Usage: scloud context list [arguments]
--h, --help                       Print this usage information.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
-
-Run "scloud help" to see global options.
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
-
-```
-
-#### `show`
-
-```console
-Show the current global project context.
-
-Usage: scloud context show [arguments]
--h, --help    Print this usage information.
-
-Run "scloud help" to see global options.
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
-
-```
-
-#### `set`
-
-```console
-Set the global project context to the given project ID.
-
-Usage: scloud context set [arguments]
--h, --help                   Print this usage information.
--p, --project (mandatory)    The ID of the project. Can be passed as the first argument.
-
-Run "scloud help" to see global options.
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
-
-```
-
-#### `unset`
-
-```console
-Unset the global project context.
-
-Usage: scloud context unset [arguments]
--h, --help    Print this usage information.
-
-Run "scloud help" to see global options.
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/context
-
-```
-
----
-
 # scloud db
 
 https://docs.serverpod.dev/cloud/reference/cli/commands/db
@@ -2649,8 +2670,8 @@ Usage: scloud db connection [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
 
 Run "scloud help" to see global options.
 
@@ -2668,7 +2689,11 @@ Usage: scloud db user <subcommand> [arguments]
 
 Available subcommands:
   create           Create a new superuser in the Serverpod Cloud DB.
+  list             List the superusers in the Serverpod Cloud DB.
   reset-password   Reset a password in the Serverpod Cloud DB.
+
+Danger Zone
+  delete           Delete a superuser from the Serverpod Cloud DB.
 
 Run "scloud help" to see global options.
 
@@ -2726,8 +2751,8 @@ Usage: scloud db wipe [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
 
 Run "scloud help" to see global options.
 
@@ -2743,7 +2768,7 @@ https://docs.serverpod.dev/cloud/reference/cli/commands/deploy
 
 `scloud deploy` packages your project, uploads it to Serverpod Cloud, and waits for the new version to go live. Run it from the directory containing `scloud.yaml` (typically your project root or server directory) or pass `--project-dir`.
 
-To preview what will be uploaded without deploying, use `scloud deploy --dry-run` (optionally with `--show-files`). To follow an in-flight deploy, run `scloud deployment show`.
+To validate the build without touching the running app, use `scloud deploy --wet-run` (optionally with `--show-files` to preview the upload). To follow an in-flight deploy, run `scloud status deployment show`.
 
 For the full deploy lifecycle, pre-deploy hooks, and how to recover from a failed deploy, see [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) and [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
 
@@ -2762,6 +2787,8 @@ Usage: scloud deploy [arguments]
     --wet-run                  Perform every step except the deployment, leaving the hosted
                                application untouched. Local files may still be modified.
     --show-files               Display the file tree that will be uploaded.
+    --redeploy                 Redeploy the currently running build with the latest variables and
+                               secrets. Skips zipping and uploading the project.
 -o, --output                   Save the deployment zip file to the specified path. Must end with
                                .zip
     --[no-]await               Await the deployment to finish while showing status progression.
@@ -2797,201 +2824,12 @@ Examples
 
     $ scloud deploy --output deployment.zip
 
+  Redeploy the currently running build with the latest variables and secrets
+
+    $ scloud deploy --redeploy
+
 
 See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deploy
-
-```
-
----
-
-# scloud deployment
-
-https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
-
-`scloud deployment` inspects existing deploys: list history, show status, view build logs. Use it after a deploy to confirm what shipped, watch one in progress, or debug a failure.
-
-For deploying new code, use [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md). For the deploy lifecycle and how to recover from a failed deploy, see [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) and [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
-
-## Usage
-
-```console
-Manage deployments.
-
-Usage: scloud deployment <subcommand> [arguments]
--h, --help    Print this usage information.
-
-Available subcommands:
-  build-log      View a deployment's build log.
-  build-secret   Manage build secrets.
-  list           List recent deployments.
-  show           Show the status of a deployment.
-
-Run "scloud help" to see global options.
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
-
-```
-
-### Sub commands
-
-#### `show`
-
-```console
-Show the status of a deployment.
-
-Usage: scloud deployment show [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
--u, --[no-]utc                   Display timestamps in UTC timezone instead of local.
-    --deploy=<<uuid|integer>>    View a specific deployment, with uuid or sequence number, 0 for
-                                 latest. Can be passed as the first argument.
-                                 (defaults to "0")
-    --output-overall-status      View a deployment's overall status as a single word, one of:
-                                 success, failure, awaiting, running, cancelled, unknown.
-    --[no-]await                 Await the deployment to finish while showing status progression.
-                                 (defaults to on)
-
-Run "scloud help" to see global options.
-
-
-Examples
-
-  Show the status of the latest deployment and wait for it to finish.
-
-    $ scloud deployment show
-
-
-  Show the status of the latest deployment without waiting for it to finish.
-
-    $ scloud deployment show --no-await
-
-
-  Show the status of a specific deployment by sequence number.
-
-    $ scloud deployment show 3
-
-
-  Show the status of a specific deployment by UUID.
-
-    $ scloud deployment show 550e8400-e29b-41d4-a716-446655440000
-
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
-
-```
-
-#### `list`
-
-```console
-List recent deployments.
-
-Usage: scloud deployment list [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
-    --limit=<integer>            The maximum number of records to fetch.
-                                 (defaults to "10")
--u, --[no-]utc                   Display timestamps in UTC timezone instead of local.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
-
-Run "scloud help" to see global options.
-
-
-Examples
-
-  List the 10 most recent deployments.
-
-    $ scloud deployment list
-
-
-  List the 20 most recent deployments.
-
-    $ scloud deployment list --limit 20
-
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
-
-```
-
-#### `build-log`
-
-```console
-View a deployment's build log.
-
-Usage: scloud deployment build-log [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
--u, --[no-]utc                   Display timestamps in UTC timezone instead of local.
-    --deploy=<<uuid|integer>>    View a specific deployment, with uuid or sequence number, 0 for
-                                 latest. Can be passed as the first argument.
-                                 (defaults to "0")
-
-Run "scloud help" to see global options.
-
-
-Examples
-
-  View the build log of the latest deployment.
-
-    $ scloud deployment build-log
-
-
-  View the build log of a specific deployment by sequence number.
-
-    $ scloud deployment build-log 3
-
-
-  View the build log of a specific deployment by UUID.
-
-    $ scloud deployment build-log 550e8400-e29b-41d4-a716-446655440000
-
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
-
-```
-
-#### `build-secret`
-
-```console
-Manage build secrets.
-
-Build secrets are used to securely store sensitive information that needs to be
-available when building your server, for example SSH keys.
-
-Build secrets are not available at runtime.
-(See `scloud variable set --secret` for managing runtime secrets:
-https://docs.serverpod.dev/cloud/reference/cli/commands/variable)
-
-Usage: scloud deployment build-secret <subcommand> [arguments]
--h, --help    Print this usage information.
-
-Available subcommands:
-  list    List all build secrets.
-  set     Set a build secret (create or update).
-  unset   Remove a build secret.
-
-Run "scloud help" to see global options.
-
-Examples
-
-  List the current build secrets.
-
-    $ scloud deployment build-secret list
-
-  Add or modify a build secret.
-
-    $ scloud deployment build-secret set MY_SECRET_NAME "my-secret-value"
-
-See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deployment
 
 ```
 
@@ -3058,8 +2896,8 @@ Usage: scloud domain attach [arguments]
 -p, --project (mandatory)                      The ID of the project.
                                                Can be omitted for existing projects that are linked
                                                (see the "project link" command) or if a global
-                                               project context is set (see the "context set"
-                                               command).
+                                               project context is set (see the "settings set
+                                               projectContext" command).
     --name (mandatory)                         The custom domain name. Can be passed as the first
                                                argument.
 -t, --target=<api|insights|web> (mandatory)    The Serverpod server target of the custom domain,
@@ -3080,8 +2918,8 @@ Usage: scloud domain list [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
 
 Run "scloud help" to see global options.
 
@@ -3098,8 +2936,8 @@ Usage: scloud domain detach [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
     --name (mandatory)       The custom domain name. Can be passed as the first argument.
 
 Run "scloud help" to see global options.
@@ -3117,8 +2955,8 @@ Usage: scloud domain verify [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
     --name (mandatory)       The custom domain name. Can be passed as the first argument.
 
 Run "scloud help" to see global options.
@@ -3177,6 +3015,9 @@ Usage: scloud launch [arguments]
     --[no-]pre-deploy-scripts    Set up pre-deploy scripts.
                                  (defaults to on)
     --dart-version               Overrides the Dart SDK version to use for building the project.
+-u, --[no-]utc                   Display timestamps in UTC timezone instead of local. Set
+                                 SERVERPOD_CLOUD_DISPLAY_UTC=true to make UTC the default for all
+                                 commands.
 
 Deployment options
 -c, --concurrency=<integer>      Number of concurrent files processed when zipping the project.
@@ -3218,12 +3059,16 @@ Usage: scloud log [arguments]
                                                                  projects that are linked (see the
                                                                  "project link" command) or if a
                                                                  global project context is set (see
-                                                                 the "context set" command).
+                                                                 the "settings set projectContext"
+                                                                 command).
     --limit=<integer>                                            The maximum number of log records
                                                                  to fetch.
                                                                  (defaults to "50")
 -u, --[no-]utc                                                   Display timestamps in UTC timezone
-                                                                 instead of local.
+                                                                 instead of local. Set
+                                                                 SERVERPOD_CLOUD_DISPLAY_UTC=true to
+                                                                 make UTC the default for all
+                                                                 commands.
     --until=<YYYY-MM-DDtHH:MM:SSz or duration[us|ms|s|m|h|d]>    Fetch records from before this
                                                                  timestamp. Accepts ISO date (e.g.
                                                                  "2024-01-15T10:30:00Z") or relative
@@ -3235,7 +3080,10 @@ Usage: scloud log [arguments]
                                                                  Can also be specified as the first
                                                                  argument.
     --tail                                                       Tail the log and get real time
-                                                                 updates.
+                                                                 updates. Cannot be combined with
+                                                                 --since or --until.
+    --raw                                                        Print the log content exactly as
+                                                                 stored, without parsing.
 
 Run "scloud help" to see global options.
 
@@ -3255,6 +3103,10 @@ Examples
   Stream logs in real-time.
 
     $ scloud log --tail
+
+  Streaming logs in real-time with --format json emits JSONL.
+
+    $ scloud log --tail --format json
 
 
   View logs from the last hour using duration.
@@ -3308,9 +3160,7 @@ If the CLI isn't authenticated, the command exits with an error. Log in with [`s
 Show information about the current user.
 
 Usage: scloud me [arguments]
--h, --help                       Print this usage information.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help    Print this usage information.
 
 Run "scloud help" to see global options.
 
@@ -3371,13 +3221,11 @@ List all passwords, both user-set and platform-managed.
 
 
 Usage: scloud password list [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
 
 Run "scloud help" to see global options.
 
@@ -3395,19 +3243,17 @@ Set a password.
 
 
 Usage: scloud password set [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
-    --name (mandatory)           The name of the password (without SERVERPOD_PASSWORD_ prefix). Can
-                                 be passed as the first argument.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
+    --name (mandatory)       The name of the password (without SERVERPOD_PASSWORD_ prefix). Can be
+                             passed as the first argument.
 
 Value
-    --value                      The value of the password. Can be passed as the second argument.
-    --from-file                  The name of the file with the password value.
+    --value                  The value of the password. Can be passed as the second argument.
+    --from-file              The name of the file with the password value.
 
 Run "scloud help" to see global options.
 
@@ -3421,15 +3267,13 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 Unset a password, can only unset user-set passwords.
 
 Usage: scloud password unset [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
-    --name (mandatory)           The name of the password (without SERVERPOD_PASSWORD_ prefix). Can
-                                 be passed as the first argument.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
+    --name (mandatory)       The name of the password (without SERVERPOD_PASSWORD_ prefix). Can be
+                             passed as the first argument.
 
 Run "scloud help" to see global options.
 
@@ -3476,6 +3320,7 @@ Available subcommands:
   delete   Delete a Serverpod Cloud project.
   link     Link your local project to an existing Serverpod Cloud project.
   list     List the Serverpod Cloud projects.
+  show     Show the profile of a Serverpod Cloud project.
 
 Management
   user     Manage Serverpod Cloud project users.
@@ -3526,10 +3371,34 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 List the Serverpod Cloud projects.
 
 Usage: scloud project list [arguments]
--h, --help                       Print this usage information.
-    --all                        Include deleted projects.
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help        Print this usage information.
+    --all         Include deleted projects.
+-u, --[no-]utc    Display timestamps in UTC timezone instead of local. Set
+                  SERVERPOD_CLOUD_DISPLAY_UTC=true to make UTC the default for all commands.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/project
+
+```
+
+#### `show`
+
+```console
+Show the profile of a Serverpod Cloud project.
+
+Shows when the project was created, the region it runs in, its plan, and its compute and database
+capacity.
+
+Usage: scloud project show [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project. Can be passed as the first argument.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
+-u, --[no-]utc               Display timestamps in UTC timezone instead of local. Set
+                             SERVERPOD_CLOUD_DISPLAY_UTC=true to make UTC the default for all
+                             commands.
 
 Run "scloud help" to see global options.
 
@@ -3595,11 +3464,94 @@ https://docs.serverpod.dev/cloud/reference/cli/commands/settings
 ```console
 Manage local CLI user settings.
 
-Usage: scloud settings [arguments]
--h, --help              Print this usage information.
-    --[no-]analytics    Toggles if analytics data is sent.
+The "projectContext" setting selects the project to use when it is not specified by other means.
+Commands that act on a project use it as a last resort, after command line arguments, environment
+variables, and the scloud.yaml project configuration file.
+
+Usage: scloud settings <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list    List local CLI user settings.
+  set     Set a local CLI user setting.
+  unset   Unset a local CLI user setting.
 
 Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/settings
+
+```
+
+### Sub commands
+
+#### `list`
+
+```console
+List local CLI user settings.
+
+Usage: scloud settings list [arguments]
+-h, --help    Print this usage information.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/settings
+
+```
+
+#### `set`
+
+```console
+Set a local CLI user setting.
+
+Usage: scloud settings set [arguments]
+-h, --help                Print this usage information.
+    --name (mandatory)    The name of the setting. Can be passed as the first argument.
+
+Value
+    --value               The value of the setting. Can be passed as the second argument.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Enable analytics.
+
+    $ scloud settings set analytics true
+
+  Disable analytics.
+
+    $ scloud settings set analytics false
+
+  Set the global project context.
+
+    $ scloud settings set projectContext my-project
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/settings
+
+```
+
+#### `unset`
+
+```console
+Unset a local CLI user setting.
+
+Usage: scloud settings unset [arguments]
+-h, --help                Print this usage information.
+    --name (mandatory)    The name of the setting. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Unset analytics.
+
+    $ scloud settings unset analytics
+
+  Unset the global project context.
+
+    $ scloud settings unset projectContext
 
 See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/settings
 
@@ -3611,22 +3563,21 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 
 https://docs.serverpod.dev/cloud/reference/cli/commands/status
 
-`scloud status` shows the live state of your deployed project: whether the service is up, how many podlets (the server instances running your deployment) are ready, which deployment is serving, and whether a new one is rolling in. Use it as the first check after a deploy or when the service misbehaves.
+`scloud status live` shows the live state of your deployed project: whether the service is up, how many podlets (the server instances running your deployment) are ready, which deployment is serving, and whether a new one is rolling in. Use it as the first check after a deploy or when the service misbehaves.
 
-To follow a deploy attempt in detail, use [`scloud deployment`](https://docs.serverpod.dev/cloud/reference/cli/commands/deployment.md); to read runtime output, use [`scloud log`](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md).
+To follow a deploy attempt in detail, use [`scloud status deployment`](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md); to read runtime output, use [`scloud log`](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md).
 
 ## Usage
 
 ```console
-Show the live status of the project's podlets.
+Show project and deployment status.
 
-Usage: scloud status [arguments]
--h, --help                   Print this usage information.
--p, --project (mandatory)    The ID of the project.
-                             Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
--u, --[no-]utc               Display timestamps in UTC timezone instead of local.
+Usage: scloud status <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  deployment   Show deployment status.
+  live         Show the live status of the project's podlets.
 
 Run "scloud help" to see global options.
 
@@ -3635,15 +3586,219 @@ Examples
 
   Show the live status of the project's podlets.
 
-    $ scloud status
+    $ scloud status live
+
+
+  Show the status of the latest deployment.
+
+    $ scloud status deployment show
+
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/status
+
+```
+
+### Sub commands
+
+#### `live`
+
+```console
+Show the live status of the project's podlets.
+
+Usage: scloud status live [arguments]
+-h, --help                                 Print this usage information.
+-p, --project (mandatory)                  The ID of the project.
+                                           Can be omitted for existing projects that are linked (see
+                                           the "project link" command) or if a global project
+                                           context is set (see the "settings set projectContext"
+                                           command).
+-u, --[no-]utc                             Display timestamps in UTC timezone instead of local. Set
+                                           SERVERPOD_CLOUD_DISPLAY_UTC=true to make UTC the default
+                                           for all commands.
+    --watch                                Refresh the status until Ctrl+C is pressed.
+    --interval=<integer[us|ms|s|m|h|d]>    How often --watch refreshes the status.
+                                           (defaults to "5s")
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Show the live status of the project's podlets.
+
+    $ scloud status live
 
 
   Show the live status of a specific project's podlets.
 
-    $ scloud status --project my-project
+    $ scloud status live --project my-project
+
+
+  Refresh the live status every 5 seconds until Ctrl+C is pressed.
+
+    $ scloud status live --watch
+
+
+  Refresh the live status every 30 seconds.
+
+    $ scloud status live --watch --interval 30s
 
 
 See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/status
+
+```
+
+#### `deployment`
+
+```console
+Show deployment status.
+
+Usage: scloud status deployment <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  list   List recent deployments.
+  log    View a deployment's build log.
+  show   Show the status of a deployment.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/status
+
+```
+
+---
+
+# reference/cli/commands/storage/storage
+
+https://docs.serverpod.dev/cloud/reference/cli/commands/storage
+
+## Usage
+
+```console
+Manage file storage for a project.
+
+A storage holds the files your project uploads at runtime, such as user avatars or generated
+documents.
+Every project starts with a private storage "private" and a public storage "public".
+
+
+Usage: scloud storage <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  create   Create a storage.
+  list     List the storages of a project.
+
+Danger Zone
+  delete   Delete a storage and every file in it. This cannot be undone.
+
+Mission Control
+  file     Manage the files in a storage.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/storage
+
+```
+
+### Sub commands
+
+#### `list`
+
+```console
+List the storages of a project.
+
+Usage: scloud storage list [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/storage
+
+```
+
+#### `create`
+
+```console
+Create a storage.
+
+The access of a storage decides who can read its files, and is fixed at creation.
+A private storage is only readable by your project, a public storage is readable by anyone with the
+URL.
+
+
+Usage: scloud storage create [arguments]
+-h, --help                       Print this usage information.
+-p, --project (mandatory)        The ID of the project.
+                                 Can be omitted for existing projects that are linked (see the
+                                 "project link" command) or if a global project context is set (see
+                                 the "settings set projectContext" command).
+-s, --storage (mandatory)        The id of the new storage. Lowercase letters, digits and dashes.
+                                 Can be passed as the first argument.
+-a, --access=<public|private>    Who can read the files. "private": only your project. "public":
+                                 anyone with the URL. Cannot be changed later.
+                                 (defaults to "private")
+
+Run "scloud help" to see global options.
+
+
+Examples
+
+  Create a private storage called user-uploads.
+
+    $ scloud storage create user-uploads
+
+  Create a storage whose files anyone with the URL can read.
+
+    $ scloud storage create assets --access public
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/storage
+
+```
+
+#### `delete`
+
+```console
+Delete a storage and every file in it. This cannot be undone.
+
+Usage: scloud storage delete [arguments]
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
+-s, --storage (mandatory)    The id of the storage. Can be passed as the first argument.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/storage
+
+```
+
+#### `file`
+
+```console
+Manage the files in a storage.
+
+Usage: scloud storage file <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  download   Download a file from a storage.
+  list       List the files in a storage.
+  upload     Upload a local file or directory to a storage.
+
+Danger Zone
+  delete     Delete a file or a folder from a storage.
+
+Run "scloud help" to see global options.
+
+See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/storage
 
 ```
 
@@ -3684,13 +3839,11 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 Lists all environment variables and secrets for the project.
 
 Usage: scloud variable list [arguments]
--h, --help                       Print this usage information.
--p, --project (mandatory)        The ID of the project.
-                                 Can be omitted for existing projects that are linked (see the
-                                 "project link" command) or if a global project context is set (see
-                                 the "context set" command).
-    --format=<text|json|yaml>    Selects the command output format.
-                                 (defaults to "text")
+-h, --help                   Print this usage information.
+-p, --project (mandatory)    The ID of the project.
+                             Can be omitted for existing projects that are linked (see the "project
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
 
 Run "scloud help" to see global options.
 
@@ -3707,8 +3860,8 @@ Usage: scloud variable set [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
     --name (mandatory)       The name of the environment variable. Can be passed as the first
                              argument.
     --[no-]secret            Store the value as a secret. The value is encrypted and masked. Without
@@ -3750,8 +3903,8 @@ Usage: scloud variable unset [arguments]
 -h, --help                   Print this usage information.
 -p, --project (mandatory)    The ID of the project.
                              Can be omitted for existing projects that are linked (see the "project
-                             link" command) or if a global project context is set (see the "context
-                             set" command).
+                             link" command) or if a global project context is set (see the "settings
+                             set projectContext" command).
     --name (mandatory)       The name of the environment variable. Can be passed as the first
                              argument.
 

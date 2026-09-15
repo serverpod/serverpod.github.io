@@ -14,7 +14,7 @@ Your `scloud deploy` just failed. This guide walks you through finding what brok
 List recent deployments to see status:
 
 ```bash
-scloud deployment list
+scloud status deployment list
 ```
 
 A failed deploy shows `FAILURE` in the Status column and a short reason in the Info column:
@@ -25,28 +25,28 @@ A failed deploy shows `FAILURE` in the Status column and a short reason in the I
 0 | my-app  | 73e66b41-64fc-4920-b6ef-4918cc6ceca1 | FAILURE | 2026-06-15 15:19:37 | 2026-06-15 15:20:34 | User build FAILURE - see build log
 ```
 
-The Info column points at which lifecycle stage failed: Upload, Cloud build, Infra deploy, or Service rollout.
+The Info column points at which lifecycle stage failed: Upload, Cloud build, or Rollout.
 
 ## Read the build log
 
 Build logs are the only surface for build-time errors. Fetch the latest:
 
 ```bash
-scloud deployment build-log
+scloud build log
 ```
 
-For a specific deploy, pass a sequence number (`0` is the latest) or the deploy UUID from `scloud deployment list`:
+For a specific deploy, pass a sequence number (`0` is the latest) or the deploy UUID from `scloud status deployment list`:
 
 ```bash
-scloud deployment build-log 3
-scloud deployment build-log 73e66b41-64fc-4920-b6ef-4918cc6ceca1
+scloud build log 3
+scloud build log 73e66b41-64fc-4920-b6ef-4918cc6ceca1
 ```
 
 For long logs, redirect to a file or grep for errors:
 
 ```bash
-scloud deployment build-log > build-log.txt
-scloud deployment build-log | grep ERROR
+scloud build log > build-log.txt
+scloud build log | grep ERROR
 ```
 
 ## Identify the failure type
@@ -80,14 +80,14 @@ scloud deploy
 Watch the new attempt:
 
 ```bash
-scloud deployment show
+scloud status deployment show
 ```
 
-When **Service rollout** reports success, Cloud switches traffic to the new version.
+When **Rollout** reports success, Cloud switches traffic to the new version.
 
 ## Related
 
-- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle and `scloud deploy --dry-run` to validate before shipping.
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle and `scloud deploy --wet-run` to validate before shipping.
 - [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md) for the build-log and runtime-log surfaces.
 - [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for pre- and post-deploy hook failure semantics.
 - [Database](https://docs.serverpod.dev/cloud/concepts/database.md) for the migration model and how to reverse a schema change.

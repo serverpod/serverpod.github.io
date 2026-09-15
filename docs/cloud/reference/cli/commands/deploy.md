@@ -4,7 +4,7 @@ https://docs.serverpod.dev/cloud/reference/cli/commands/deploy
 
 `scloud deploy` packages your project, uploads it to Serverpod Cloud, and waits for the new version to go live. Run it from the directory containing `scloud.yaml` (typically your project root or server directory) or pass `--project-dir`.
 
-To preview what will be uploaded without deploying, use `scloud deploy --dry-run` (optionally with `--show-files`). To follow an in-flight deploy, run `scloud deployment show`.
+To validate the build without touching the running app, use `scloud deploy --wet-run` (optionally with `--show-files` to preview the upload). To follow an in-flight deploy, run `scloud status deployment show`.
 
 For the full deploy lifecycle, pre-deploy hooks, and how to recover from a failed deploy, see [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) and [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
 
@@ -23,6 +23,8 @@ Usage: scloud deploy [arguments]
     --wet-run                  Perform every step except the deployment, leaving the hosted
                                application untouched. Local files may still be modified.
     --show-files               Display the file tree that will be uploaded.
+    --redeploy                 Redeploy the currently running build with the latest variables and
+                               secrets. Skips zipping and uploading the project.
 -o, --output                   Save the deployment zip file to the specified path. Must end with
                                .zip
     --[no-]await               Await the deployment to finish while showing status progression.
@@ -57,6 +59,10 @@ Examples
   Save the deployment zip and still upload it (unless --wet-run is set)
 
     $ scloud deploy --output deployment.zip
+
+  Redeploy the currently running build with the latest variables and secrets
+
+    $ scloud deploy --redeploy
 
 
 See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/commands/deploy
