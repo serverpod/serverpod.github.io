@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.cc1d998f.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.5ea2f846.js" defer="defer"></script>
 <script src="/assets/js/main.52b302cb.js" defer="defer"></script>
 </head>
 <body>
@@ -117,7 +117,7 @@
 </li>
 <li class="">If a widget extends <code>WebWidget</code> directly, implement the new abstract <code>String render({String? Function(String)? onMissingVariable})</code> method. The <code>WidgetRoute</code> class builds the response from <code>render</code> instead of <code>toString</code>. Widgets that extend <code>TemplateWidget</code>, <code>ListWidget</code>, <code>JsonWidget</code>, or <code>RedirectWidget</code> inherit <code>render</code>. The <code>WidgetRoute.build</code> method now returns <code>Future&lt;WebWidget?&gt;</code>. A <code>null</code> return yields a 404. See <a class="" href="/next/concepts/web-server/server-side-html#creating-a-widgetroute">Server-side HTML</a>.</li>
 <li class="">The <code>RouteStaticDirectory</code> and <code>PathCacheMaxAge</code> classes are removed. Serve directories with <code>StaticRoute.directory</code>, and set cache headers with its <code>cacheControlFactory</code> parameter. See <a class="" href="/next/concepts/web-server/static-files#cache-control">Static files</a>.</li>
-<li class="">The <code>--mini</code> flag on <code>serverpod create</code> is removed. To create a project without a database, deselect Database on the setup screen or pass <code>--no-interactive --no-database</code>. To create a project without a Flutter app, use <code>--template server</code>.</li>
+<li class="">The <code>--mini</code> flag on <code>serverpod create</code> is removed. To create a project without a database, deselect <strong>Database (recommended)</strong> on the setup screen, or pass <code>--no-interactive --no-database</code>. To create a project without a Flutter app, use <code>--template server</code>.</li>
 </ul>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="message-central-delivers-globally-by-default">Message central delivers globally by default<a href="#message-central-delivers-globally-by-default" class="hash-link" aria-label="Direct link to Message central delivers globally by default" title="Direct link to Message central delivers globally by default" translate="no">​</a></h3>
 <p>Calls to <code>session.messages.postMessage</code> now default to <code>MessageScope.auto</code>. When Redis is enabled, the message goes through Redis to every server instance. Otherwise, the message stays local. If your code relied on local-only delivery, pass <code>scope: MessageScope.local</code>. The <code>global: true</code> argument is removed, so replace it with <code>scope: MessageScope.global</code>. See <a class="" href="/next/concepts/endpoints-and-apis/server-events#message-scope">Message scope</a>.</p>
