@@ -2,10 +2,14 @@
 
 https://docs.serverpod.dev/concepts/authentication/legacy/working-with-users
 
+:::info
+This page documents the legacy `serverpod_auth` module. To move an existing app to the current authentication framework, see [Migrate from legacy auth](https://docs.serverpod.dev/upgrading/migrate-from-legacy-auth.md).
+:::
+
 It's a common task to read or update user information on your server. You can always retrieve the id of a signed-in user through the session object.
 
 ```dart
-var userId = (await session.authenticated)?.userId;
+var userId = session.authenticated?.userId;
 ```
 
 If you sign in users through the auth module, you will be able to retrieve more information through the static methods of the `Users` class.

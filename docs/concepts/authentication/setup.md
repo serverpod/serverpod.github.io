@@ -1,46 +1,38 @@
-# Setup
+# Set up the authentication module
 
 https://docs.serverpod.dev/concepts/authentication/setup
 
-Serverpod comes with built-in user management and authentication. It is possible to build a [custom authentication implementation](https://docs.serverpod.dev/concepts/authentication/custom-overrides.md), but the recommended way to authenticate users is to use the `serverpod_auth_idp` module. The module makes it easy to authenticate with email, social sign-ins and more.
+Serverpod comes with built-in user management and authentication. It is possible to build a [custom authentication implementation](https://docs.serverpod.dev/concepts/authentication/custom-overrides.md), but the recommended way to authenticate users is to use the `serverpod_auth_idp` module. The module lets users sign in through identity providers. An identity provider is a service that verifies who the user is, such as email with password, Google, or Apple. The module also handles basic user information, such as user names and profile pictures.
 
-The list of identity providers is continuously growing and new providers are added as they are developed. If you want to contribute a new provider, please consider [contributing](https://docs.serverpod.dev/contribute.md) your code. See the [identity providers configuration](#identity-providers-configuration) section for details on all available providers.
+This page walks through the manual setup: install the module on the server, the client, and the app, then wire up the sign-in UI. New projects created with `serverpod create` already include this setup. For that path, see [Get started](https://docs.serverpod.dev/concepts/authentication/get-started.md).
 
 ![Sign-in with Serverpod](https://docs.serverpod.dev/img/authentication/sign-in-widget-device.png)
 
-## Installing the auth module
-
-Serverpod's auth module makes it easy to authenticate users through email or 3rd parties. The authentication module also handles basic user information, such as user names and profile pictures. Make sure to use the same version numbers as for Serverpod itself for all dependencies.
-
 ## Server setup
 
-Add the auth modules as dependencies to the server project's `pubspec.yaml`.
+Add the authentication module as a dependency to the server project's `pubspec.yaml`. Use the same version numbers as for Serverpod itself for all dependencies.
 
 ```yaml
 dependencies:
   ...
-  serverpod_auth_idp_server: 3.x.x
+  serverpod_auth_idp_server: 4.0.0
 ```
 
 The `serverpod_auth_idp_server` package contains all components required to configure authentication services.
 
-### Configure Authentication Services
+### Configure authentication services
 
 In your main `server.dart` file, configure the authentication system using the `pod.initializeAuthServices()` extension method.
 
+The configuration needs at least one token manager. A token manager issues and validates the tokens that keep users signed in after they authenticate. The example below uses JWT tokens and reads its secrets from your password store. The [token manager configuration](#token-manager-configuration) section explains the options.
+
 ```dart
-import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 
-import 'src/generated/protocol.dart';
-import 'src/generated/endpoints.dart';
+import 'src/generated/serverpod.dart';
 
 void run(List<String> args) async {
-  final pod = Serverpod(
-    args,
-    Protocol(),
-    Endpoints(),
-  );
+  final pod = Serverpod(args);
 
   // Set up authentication services
   // The `pod.getPassword()` will get the value from `config/passwords.yaml`.
@@ -49,7 +41,7 @@ void run(List<String> args) async {
       JwtConfig(
         // Pepper used to hash the refresh token secret.
         refreshTokenHashPepper: pod.getPassword('jwtRefreshTokenHashPepper')!,
-        // Algorithm used to sign the tokens (`hmacSha512` or `ecdsaSha512`).
+        // Algorithm used to sign the tokens (`hmacSha512`, `hmacSha256` or `ecdsaSha512`).
         algorithm: JwtAlgorithm.hmacSha512(
           // Private key to sign the tokens. Must be a valid HMAC SHA-512 key.
           SecretKey(pod.getPassword('jwtHmacSha512PrivateKey')!),
@@ -62,7 +54,9 @@ void run(List<String> args) async {
 }
 ```
 
-Then, extend the abstract endpoint for refreshing JWT tokens to expose it on the server:
+See [storing secrets](#storing-secrets) for what the pepper in the example is and where to keep it.
+
+JWT-based authentication also needs a refresh endpoint. The app calls it to renew expired access tokens without asking the user to sign in again. Extend the abstract endpoint to expose it on the server. Create the file anywhere under your server's `lib/` directory, for example `<project>_server/lib/src/endpoints/`. The generator picks it up:
 
 ```dart
 import 'package:serverpod_auth_idp_server/core.dart' as core;
@@ -70,32 +64,39 @@ import 'package:serverpod_auth_idp_server/core.dart' as core;
 class RefreshJwtTokensEndpoint extends core.RefreshJwtTokensEndpoint {}
 ```
 
-### Token Manager Configuration
+### Token manager configuration
 
-The authentication system uses token managers to handle authentication tokens. You need to configure at least one token manager to be used as the primary token manager. Additional token managers can be configured to be used for validation and management operations.
+Token managers issue and validate the tokens that keep users signed in. Configure at least one. The first one in the list is the primary manager, which issues new tokens. Any others are used to validate and manage the tokens they issued.
 
 Serverpod provides two built-in token manager builders:
 
-- `JwtConfig` to use JWT-based authentication. See [JWT Token Manager](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md) for details.
-- `ServerSideSessionsConfig` to use server-side sessions authentication. See [Server-Side Sessions Token Manager](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md) for details.
+- `JwtConfig` to use JWT-based authentication. See [JWT token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md) for details.
+- `ServerSideSessionsConfig` to use server-side sessions authentication. See [Server-side sessions token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md) for details.
 
-For more details on how to configure token managers or create custom ones, see the dedicated [Token Managers](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md) documentation.
+For more details on how to configure token managers or create custom ones, see the dedicated [token managers](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md) documentation.
 
-### Identity Providers Configuration
+### Identity providers configuration
 
 Identity providers handle authentication with different methods (Email, Google, Apple, etc.). Each provider has its own configuration:
 
-- **Email**: Sign-up and sign-in with email and password. See [Email Provider](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md) for details.
-- **Google**: Sign-in with Google. See [Google Provider](https://docs.serverpod.dev/concepts/authentication/providers/google/setup.md) for details.
-- **Apple**: Sign-in with Apple. See [Apple Provider](https://docs.serverpod.dev/concepts/authentication/providers/apple/setup.md) for details.
-- **Passkey (experimental)**: Sign-in with Passkey. See [Passkey Provider](https://docs.serverpod.dev/concepts/authentication/providers/passkey/setup.md) for details.
+- **[Email](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md)**: sign-up and sign-in with email and password.
+- **[Anonymous](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/setup.md)** (experimental): accounts without any credentials, for trying the app before registering.
+- **[Google](https://docs.serverpod.dev/concepts/authentication/providers/google/setup.md)**, **[Apple](https://docs.serverpod.dev/concepts/authentication/providers/apple/setup.md)**, **[Facebook](https://docs.serverpod.dev/concepts/authentication/providers/facebook/setup.md)**, **[GitHub](https://docs.serverpod.dev/concepts/authentication/providers/github/setup.md)**, and **[Microsoft](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/setup.md)**: sign-in with the respective account.
+- **[Firebase](https://docs.serverpod.dev/concepts/authentication/providers/firebase/setup.md)**: reuse Firebase Authentication, including its phone and social sign-ins.
+- **[Passkey](https://docs.serverpod.dev/concepts/authentication/providers/passkey/setup.md)** (experimental): passwordless sign-in with passkeys.
+- **[Custom providers](https://docs.serverpod.dev/concepts/authentication/providers/custom-providers/overview.md)**: build your own, including OAuth2-based ones.
 
-By default, endpoints for all providers are disabled. To enable a provider, it is necessary to:
+The list of identity providers keeps growing. If you want to contribute a new provider, see the [contribution guidelines](https://docs.serverpod.dev/contribute.md).
+
+By default, endpoints for all providers are disabled. To enable a provider:
 
 1. Pass its config object to the `identityProviderBuilders` parameter of the `pod.initializeAuthServices()` method.
 
    ```dart
    pod.initializeAuthServices(
+     tokenManagerBuilders: [
+       JwtConfigFromPasswords(),
+     ],
      identityProviderBuilders: [
        EmailIdpConfig( /* configuration options */ ),
      ],
@@ -103,7 +104,7 @@ By default, endpoints for all providers are disabled. To enable a provider, it i
    ```
 
    :::tip
-   Some identity providers might require configuration on external services, such as the Google client secret. Such configuration will be required by the provider config object.
+   Some providers need credentials from an external service, such as the Google client secret. The provider's config object takes these as required parameters.
    :::
 
 2. Extend the identity provider abstract endpoint.
@@ -114,32 +115,21 @@ By default, endpoints for all providers are disabled. To enable a provider, it i
    class EmailIdpEndpoint extends EmailIdpBaseEndpoint {}
    ```
 
-3. Run `serverpod generate` to generate the client code and endpoint methods for the provider.
+3. Start the server with `serverpod start`. It generates the client code and endpoint methods for the provider, then runs the server with hot reload.
 
    ```bash
-   $ serverpod generate
+   $ serverpod start
    ```
 
-4. Create a migration to initialize the database for the provider.
-
-   ```bash
-   # Create the migration
-   $ serverpod create-migration
-
-   # Start the database container
-   $ docker compose up --build --detach
-
-   # Apply the migration
-   $ dart run bin/main.dart --role maintenance --apply-migrations
-   ```
+4. Create and apply the migration that initializes the database for the provider. In the `serverpod start` terminal, press **M**. The migration is created and applied in one step. If applying fails, press **A** to retry it.
 
    :::info
-   If this is the first time creating migrations after adding the module, besides the provider tables, all auth module tables will also be created. More detailed migration instructions can be found in the [migration guide](https://docs.serverpod.dev/concepts/database/migrations.md).
+   If this is the first time creating migrations after adding the module, besides the provider tables, all authentication module tables will also be created. More detailed migration instructions can be found in the [migration guide](https://docs.serverpod.dev/concepts/data-and-the-database/database/migrations.md).
    :::
 
-### Storing Secrets
+### Storing secrets
 
-Secrets like peppers and private keys should be stored securely. The example above uses `pod.getPassword()` which reads from your `config/passwords.yaml` file or environment variables in the format `SERVERPOD_PASSWORD_<key>='value'`.
+A pepper is a secret string mixed into values before they are hashed, so stored hashes cannot be brute-forced from a database leak alone. It is one application-wide secret, kept outside the database. Peppers and private keys should be stored securely. The example above uses `pod.getPassword()` which reads from your `config/passwords.yaml` file or environment variables in the format `SERVERPOD_PASSWORD_<key>='value'`.
 
 Add secrets to `config/passwords.yaml`:
 
@@ -149,7 +139,7 @@ development:
   jwtRefreshTokenHashPepper: 'your-refresh-token-pepper-here'
   jwtHmacSha512PrivateKey: 'your-private-key-here'
   emailSecretHashPepper: 'your-email-pepper-here'
-  googleClientSecret: '{"type":"service_account",...}'
+  googleClientSecret: '{"web":{"client_id":"...","client_secret":"...","redirect_uris":["..."]}}'
   # ... other secrets
 ```
 
@@ -160,12 +150,12 @@ export SERVERPOD_PASSWORD_serverSideSessionKeyHashPepper='your-session-pepper-he
 export SERVERPOD_PASSWORD_jwtRefreshTokenHashPepper='your-refresh-token-pepper-here'
 export SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey='your-private-key-here'
 export SERVERPOD_PASSWORD_emailSecretHashPepper='your-email-pepper-here'
-export SERVERPOD_PASSWORD_googleClientSecret='{"type":"service_account",...}'
+export SERVERPOD_PASSWORD_googleClientSecret='{"web":{"client_id":"...","client_secret":"...","redirect_uris":["..."]}}'
 # ... other secrets
 ```
 
 :::info
-When using the `config/passwords.yaml` file or environment variables, you can use a convenience version of token manager and identity provider builders that already load secrets using `pod.getPassword()` while still allowing you to pass additional configuration options.
+Builders that need secrets have a `FromPasswords` variant that reads them from well-known key names, so you do not need to call `pod.getPassword()` yourself. Any other configuration options are still passed as parameters. For example:
 
 ```dart
 final jwtConfig = JwtConfigFromPasswords();
@@ -184,24 +174,24 @@ Never commit `config/passwords.yaml` to version control. Be sure to add it to yo
 
 ## Client setup
 
-Add the `serverpod_auth_idp_client` package to your client project's `pubspec.yaml`. Make sure to use the same version numbers as for Serverpod itself for all dependencies.
+The client is the generated Dart package that your app uses to call the server (the `_client` package in your project). Add the `serverpod_auth_idp_client` package to its `pubspec.yaml`. Use the same version numbers as for Serverpod itself for all dependencies.
 
 ```yaml
 dependencies:
   ...
-  serverpod_auth_idp_client: 3.x.x
+  serverpod_auth_idp_client: 4.0.0
 ```
 
 ## App setup
 
-First, add dependencies to your app's `pubspec.yaml` file for the methods of signing in that you want to support.
+First, add these packages to your app's `pubspec.yaml` file. Some providers, such as Facebook and Firebase, need an extra package, which their setup page names.
 
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  serverpod_auth_idp_flutter: 3.x.x
-  serverpod_flutter: 3.x.x
+  serverpod_auth_idp_flutter: 4.0.0
+  serverpod_flutter: 4.0.0
   your_client:
     path: ../your_client
 ```
@@ -235,8 +225,12 @@ void main() async {
 
 The `FlutterAuthSessionManager` provides useful properties and methods for managing authentication state.
 
+:::info Web apps
+On the web, enable [cookie-based authentication](https://docs.serverpod.dev/concepts/authentication/web-authentication.md) so sign-in tokens are kept in `httpOnly` cookies instead of JavaScript-readable storage.
+:::
+
 :::tip
-In case you have an endpoint called `AuthEndpoint` - that will generate the `auth` getter on the client -, you can also get the `FlutterAuthSessionManager` from the client using the `client.authSessionManager` property. On the above example, you would replace the `client.auth.initialize()` call with `client.authSessionManager.initialize()`.
+The `client.auth` getter is a shortcut for `client.authSessionManager`. If your project defines its own endpoint class named `AuthEndpoint`, the generated client uses the `auth` name for that endpoint instead. In that case, call `client.authSessionManager.initialize()` in the example above.
 :::
 
 ### Initialize authentication
@@ -251,9 +245,61 @@ This is equivalent to calling `restore()` followed by `validateAuthentication()`
 
 See [Client-side authentication](https://docs.serverpod.dev/concepts/authentication/basics.md#client-side-authentication) for more details on how to interact with the authentication state from the client.
 
+:::note
+macOS apps need a Keychain Sharing entitlement before authentication sessions can be stored. See [Set up authentication on macOS](https://docs.serverpod.dev/concepts/authentication/macos-authentication.md).
+:::
+
+### Web callback page (`auth.html`)
+
+:::note
+You only need this if your app targets the **web** platform and uses an identity provider that signs the user in through an OAuth2 redirect. That includes **GitHub**, **Microsoft**, **Google** on web, and custom OAuth2-based providers. Skip this section if your app does not target web, or if it only uses email, anonymous, passkey, Apple, Facebook, or Firebase sign-in.
+:::
+
+When the user finishes signing in at the provider's page (for example, `accounts.google.com`), the provider redirects the browser to a URL on your site with the sign-in result attached. Your Flutter app cannot receive that redirect directly because the browser navigates fully away from it. The `auth.html` file is a small static page that catches the redirect, reads the result, and hands it back to your running Flutter app through `postMessage` (or `localStorage`, depending on how the sign-in was launched).
+
+You create one `auth.html` and share it across every identity provider that needs it.
+
+You have two ways to deliver it.
+
+If Serverpod serves your Flutter web app, register the `FlutterWebAuth2CallbackRoute` from `serverpod_auth_idp_server` on your web server and point the provider at that route. The page posts the result back to its own origin, so the browser only delivers it when your app is served from that same origin (same scheme, host, and port).
+
+Otherwise, host the file yourself. In your Flutter project's `web/` folder, add a file named `auth.html` with this content, which is identical to what the route serves:
+
+```html
+<!DOCTYPE html>
+<title>Authentication complete</title>
+<p>Authentication is complete. If this does not happen automatically, please close the window.</p>
+<script>
+  function postAuthenticationMessage() {
+    const message = {
+      'flutter-web-auth-2': window.location.href
+    };
+
+    if (window.opener) {
+      window.opener.postMessage(message, window.location.origin);
+      window.close();
+    } else if (window.parent && window.parent !== window) {
+      window.parent.postMessage(message, window.location.origin);
+    } else {
+      localStorage.setItem('flutter-web-auth-2', window.location.href);
+      window.close();
+    }
+  }
+
+  postAuthenticationMessage();
+</script>
+```
+
+When you set up a provider that uses this callback, you will register the full URL of `auth.html` in **two** places, and they must match exactly:
+
+- **In the provider's OAuth client configuration**: for example, **Authorized redirect URIs** in Google Cloud Console, or **Authorization callback URL** in a GitHub OAuth app.
+- **In the Flutter sign-in initializer**, via the `redirectUri` argument (e.g., `client.auth.initializeGoogleSignIn(..., redirectUri: ...)`).
+
+When you host the file yourself, the URL is your Flutter web app's origin plus `/auth.html`. For example, `http://localhost:49660/auth.html` during local development or `https://yourdomain.com/auth.html` in production. When the server serves the page, the URL is that same origin plus the path you registered the route at, for example `https://yourdomain.com/auth/callback`. The provider's setup page walks through the exact values for that provider.
+
 ### Present the authentication UI
 
-The `serverpod_auth_idp_flutter` package provides a `SignInWidget` that automatically detects enabled authentication providers and displays the appropriate sign-in options.
+The `serverpod_auth_idp_flutter` package provides a `SignInWidget` that automatically detects enabled identity providers and displays the appropriate sign-in options.
 
 ```dart
 import 'package:flutter/material.dart';
@@ -288,12 +334,16 @@ class SignInPage extends StatelessWidget {
 }
 ```
 
-This widget is a convenient way to use identity providers out-of-the-box, but you can also fully customize it or replace it with your own implementation. See the [UI Components](https://docs.serverpod.dev/concepts/authentication/ui-components.md) documentation for more details.
+This widget is a convenient way to use identity providers out-of-the-box, but you can also fully customize it or replace it with your own implementation. See the [UI components](https://docs.serverpod.dev/concepts/authentication/ui-components.md) documentation for more details.
 
 #### Updating the UI based on authentication state
 
-To update the UI based on authentication state, you must listen to authentication state changes using the `authInfoListenable` getter. See the [Client-side authentication](https://docs.serverpod.dev/concepts/authentication/basics.md#monitor-authentication-changes) section for more details.
+Do not navigate to another screen from the `onAuthenticated` callback, or the user will have to sign in again every time they open the app. Instead, listen to authentication state changes with the `authInfoListenable` getter and switch screens based on the state. See [Client-side authentication](https://docs.serverpod.dev/concepts/authentication/basics.md#monitor-authentication-changes) for details.
 
-:::warning
-Do not navigate to the home screen using the `onAuthenticated` callback. This will cause the user to have to sign in again every time they open the app.
-:::
+## Related
+
+- [Get started](https://docs.serverpod.dev/concepts/authentication/get-started.md): the quick path for projects created with `serverpod create`.
+- [The basics](https://docs.serverpod.dev/concepts/authentication/basics.md): how authentication works on the server and in the app.
+- [Token managers](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md): choose between JWT and server-side sessions.
+- [Web setup](https://docs.serverpod.dev/concepts/authentication/web-authentication.md): keep web sign-in tokens in httpOnly cookies.
+- [UI components](https://docs.serverpod.dev/concepts/authentication/ui-components.md): customize or replace the sign-in UI.

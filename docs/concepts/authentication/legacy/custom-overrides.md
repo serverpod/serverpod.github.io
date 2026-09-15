@@ -1,8 +1,12 @@
-# Custom overrides
+# Custom authentication overrides
 
 https://docs.serverpod.dev/concepts/authentication/legacy/custom-overrides
 
-It is recommended to use the `serverpod_auth` package but if you have special requirements not fulfilled by it, you can implement your authentication module. Serverpod is designed to make it easy to add custom authentication overrides.
+:::info
+This page documents the legacy `serverpod_auth` module. To move an existing app to the current authentication framework, see [Migrate from legacy auth](https://docs.serverpod.dev/upgrading/migrate-from-legacy-auth.md).
+:::
+
+If the legacy `serverpod_auth` module does not fulfill your requirements, you can implement your own authentication handling. Serverpod is designed to make it easy to add custom authentication overrides.
 
 ## Server setup
 
@@ -13,24 +17,21 @@ When running a custom auth integration it is up to you to build the authenticati
 The token validation is performed by providing a custom `AuthenticationHandler` callback when initializing Serverpod. The callback should return an `AuthenticationInfo` object if the token is valid, otherwise `null`.
 
 ```dart
-// Initialize Serverpod and connect it with your generated code.
 final pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   authenticationHandler: (Session session, String token) async {
     /// Custom validation handler
     if (token != 'valid') return null;
 
-    return AuthenticationInfo(1, <Scope>{});
+    return AuthenticationInfo('1', <Scope>{}, authId: 'valid');
   },
 );
 ```
 
-In the above example, the `authenticationHandler` callback is overridden with a custom validation method. The method returns an `AuthenticationInfo` object with `userIdentifier` `"1"` and no scopes if the token is the literal "valid", otherwise `null`.
+In the above example, the `authenticationHandler` callback is overridden with a custom validation method. The method returns an `AuthenticationInfo` object with `userIdentifier` `"1"`, no scopes, and `authId` `"valid"` if the token is the literal "valid", otherwise `null`.
 
 :::note
-The `userIdentifier` passed to the `AuthenticationInfo` constructor, as the first parameter, will always be converted to a `String` and thus stored internally. Since the default implementation of `serverpod_auth` uses numeric IDs for the users, there is a convenience getter `userId`, which returns the integer value.
+The `userIdentifier` passed to the `AuthenticationInfo` constructor, as the first parameter, is a `String` and must not be empty. Since the default implementation of `serverpod_auth` uses numeric IDs for the users, the legacy module provides a convenience getter `userId`, which parses the identifier and returns the integer value.
 :::
 
 :::note
@@ -38,7 +39,7 @@ In the authenticationHandler callback the `authenticated` field on the session w
 :::
 
 :::info
-By specifying the optional `authId` field in the `AuthenticationInfo` object you can link the user to a specific authentication id. This is useful when revoking authentication for a specific device.
+The required `authId` field in the `AuthenticationInfo` object links the user to a specific authentication id, for example a device session. It is what `RevokedAuthenticationAuthId` matches against when revoking authentication for a specific device.
 :::
 
 #### Scopes
@@ -57,21 +58,21 @@ Set<Scope> userScopes = scopes.map((scope) => Scope(scope)).toSet();
 When a user's authentication is revoked, the server must be notified to respect the changes (e.g. to close method streams). Invoke the `session.messages.authenticationRevoked` method and raise the appropriate event to notify the server.
 
 ```dart
-var userId = 1;
+var userIdentifier = '1';
 var revokedScopes = ['write'];
 var message = RevokedAuthenticationScope(
   scopes: revokedScopes,
 );
 
 await session.messages.authenticationRevoked(
-  userId,
+  userIdentifier,
   message,
 );
 ```
 
 ##### Parameters
 
-- `userId` - The user id belonging to the `AuthenticationInfo` object to be revoked.
+- `userIdentifier` - The `userIdentifier` of the `AuthenticationInfo` object to be revoked.
 - `message` - The revoked authentication event message. See below for the different type of messages.
 
 #### Revoked authentication messages
@@ -92,7 +93,7 @@ You are responsible for implementing the endpoints to authenticate/authorize the
 
 ```dart
 class UserEndpoint extends Endpoint {
-  Future<LoginResponse> login(
+  Future<LoginResponse?> login(
     Session session,
     String username,
     String password,
@@ -113,7 +114,7 @@ Enabling authentication in the client is as simple as configuring a key manager 
 
 ### Configure key manager
 
-Key managers need to implement the `AuthenticationKeyManager` interface. The key manager is configured when creating the client by passing it as the named parameter `authenticationKeyManager`. If no key manager is configured, the client will not include tokens in requests to the server.
+Key managers need to implement the `AuthenticationKeyManager` interface. The interface's abstract `toHeaderValue` method formats the token for the HTTP authorization header. The class is deprecated in favor of `ClientAuthKeyProvider`, so the analyzer warns on it. It keeps working with the legacy module. The key manager is assigned to the client's `authKeyProvider` field. If no key manager is configured, the client will not include tokens in requests to the server.
 
 ```dart
 class SimpleAuthKeyManager extends AuthenticationKeyManager {
@@ -133,11 +134,19 @@ class SimpleAuthKeyManager extends AuthenticationKeyManager {
   Future<void> remove() async {
     _key = null;
   }
+
+  @override
+  Future<String?> toHeaderValue(String? key) async {
+    if (key == null) return null;
+    return wrapAsBasicAuthHeaderValue(key);
+  }
 }
 
 
-var client = Client('http://$localhost:8080/',
-    authenticationKeyManager: SimpleAuthKeyManager())
+var keyManager = SimpleAuthKeyManager();
+
+var client = Client('http://localhost:8080/')
+  ..authKeyProvider = keyManager
   ..connectivityMonitor = FlutterConnectivityMonitor();
 ```
 
@@ -149,18 +158,14 @@ The `SimpleAuthKeyManager` is not practical and should only be used for testing.
 
 :::
 
-The key manager is then available through the client's `authenticationKeyManager` field.
-
-```dart
-var keyManager = client.authenticationKeyManager;
-```
+The sections below use the `keyManager` reference created above to interact with the stored token.
 
 ### Store token
 
 When the client receives a token from the server, it is responsible for storing it in the key manager using the `put` method. The key manager will then include the token in all requests to the server.
 
 ```dart
-await client.authenticationKeyManager?.put(token);
+await keyManager.put(token);
 ```
 
 In the above example, the `token` is placed in the key manager. It will now be included in communication with the server.
@@ -170,7 +175,7 @@ In the above example, the `token` is placed in the key manager. It will now be i
 To remove the token from the key manager, call the `remove` method.
 
 ```dart
-await client.authenticationKeyManager?.remove();
+await keyManager.remove();
 ```
 
 The above example removes any token from the key manager.
@@ -180,26 +185,26 @@ The above example removes any token from the key manager.
 To retrieve the token from the key manager, call the `get` method.
 
 ```dart
-var token = await client.authenticationKeyManager?.get();
+var token = await keyManager.get();
 ```
 
 The above example retrieves the token from the key manager and stores it in the `token` variable.
 
 ## Authentication schemes
 
-By default Serverpod will pass the authentication token from client to server in accordance with the HTTP `authorization` header standard with the `basic` scheme name and encoding. This is securely transferred as the connection is TLS encrypted.
+The module's shipped key manager, `FlutterAuthenticationKeyManager`, passes the authentication token from client to server in accordance with the HTTP `authorization` header standard, with the `basic` scheme name and encoding. This is securely transferred as the connection is TLS encrypted.
 
-The default implementation encodes and wraps the user-provided token in a `basic` scheme which is automatically unwrapped on the server side before being handed to the user-provided authentication handler described above.
+The legacy module's `FlutterAuthenticationKeyManager` encodes and wraps the user-provided token in a `basic` scheme with the `wrapAsBasicAuthHeaderValue` helper. The value is automatically unwrapped on the server side before being handed to the user-provided authentication handler described above.
 
-In other words the default transport implementation is "invisible" to user code.
+For apps using `FlutterAuthenticationKeyManager`, this wrapping and unwrapping is invisible to application code.
 
 ### Implementing your own authentication scheme
 
 If you are implementing your own authentication and are using the `basic` scheme, note that this is supported but will be automatically unwrapped i.e. decoded on the server side before being handed to your `AuthenticationHandler` implementation. It will in this case receive the decoded auth key value after the `basic` scheme name.
 
-If you are implementing a different authentication scheme, for example OAuth 2 using bearer tokens, you should override the default method `toHeaderValue` of `AuthenticationKeyManager`. This client-side method converts the authentication key to the format that shall be sent as a transport header to the server.
+If you are implementing a different authentication scheme, for example OAuth 2 using bearer tokens, implement the `toHeaderValue` method of your key manager accordingly. This client-side method converts the authentication key to the format that is sent as a transport header to the server.
 
-You will also need to implement the `AuthenticationHandler` accordingly, in order to process that header value server-side.
+On the server side, both `basic` and `bearer` values are automatically unwrapped before the `AuthenticationHandler` is invoked. The handler receives the bare token without the scheme prefix. Other schemes are passed through unchanged and need manual parsing in the handler.
 
 The header value must be compliant with the HTTP header format defined in RFC 9110 HTTP Semantics, 11.6.2. Authorization.
 See:
@@ -238,25 +243,22 @@ class MyOAuthKeyManager extends AuthenticationKeyManager {
 }
 
 
-var client = Client('http://$localhost:8080/',
-    authenticationKeyManager: SimpleAuthKeyManager())
+var client = Client('http://localhost:8080/')
+  ..authKeyProvider = MyOAuthKeyManager()
   ..connectivityMonitor = FlutterConnectivityMonitor();
 ```
 
 Server side:
 
 ```dart
-// Initialize Serverpod and connect it with your generated code.
 final pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   authenticationHandler: (Session session, String token) async {
     /// Bearer token validation handler
-    var (uid, scopes) = myBearerTokenValidator(token)
+    var (uid, scopes, authId) = myBearerTokenValidator(token);
     if (uid == null) return null;
 
-    return AuthenticationInfo(uid, scopes);
+    return AuthenticationInfo(uid, scopes, authId: authId);
   },
 );
 ```

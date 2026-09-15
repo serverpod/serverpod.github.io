@@ -2,11 +2,15 @@
 
 https://docs.serverpod.dev/concepts/authentication/legacy/providers/custom-providers
 
-Serverpod's authentication module makes it easy to implement custom authentication providers. This allows you to leverage all the existing providers supplied by the module along with the specific providers your project requires.
+:::info
+This page documents the legacy `serverpod_auth` module. To move an existing app to the current authentication framework, see [Migrate from legacy auth](https://docs.serverpod.dev/upgrading/migrate-from-legacy-auth.md).
+:::
+
+The legacy `serverpod_auth` module makes it easy to implement custom authentication providers. This allows you to leverage all the existing providers supplied by the module along with the specific providers your project requires.
 
 ## Server setup
 
-After successfully authenticating a user through a customer provider, an auth token can be created and connected to the user to preserve the authenticated user's permissions. This token is used to identify the user and facilitate endpoint authorization validation. The token can be removed when the user signs out to prevent further access.
+After successfully authenticating a user through a custom provider, an auth token can be created and connected to the user to preserve the authenticated user's permissions. This token is used to identify the user and facilitate endpoint authorization validation. The token can be removed when the user signs out to prevent further access.
 
 ### Connect user
 
@@ -61,7 +65,7 @@ To create an auth token, call the `signInUser` method in the `UserAuthentication
 The `signInUser` method takes four arguments: the first is the session object, the second is the user ID, the third is information about the method of authentication, and the fourth is a set of scopes granted to the auth token.
 
 ```dart
-var authToken = await UserAuthentication.signInUser(userInfo.id, 'myAuthMethod', scopes: {
+var authToken = await UserAuthentication.signInUser(session, userInfo.id!, 'myAuthMethod', scopes: {
     Scope('delete'),
     Scope('create'),
 });
@@ -138,7 +142,7 @@ To revoke a specific authentication key for the current session, you can directl
 
 ```dart
 // Fetch the authentication information for the current session
-var authId = (await session.authenticated)?.authId;
+var authId = session.authenticated?.authId;
 
 // Revoke the authentication key if the session is authenticated and has an authId
 if (authId != null) {

@@ -1,0 +1,31 @@
+# Deploy to Serverpod Cloud
+
+https://docs.serverpod.dev/deployments/deploy-to-serverpod-cloud
+
+[Serverpod Cloud](https://docs.serverpod.dev/cloud.md) is the recommended way to host a Serverpod server. It is a fully managed platform built and maintained by the Serverpod team, designed specifically for Serverpod apps. You deploy in minutes with zero configuration, and there is no VM setup, container configuration, or infrastructure to orchestrate yourself.
+
+:::info
+
+Your first project includes a one-month free trial, with no credit card required.
+
+:::
+
+Cloud manages the production infrastructure for you:
+
+- An optional production-grade Postgres database, with migrations applied automatically on each deploy.
+- Networking, load balancing, and custom domains with TLS certificates.
+- Server instances (podlets) with predictable pricing. See [Cloud plans](https://serverpod.dev/cloud) for what each plan includes.
+- A secure key manager for your app secrets.
+
+## Deploy from the terminal
+
+You deploy with the Serverpod CLI:
+
+1. Run `serverpod cloud launch`. It installs the Cloud CLI if needed. If you aren't signed in, it opens your browser so you can sign in.
+2. For a new project, the Cloud Console opens so you can create it. The database setting is pre-filled from your server's config.
+3. When prompted, select the custom passwords from `config/passwords.yaml` to copy to Cloud. The command then deploys your server.
+4. Set any other secrets (API keys, OAuth credentials) with `serverpod cloud password set`. Then run `serverpod cloud deploy` so the server picks them up.
+
+See the [Serverpod Cloud documentation](https://docs.serverpod.dev/cloud.md) for the full walkthrough, including secrets, custom domains, and logs.
+
+To run the server yourself instead, see [Custom hosting](https://docs.serverpod.dev/deployments/custom-hosting/choosing-a-strategy.md).

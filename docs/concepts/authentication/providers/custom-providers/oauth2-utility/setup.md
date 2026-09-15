@@ -1,4 +1,4 @@
-# Setup
+# Set up the OAuth2 utility
 
 https://docs.serverpod.dev/concepts/authentication/providers/custom-providers/oauth2-utility/setup
 
@@ -10,14 +10,14 @@ The OAuth2 utility consists of client-side and server-side components that work 
 - **Server-side (`OAuth2PkceUtil`)**: Exchanges authorization codes for access tokens on your backend.
 
 :::info
-The [GitHub IDP](https://docs.serverpod.dev/concepts/authentication/providers/github/setup.md) is built using these utilities, serving as a reference implementation for developers creating custom providers.
+The [GitHub provider](https://docs.serverpod.dev/concepts/authentication/providers/github/setup.md) is built using these utilities, serving as a reference implementation for developers creating custom providers.
 :::
 
 ## Understanding OAuth2 with PKCE
 
 OAuth2 with PKCE is an authorization protocol that allows users to grant your application access to their data without sharing passwords. The PKCE extension adds an additional security layer, particularly important for mobile and public clients.
 
-### The OAuth2 Flow
+### The OAuth2 flow
 
 Here's how the complete flow works:
 
@@ -32,9 +32,7 @@ Here's how the complete flow works:
 
 PKCE ensures that even if an attacker intercepts the authorization code, they cannot exchange it for an access token without the original code verifier.
 
-## Server-Side Implementation
-
-### Configuration
+## Server-side implementation
 
 ### Configuration
 
@@ -82,20 +80,36 @@ final config = OAuth2PkceServerConfig(
 The `credentialsLocation` parameter controls how your client credentials are sent to the OAuth2 provider:
 
 - **Header mode (recommended):** Credentials are placed in the `Authorization` header using HTTP Basic authentication. This follows RFC 6749 and is generally more secure, since sensitive values don't appear in the request body or logs.
-- **Body mode:** Credentials are sent as form parameters in the request body.Use this only if your provider doesn't support header-based authentication.
+- **Body mode:** Credentials are sent as form parameters in the request body. Use this only if your provider doesn't support header-based authentication.
 
 :::
 
-### Exchanging Tokens
+### Exchanging tokens
 
 Using the previously created `config` object, create the `OAuth2PkceUtil` on your endpoint to exchange the authorization code:
 
-````dart
+```dart
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 
+import '../generated/protocol.dart';
+
 class MyProviderIdpEndpoint extends IdpBaseEndpoint {
   final oauth2Util = OAuth2PkceUtil(config: config);
+
+  /// Required by IdpBaseEndpoint: report whether the signed-in user already
+  /// has an account with this provider. Query the account model your provider
+  /// defines (see the full walkthrough for the model definition).
+  @override
+  Future<bool> hasAccount(Session session) async {
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) return false;
+    return await MyProviderAccount.db.findFirstRow(
+          session,
+          where: (t) => t.authUserId.equals(authUserId),
+        ) !=
+        null;
+  }
 
   Future<AuthSuccess> authenticate(
     Session session, {
@@ -142,35 +156,39 @@ class MyProviderIdpEndpoint extends IdpBaseEndpoint {
     // Fetch user data from provider's API using the access token
   }
 
-  Future<AccountResult> _authenticate(
+  Future<_AccountResult> _authenticate(
     Session session,
     Map<String, dynamic> userInfo,
   ) async {
-    // Find existing provider account or create new user based on provider user info
-    // Returns provider account (e.g., GoogleAccount, GitHubAccount) with authUserId linked to AuthUser
+    // Find the existing provider account or create a new auth user from the
+    // provider's user info, and return its authUserId with the scopes to grant.
   }
 
   Future<AuthSuccess> _issueToken(
     Session session, {
-    required int authUserId,
+    required UuidValue authUserId,
     required Set<Scope> scopes,
   }) async {
     // Issue Serverpod authentication token for the authenticated user
   }
 }
 
-### Exception Handling
+/// What _authenticate resolves: the linked auth user and the scopes to grant.
+typedef _AccountResult = ({UuidValue authUserId, Set<Scope> scopes});
+```
+
+### Exception handling
 
 The server-side utility throws these exceptions:
 
-| Exception | Description | Typical Cause |
-| ----------- | ------------- | --------------- |
-| `OAuth2InvalidResponseException` | Invalid response from provider | HTTP errors, malformed JSON |
-| `OAuth2MissingAccessTokenException` | Access token not in response | Provider didn't return token |
-| `OAuth2NetworkErrorException` | Network failure | Timeout, connection issues |
-| `OAuth2UnknownException` | Unexpected error | Unknown problems |
+| Exception                           | Description                    | Typical Cause                |
+| ----------------------------------- | ------------------------------ | ---------------------------- |
+| `OAuth2InvalidResponseException`    | Invalid response from provider | HTTP errors, malformed JSON  |
+| `OAuth2MissingAccessTokenException` | Access token not in response   | Provider didn't return token |
+| `OAuth2NetworkErrorException`       | Network failure                | Timeout, connection issues   |
+| `OAuth2UnknownException`            | Unexpected error               | Unknown problems             |
 
-## Client-Side Implementation
+## Client-side implementation
 
 ### Configuration
 
@@ -209,9 +227,9 @@ final config = OAuth2PkceProviderClientConfig(
   // Enable PKCE for OAuth2 flow (default: true)
   enablePKCE: true,
 );
-````
+```
 
-### Initiating Authorization
+### Initiating authorization
 
 Using the previously created `config` object, create an `OAuth2PkceUtil` instance to start the authorization flow:
 
@@ -230,15 +248,22 @@ try {
   // The PKCE code verifier (required for token exchange)
   final codeVerifier = result.codeVerifier;
 
-  // Send both to your backend
-  await client.myProviderIdp.authenticate(
+  // Send both to your backend. codeVerifier is null when the provider does
+  // not use PKCE, so guard it before calling an endpoint that requires it.
+  if (codeVerifier == null) {
+    throw StateError('The provider did not return a PKCE code verifier.');
+  }
+
+  // The generated client drops the Endpoint suffix:
+  // MyProviderIdpEndpoint becomes client.myProviderIdp.
+  final authSuccess = await client.myProviderIdp.authenticate(
     code: code,
     codeVerifier: codeVerifier,
     redirectUri: config.redirectUri,
   );
-} on OAuth2PkceUserCancelledException catch (e) {
-  // User cancelled the authorization flow
-  print('User cancelled: ${e.message}');
+
+  // Register the session, otherwise the app is never actually signed in.
+  await client.auth.updateSignedInUser(authSuccess);
 } on OAuth2PkceStateMismatchException catch (e) {
   // Possible CSRF attack detected
   print('Security error: ${e.message}');
@@ -254,25 +279,24 @@ try {
 }
 ```
 
-### Exception Handling
+### Exception handling
 
 The client-side utility throws specific exceptions to help you handle different error scenarios:
 
-| Exception                                     | Description                      | Typical Cause                         |
-| --------------------------------------------- | -------------------------------- | ------------------------------------- |
-| `OAuth2PkceUserCancelledException`            | User cancelled authorization     | User closed browser/denied access     |
-| `OAuth2PkceStateMismatchException`            | State validation failed          | Possible CSRF attack or browser issue |
-| `OAuth2PkceMissingAuthorizationCodeException` | No authorization code received   | Provider didn't return expected code  |
-| `OAuth2PkceProviderErrorException`            | Provider returned error response | Invalid credentials, rate limiting    |
-| `OAuth2PkceUnknownException`                  | Unexpected error occurred        | Network issues, unknown problems      |
+| Exception                                     | Description                      | Typical Cause                                             |
+| --------------------------------------------- | -------------------------------- | --------------------------------------------------------- |
+| `OAuth2PkceStateMismatchException`            | State validation failed          | Possible CSRF attack or browser issue                     |
+| `OAuth2PkceMissingAuthorizationCodeException` | No authorization code received   | Provider didn't return expected code                      |
+| `OAuth2PkceProviderErrorException`            | Provider returned error response | Invalid credentials, rate limiting                        |
+| `OAuth2PkceUnknownException`                  | Unexpected error occurred        | Network issues, unknown problems, and a cancelled sign-in |
 
-### Platform-Specific Configuration
+### Platform-specific configuration
 
 The OAuth2 utility uses the [flutter\_web\_auth\_2](https://pub.dev/packages/flutter_web_auth_2) package under the hood, which requires platform-specific setup.
 
 #### iOS and macOS
 
-There is no special configuration needed for iOS and MacOS for "normal" authentication flows.
+There is no special configuration needed for iOS and macOS for "normal" authentication flows.
 However, if you are using **Universal Links** on iOS, they require redirect URIs to use **https**.
 Follow the instructions in the [flutter\_web\_auth\_2](https://pub.dev/packages/flutter_web_auth_2#ios) documentation.
 
@@ -291,7 +315,7 @@ Add the callback activity to your `AndroidManifest.xml`:
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        
+        <!-- Replace with your actual callback URL scheme -->
         <data android:scheme="myapp" />
       </intent-filter>
     </activity>
@@ -302,55 +326,23 @@ Add the callback activity to your `AndroidManifest.xml`:
 
 #### Web
 
-Create an HTML callback page in your `./web` folder (e.g., `auth.html`):
+Web sign-in needs the shared callback page that hands the OAuth2 result back to your app. Set it up once as described in [Web callback page (`auth.html`)](https://docs.serverpod.dev/concepts/authentication/setup.md#web-callback-page-authhtml). The same page serves every provider built on the OAuth2 utility, as long as your redirect URIs point to it, for example `https://yourdomain.com/auth.html`.
 
-```html
-<!DOCTYPE html>
-<title>Authentication complete</title>
-<p>Authentication is complete. If this does not happen automatically, please close the window.</p>
-<script>
-  function postAuthenticationMessage() {
-    const message = {
-      'flutter-web-auth-2': window.location.href
-    };
+## Complete example of a custom provider
 
-    if (window.opener) {
-      window.opener.postMessage(message, window.location.origin);
-      window.close();
-    } else if (window.parent && window.parent !== window) {
-      window.parent.postMessage(message, window.location.origin);
-    } else {
-      localStorage.setItem('flutter-web-auth-2', window.location.href);
-      window.close();
-    }
-  }
+For a full end-to-end implementation of a custom OAuth2 provider (server configuration, client setup, and integration of all components), see the [Complete Example](https://docs.serverpod.dev/concepts/authentication/providers/custom-providers/oauth2-utility/creating-an-oauth2-based-identity-provider.md) page.
 
-  postAuthenticationMessage();
-</script>
-```
+## Best practices
 
-:::note
-You only need a single callback file (e.g. `auth.html`) in your `./web` folder.
-This file is shared across all IDPs that use the OAuth2 utility, as long as your redirect URIs point to it.
-:::
-
-Make sure your redirect URI points to the callback file, e.g. `https://yourdomain.com/auth.html`
-
-## Complete Example of a Custom Provider
-
-For a full end‑to‑end implementation of a custom OAuth2 provider — including server configuration, client setup and integration of all components — see the [Complete Example](https://docs.serverpod.dev/concepts/authentication/providers/custom-providers/oauth2-utility/creating-an-oauth2-based-identity-provider.md) page.
-
-## Best Practices
-
-### Security Considerations
+### Security considerations
 
 1. **Always Use PKCE**: Keep `enablePKCE: true` in your client configuration. PKCE protects against authorization code interception attacks.
 2. **Validate State Parameter**: Keep `enableState: true` to prevent CSRF attacks. The state parameter ensures the authorization response matches your request.
 3. **Secure Client Secret**: Never expose your client secret in client-side code. Store it securely in `passwords.yaml` or environment variables on the server.
 4. **Use HTTPS**: Always use HTTPS URLs for production endpoints. Only use HTTP for local development.
-5. **Validate Redirect URIs**: Ensure redirect URIs in your code exactly match those registered with your OAuth provider.
+5. **Validate Redirect URIs**: Ensure redirect URIs in your code exactly match those registered with your OAuth2 provider.
 
-### Error Handling
+### Error handling
 
 1. **Catch Specific Exceptions**: Handle each exception type appropriately rather than using generic catch-all handlers.
 2. **Log Securely**: Log errors for debugging but never log sensitive data like tokens or secrets.

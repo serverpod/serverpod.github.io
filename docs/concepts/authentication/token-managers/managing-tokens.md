@@ -2,32 +2,39 @@
 
 https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens
 
-The authentication system uses token managers to handle authentication tokens. Token managers are responsible for issuing, validating, revoking, and listing authentication tokens.
+An authentication token is the credential the app sends with each request to prove who the signed-in user is. Token managers issue these tokens when a user signs in, and validate, revoke, and list them afterwards.
 
-## Default Token Managers
+## Default token managers
 
 Serverpod provides two built-in token managers:
 
-- `JwtTokenManager` for JWT-based authentication. See [JWT Token Manager](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md) for details.
-- `ServerSideSessionsTokenManager` for session-based authentication. See [Server-Side Sessions Token Manager](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md) for details.
+- `JwtTokenManager` for JWT-based authentication. See [JWT token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md) for details.
+- `ServerSideSessionsTokenManager` for session-based authentication. See [Server-side sessions token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md) for details.
+
+The main trade-off between them:
+
+|            | `JwtTokenManager`                                      | `ServerSideSessionsTokenManager` |
+| ---------- | ------------------------------------------------------ | -------------------------------- |
+| Validation | Stateless, no database query                           | Database query per validation    |
+| Revocation | Takes effect when the short-lived access token expires | Immediate                        |
+
+Pick JWT to avoid database load on every request. Pick server-side sessions when revocation must take effect immediately.
 
 ## Using the token managers
 
-After configuring at least one token manager using the `pod.initializeAuthServices()` method, you can access the token manager instance using the `AuthServices.instance.tokenManager` property.
+After you configure at least one token manager with `pod.initializeAuthServices()` (see [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md)), access the token manager through the `AuthServices.instance.tokenManager` property.
 
 ```dart
 final tokenManager = AuthServices.instance.tokenManager;
 ```
 
-It will return a `MultiTokenManager` instance that combines all the token managers configured for listing, validating and revoking tokens.
-
-The `MultiTokenManager` is a composite token manager that is automatically created when initializing the authentication services and combines multiple token managers. It:
+The property returns a `MultiTokenManager`, a wrapper that combines all configured token managers. Serverpod creates it automatically when you initialize the authentication services. The first builder you pass becomes the primary token manager. The `MultiTokenManager`:
 
 - Uses the primary token manager for issuing new tokens.
 - Validates tokens against all managers (primary and additional).
 - Delegates management operations to all managers.
 
-### Token Validation Flow
+### Token validation flow
 
 When validating a token, the `MultiTokenManager`:
 
@@ -42,11 +49,11 @@ This allows you to support multiple token types simultaneously, which is useful 
 - Supporting legacy tokens alongside new tokens.
 - Using different token types for different use cases.
 
-## Token Lifecycle Management
+## Token lifecycle management
 
-### Issuing Tokens
+### Issuing tokens
 
-Tokens are issued automatically by identity providers when users authenticate. You can also issue tokens programmatically:
+Identity providers issue tokens automatically when users authenticate. For your own sign-in flow, call `issueToken`:
 
 ```dart
 final authSuccess = await AuthServices.instance.tokenManager.issueToken(
@@ -57,13 +64,28 @@ final authSuccess = await AuthServices.instance.tokenManager.issueToken(
 );
 ```
 
+Return the `AuthSuccess` to the app. It carries the token, its expiry, the granted scopes, and, for JWT, the refresh token. The `issueToken` method is built for sign-in:
+
+- If the caller is already signed in as a different user, it throws a `SignInWhileAuthenticatedException`.
+- On a web request with [cookie-based authentication](https://docs.serverpod.dev/concepts/authentication/web-authentication.md), it sends the refresh token (JWT) or the session token (server-side sessions) as an `httpOnly` cookie instead of in the response body.
+
+To create a token for another user, or a token the caller must receive in the response body, call `createToken` instead. For example, use it in an admin flow or for a personal access token. It skips the sign-in check and the cookie delivery, so the returned `AuthSuccess` always includes the token and, for JWT, the refresh token:
+
+```dart
+final authSuccess = await AuthServices.instance.tokenManager.createToken(
+  session,
+  authUserId: targetUserId,
+  method: 'pat',
+);
+```
+
 #### Attaching metadata to tokens
 
-It is possible to attach metadata to tokens using either global callbacks configured on each token manager or by inserting a metadata row right after issuing the token. For more details, see the specific configuration sections for [Server-Side Sessions](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md#attaching-custom-metadata-to-sessions) and [JWT](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md#attaching-custom-metadata-to-tokens).
+You can attach metadata to tokens in two ways. Configure a global callback on the token manager, or insert a metadata row right after issuing the token. For more details, see the specific configuration sections for [server-side sessions](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md#attaching-custom-metadata-to-sessions) and [JWT](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md#attaching-custom-metadata-to-tokens).
 
-### Validating Tokens
+### Validating tokens
 
-Tokens are validated automatically by the authentication handler. You can also validate tokens manually:
+Tokens are validated automatically by the authentication handler, the hook Serverpod runs for every request that carries an authentication token. You can also validate tokens manually:
 
 ```dart
 final authInfo = await AuthServices.instance.tokenManager.validateToken(
@@ -73,13 +95,13 @@ final authInfo = await AuthServices.instance.tokenManager.validateToken(
 
 if (authInfo != null) {
   // Token is valid
-  final userId = authInfo.userIdentifier;
+  final authUserId = authInfo.authUserId;
 } else {
   // Token is invalid or expired
 }
 ```
 
-### Revoking Tokens
+### Revoking tokens
 
 Revoke specific tokens by token ID:
 
@@ -90,7 +112,7 @@ await AuthServices.instance.tokenManager.revokeToken(
 );
 ```
 
-When using custom metadata on [Server-Side Sessions](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md#attaching-custom-metadata-to-sessions) or [JWT](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md#attaching-custom-metadata-to-tokens), you can obtain token IDs from your metadata tables (for example, by device or user agent) and pass them to `revokeToken` to revoke by that criteria.
+If you attach custom metadata to [server-side sessions](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md#attaching-custom-metadata-to-sessions) or [JWT tokens](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md#attaching-custom-metadata-to-tokens), you can look up token IDs in your metadata tables, for example by device or user agent. Pass those IDs to `revokeToken` to revoke exactly those tokens.
 
 Revoke all tokens for a user:
 
@@ -111,7 +133,7 @@ await AuthServices.instance.tokenManager.revokeAllTokens(
 );
 ```
 
-### Listing Tokens
+### Listing tokens
 
 List all tokens for a user:
 
@@ -126,7 +148,7 @@ for (final token in tokens) {
 }
 ```
 
-List tokens by method (i.e. "google", "email", "apple", etc.):
+List tokens by method (for example, `'google'`, `'email'`, or `'apple'`):
 
 ```dart
 final tokens = await AuthServices.instance.tokenManager.listTokens(
@@ -136,11 +158,17 @@ final tokens = await AuthServices.instance.tokenManager.listTokens(
 );
 ```
 
-## Accessing Specific Token Managers
+## Accessing specific token managers
 
-In case more than one token manager is configured, you can access specific token manager types from the `AuthServices` instance using the `getTokenManager<T>()` method.
+If you configure more than one token manager, retrieve a specific one with the static `AuthServices.getTokenManager<T>()` method.
 
 ```dart
 final jwtManager = AuthServices.getTokenManager<JwtTokenManager>();
 final sessionManager = AuthServices.getTokenManager<ServerSideSessionsTokenManager>();
 ```
+
+## Related
+
+- [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md): configure token managers with `initializeAuthServices`.
+- [JWT token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md): stateless tokens with automatic refresh.
+- [Server-side sessions token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md): database-backed sessions with immediate revocation.

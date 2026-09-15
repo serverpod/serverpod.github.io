@@ -1,4 +1,4 @@
-# Configuration
+# Configure email sign-in
 
 https://docs.serverpod.dev/concepts/authentication/providers/email/configuration
 
@@ -6,13 +6,15 @@ This page covers configuration options for the email identity provider beyond th
 
 ## Configuration options
 
+New projects use `ServerpodCloudEmailIdpConfig`. It reads the [pepper](#peppering) from the `emailSecretHashPepper` password, but it does not take the other options on this page. To set them, switch to `EmailIdpConfigFromPasswords` and pass your own `sendRegistrationVerificationCode` and `sendPasswordResetVerificationCode` callbacks. See [Use your own email provider](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#use-your-own-email-provider).
+
 Below is a non-exhaustive list of some of the most common configuration options. For more details on all options, check the `EmailIdpConfig` in-code documentation.
 
 ### Peppering
 
-A pepper is a server-side secret that is added, along with a unique salt, to a password before it is hashed and stored. The pepper makes it harder for an attacker to crack password hashes if they have only gained access to the database.
+A pepper is a server-side secret mixed into a password before it is hashed and stored, so a database leak alone is not enough to crack the hashes. See [storing secrets](https://docs.serverpod.dev/concepts/authentication/setup.md#storing-secrets) for where to keep it.
 
-The pepper is configured via the `secretHashPepper` property in `EmailIdpConfig`, as shown in the [server-side configuration](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#server-side-configuration) section. Its [recommended pepper length](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2) is 32 bytes.
+The pepper is configured via the `secretHashPepper` property in `EmailIdpConfig`, or read from the `emailSecretHashPepper` password by `EmailIdpConfigFromPasswords`, as described in the [server-side configuration](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#server-side-configuration) section. Its [recommended pepper length](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2) is 32 bytes.
 
 :::warning
 If the pepper is changed, all passwords in the database will need to be re-hashed with the new pepper, or the old pepper needs to be added as a fallback pepper. Store the pepper securely and never expose it to the client.
@@ -30,9 +32,9 @@ final emailIdpConfig = EmailIdpConfigFromPasswords(
 );
 ```
 
-### Customizing Password Requirements
+### Customizing password requirements
 
-By default, the minimum password length is set to 8 characters. If you wish to modify this requirement, you can utilize the `passwordValidationFunction` configuration option.
+By default, the minimum password length is set to 8 characters. If you wish to modify this requirement, you can use the `passwordValidationFunction` configuration option.
 
 ```dart
 final emailIdpConfig = EmailIdpConfigFromPasswords(
@@ -51,7 +53,7 @@ final emailIdpConfig = EmailIdpConfigFromPasswords(
 This is useful to ensure password policies on the server-side. It is a best practice to pair it with a configuration on the client-side to provide a better UX when creating a new password. The `EmailSignInWidget` and `EmailAuthController` have a `passwordRequirements` parameter that can be used to configure the password requirements.
 :::
 
-### Custom Verification Code Generation
+### Custom verification code generation
 
 You can customize how verification codes are generated:
 
@@ -59,14 +61,14 @@ You can customize how verification codes are generated:
 final emailIdpConfig = EmailIdpConfigFromPasswords(
   registrationVerificationCodeGenerator: () {
     // Generate a 6-digit numeric code
-    final random = Random();
+    final random = Random.secure();
     return List.generate(6, (_) => random.nextInt(10)).join();
   },
 );
 ```
 
 :::warning
-Remember to configure the `verificationCodeConfig` parameter on the `EmailSignInWidget` to match the length of the verification code you generate. Otherwise, users will never be able to enter the verification code correctly. See the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md) for more details.
+Remember to configure the `verificationCodeConfig` parameter on the `EmailSignInWidget` to match the length and allowed characters of the verification code you generate. Otherwise, users will never be able to enter the verification code correctly. See the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md) for more details.
 :::
 
 #### Bypassing verification code in development
@@ -81,7 +83,7 @@ pod.initializeAuthServices(
   identityProviderBuilders: [
     EmailIdpConfigFromPasswords(
       registrationVerificationCodeGenerator: pod.runMode == 'development'
-          ? () => 'aaaaaaaa' // Be sure to match the length used in production.
+          ? () => '11111111' // Digits only, and the same length as production.
           : defaultVerificationCodeGenerator,
     ),
   ],

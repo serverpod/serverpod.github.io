@@ -1,14 +1,14 @@
-# Setup
+# Set up Microsoft sign-in
 
 https://docs.serverpod.dev/concepts/authentication/providers/microsoft/setup
 
 To set up **Sign in with Microsoft**, you must create an app registration on [Microsoft Entra ID (formerly Azure AD)](https://portal.azure.com/) and configure your Serverpod application accordingly.
 
 :::caution
-You need to install the auth module before you continue, see [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md).
+Install the authentication module before you continue. See [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md).
 :::
 
-## Create your Microsoft Entra ID App
+## Create your Microsoft Entra ID app
 
 1. Go to [Microsoft Azure Portal](https://portal.azure.com/) and log in with your Microsoft account.
 
@@ -58,7 +58,7 @@ After registration, you'll be redirected to the app overview page where you can 
 The client secret value is only shown once. Store it securely immediately after creation. Never commit this value to version control.
 :::
 
-### Get the tenant ID (Optional)
+### Get the tenant ID (optional)
 
 If you're restricting authentication to a specific tenant, you'll need your **Directory (tenant) ID**, which is also shown on the app overview page. For most applications, you can use one of these common values:
 
@@ -136,21 +136,18 @@ development:
 Keep your Client Secret confidential. Never commit this value to version control. Store it securely using environment variables or secret management.
 :::
 
-### Configure the Microsoft Identity Provider
+### Configure the Microsoft identity provider
 
 In your main `server.dart` file, configure the Microsoft identity provider:
 
 ```dart
-import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/microsoft.dart';
 
+import 'src/generated/serverpod.dart';
+
 void run(List<String> args) async {
-  final pod = Serverpod(
-    args,
-    Protocol(),
-    Endpoints(),
-  );
+  final pod = Serverpod(args);
 
   pod.initializeAuthServices(
     tokenManagerBuilders: [
@@ -192,7 +189,7 @@ class MicrosoftIdpEndpoint extends MicrosoftIdpBaseEndpoint {}
 
 ### Generate and migrate
 
-Finally, run `serverpod generate` to generate the client code and create a migration to initialize the database for the provider. More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
+Finally, start the server with `serverpod start` to generate the client code, then create and apply the migration that initializes the database for the provider (in the `serverpod start` terminal, press **M**). More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
 
 ### Basic configuration options
 
@@ -200,7 +197,7 @@ Finally, run `serverpod generate` to generate the client code and create a migra
 - `clientSecret`: Required. The Client Secret generated for your Microsoft Entra ID app.
 - `tenant`: Optional. Defaults to `'common'`. Can be `'common'`, `'organizations'`, `'consumers'`, or a specific tenant ID.
 
-For more details on configuration options, see the [configuration section](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/configuration.md).
+For more details on configuration options, see the [customizations page](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/customizations.md).
 
 ## Client-side configuration
 
@@ -240,43 +237,13 @@ In order to capture the callback URL, add the following activity to your `Androi
 
 ### Web
 
-On the web, you need a specific endpoint to capture the OAuth2 callback. To set this up, create an HTML file (e.g., `auth.html`) inside your project's `./web` folder and add the following content:
-
-```html
-<!DOCTYPE html>
-<title>Authentication complete</title>
-<p>Authentication is complete. If this does not happen automatically, please close the window.</p>
-<script>
-  function postAuthenticationMessage() {
-    const message = {
-      'flutter-web-auth-2': window.location.href
-    };
-
-    if (window.opener) {
-      window.opener.postMessage(message, window.location.origin);
-      window.close();
-    } else if (window.parent && window.parent !== window) {
-      window.parent.postMessage(message, window.location.origin);
-    } else {
-      localStorage.setItem('flutter-web-auth-2', window.location.href);
-      window.close();
-    }
-  }
-
-  postAuthenticationMessage();
-</script>
-```
-
-:::note
-You only need a single callback file (e.g. `auth.html`) in your `./web` folder.
-This file is shared across all IDPs that use the OAuth2 utility, as long as your redirect URIs point to it.
-:::
+Web sign-in needs the shared callback page that hands the OAuth2 result back to your app. Set it up once as described in [Web callback page (`auth.html`)](https://docs.serverpod.dev/concepts/authentication/setup.md#web-callback-page-authhtml), and point your redirect URI at it, for example `https://yourdomain.com/auth.html`. The same page serves every provider that uses the OAuth2 flow.
 
 ## Present the authentication UI
 
 ### Initializing the `MicrosoftSignInService`
 
-Before presenting any sign-in UI, initialize the Microsoft Sign-In service. This step is necessary to configure the service with your Microsoft app credentials.
+Before presenting any sign-in UI, initialize the Microsoft sign-in service. This step is necessary to configure the service with your Microsoft app credentials.
 
 ```dart
 await client.auth.initializeMicrosoftSignIn(
@@ -286,7 +253,7 @@ await client.auth.initializeMicrosoftSignIn(
 ```
 
 :::info
-For more information on configuration options and environment variables, see the [configuration section](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/configuration.md).
+For more information on configuration options and environment variables, see the [customizations page](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/customizations.md).
 :::
 
 ### Using the `MicrosoftSignInWidget`
@@ -317,9 +284,9 @@ MicrosoftSignInWidget(
 
 The widget automatically handles:
 
-- Microsoft Sign-In flow for iOS, Android, Web, and macOS.
+- Microsoft sign-in flow for iOS, Android, web, and macOS.
 - OAuth2 authentication flow.
 - Token management.
 - Underlying OAuth2 package error handling.
 
-For details on how to customize the Microsoft Sign-In UI in your Flutter app, see the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/customizing-the-ui.md).
+For details on how to customize the Microsoft sign-in UI in your Flutter app, see the [customizations page](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/customizations.md#customize-the-sign-in-button).

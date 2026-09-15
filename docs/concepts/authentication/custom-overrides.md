@@ -1,51 +1,42 @@
-# Custom overrides
+# Custom authentication overrides
 
 https://docs.serverpod.dev/concepts/authentication/custom-overrides
 
-It is recommended to use the `serverpod_auth_idp` package but if you have special requirements not fulfilled by it, you can implement your authentication module. Serverpod is designed to make it easy to add custom authentication overrides.
+The `serverpod_auth_idp` module covers most authentication needs, but you can replace it when you have requirements it does not meet. A custom override means two things: a server-side handler that turns a token into a signed-in user, and an app-side provider that sends that token with every request. This page covers both.
 
 ## Server setup
 
-When running a custom auth integration it is up to you to build the authentication model and issuing auth tokens.
+With a custom override you decide how users are stored and how tokens are issued and validated.
 
 ### Token validation
 
 The token validation is performed by providing a custom `AuthenticationHandler` callback when initializing Serverpod. The callback should return an `AuthenticationInfo` object if the token is valid, otherwise `null`.
 
 ```dart
-// Initialize Serverpod and connect it with your generated code.
 final pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   authenticationHandler: (Session session, String token) async {
     /// Custom validation handler
     if (token != 'valid') return null;
 
-    return AuthenticationInfo(1, <Scope>{});
+    return AuthenticationInfo('1', <Scope>{}, authId: 'device-1');
   },
 );
 ```
 
 In the above example, the `authenticationHandler` callback is overridden with a custom validation method. The method returns an `AuthenticationInfo` object with `userIdentifier` `"1"` and no scopes if the token is the literal "valid", otherwise `null`.
 
-:::note
-The `userIdentifier` passed to the `AuthenticationInfo` constructor, as the first parameter, will always be converted to a `String` and thus stored internally. Since the default implementation uses `UuidValue` for the users, there is a convenience getter `userId`, which returns the `UuidValue` value.
-:::
+The `AuthenticationInfo` constructor takes the user's identifier as a `String` (an empty string throws). The required `authId` field links the authentication to a specific device or token, so it can be revoked individually later.
 
 :::note
-In the `authenticationHandler` callback the `authenticated` field on the session will always be `null` as it is the `authenticationHandler` that figures out who the user is.
-:::
-
-:::info
-By specifying the optional `authId` field in the `AuthenticationInfo` object you can link the user to a specific authentication id. This is useful when revoking authentication for a specific device.
+Inside the `authenticationHandler` callback, the `authenticated` field on the session is always `null`, since it is the handler itself that figures out who the user is.
 :::
 
 #### Scopes
 
-The scopes returned from the `authenticationHandler` is used to grant access to scope restricted endpoints. The `Scope` class is a simple wrapper around a nullable `String` in dart. This means that you can format your scopes however you want as long as they are in a String format.
+The scopes returned from the `authenticationHandler` are used to grant access to [scope-restricted endpoints](https://docs.serverpod.dev/concepts/authentication/basics.md#authorization-on-endpoints). The `Scope` class is a simple wrapper around a nullable `String`, so you can format your scopes however you want.
 
-Normally if you implement a JWT you would store the scopes inside the token. When extracting them all you have to do is convert the String stored in the token into a Scope object by calling the constructor.
+A JWT (JSON Web Token) implementation would normally store the scopes inside the token. After extracting them, convert each string into a `Scope` object by calling the constructor:
 
 ```dart
 List<String> scopes = extractScopes(token);
@@ -54,24 +45,24 @@ Set<Scope> userScopes = scopes.map((scope) => Scope(scope)).toSet();
 
 ### Handling revoked authentication
 
-When a user's authentication is revoked, the server must be notified to respect the changes (e.g. to close method streams). Invoke the `session.messages.authenticationRevoked` method and raise the appropriate event to notify the server.
+When a user's authentication is revoked, the server must be told so it can act on the change, for example by closing method streams. Call `session.messages.authenticationRevoked` with the message type that matches the extent of the revocation.
 
 ```dart
-var userId = 1;
+var userIdentifier = '1';
 var revokedScopes = ['write'];
 var message = RevokedAuthenticationScope(
   scopes: revokedScopes,
 );
 
 await session.messages.authenticationRevoked(
-  userId,
+  userIdentifier,
   message,
 );
 ```
 
-##### Parameters
+#### Parameters
 
-- `userId` - The user id belonging to the `AuthenticationInfo` object to be revoked.
+- `userIdentifier` - The `userIdentifier` of the `AuthenticationInfo` object to be revoked.
 - `message` - The revoked authentication event message. See below for the different type of messages.
 
 #### Revoked authentication messages
@@ -84,20 +75,18 @@ There are three types of `RevokedAuthentication` messages that are used to speci
 | `RevokedAuthenticationAuthId` | A single authentication id is revoked for the user. This should match the `authId` field in the `AuthenticationInfo` object. |
 | `RevokedAuthenticationScope`  | List of scopes that have been revoked for a user.                                                                            |
 
-Each message type provides a tailored approach to revoke authentication based on different needs.
+### Send the token to the app
 
-### Send token to client
-
-You are responsible for implementing the endpoints to authenticate/authorize the user. But as an example such an endpoint could look like the following.
+You are responsible for implementing the endpoints that authenticate the user. The example below shows the shape of such an endpoint. The `authenticateUser` and `issueMyToken` functions are placeholders for your own logic.
 
 ```dart
 class UserEndpoint extends Endpoint {
-  Future<LoginResponse> login(
+  Future<LoginResponse?> login(
     Session session,
     String username,
     String password,
   ) async {
-    var identifier = authenticateUser(session, username, password);
+    var identifier = await authenticateUser(session, username, password);
     if (identifier == null) return null;
 
     return issueMyToken(identifier, scopes: {});
@@ -105,15 +94,15 @@ class UserEndpoint extends Endpoint {
 }
 ```
 
-In the above example, the `login` method authenticates the user and creates an auth token. The token is then returned to the client.
+In the above example, the `login` method authenticates the user and creates an auth token. The token is then returned to the app.
 
 ## Client setup
 
-Enabling authentication in the client is as simple as configuring an auth key provider. If an auth key provider is configured, the client will automatically query the provider for an authentication header value and include it in communication with the server.
+To authenticate from your app, configure an auth key provider on the client. The client then asks the provider for an authentication header value and includes it in every request to the server.
 
 ### Configure auth key provider
 
-Auth key providers need to implement the `ClientAuthKeyProvider` interface. The provider is configured when creating the client by passing it as the named parameter `authKeyProvider`. If no provider is configured, the client will not include authentication headers in requests to the server.
+Auth key providers need to implement the `ClientAuthKeyProvider` interface. The provider is assigned to the client's `authKeyProvider` field after construction, as the example below does. If no provider is configured, the client will not include authentication headers in requests to the server.
 
 ```dart
 import 'package:serverpod_client/serverpod_client.dart';
@@ -124,7 +113,7 @@ class SimpleAuthKeyProvider implements ClientAuthKeyProvider {
   @override
   Future<String?> get authHeaderValue async {
     if (_key == null) return null;
-    return wrapAsBasicAuthHeaderValue(_key!);
+    return wrapAsBearerAuthHeaderValue(_key!);
   }
 
   Future<void> put(String key) async {
@@ -136,40 +125,39 @@ class SimpleAuthKeyProvider implements ClientAuthKeyProvider {
   }
 }
 
-var client = Client('http://$localhost:8080/')
+var client = Client('http://localhost:8080/')
   ..authKeyProvider = SimpleAuthKeyProvider()
   ..connectivityMonitor = FlutterConnectivityMonitor();
 ```
 
-In the above example, the `SimpleAuthKeyProvider` is configured as the client's authentication key provider. The `SimpleAuthKeyProvider` stores the token in memory and wraps it as a Basic auth header value using the `wrapAsBasicAuthHeaderValue` utility function.
+In the above example, the `SimpleAuthKeyProvider` is configured as the client's auth key provider. The `SimpleAuthKeyProvider` stores the token in memory and wraps it as a Bearer auth header value using the `wrapAsBearerAuthHeaderValue` utility function.
 
 :::info
 The `SimpleAuthKeyProvider` is not practical and should only be used for testing. A secure implementation of the auth key provider is available in the `serverpod_auth_core_flutter` package. It provides safe, persistent storage for the auth token.
 :::
 
-The auth key provider is then available through the client's `authKeyProvider` field. It is useful to create a getter for it to avoid unnecessary casting.
+Your app is responsible for storing the token in the auth key provider. Reach the provider through the client's `authKeyProvider` field, which you have to cast back to your own type. A getter saves you from repeating the cast:
 
 ```dart
-var authProvider = client.authKeyProvider as SimpleAuthKeyProvider;
+SimpleAuthKeyProvider get authProvider =>
+    client.authKeyProvider as SimpleAuthKeyProvider;
 ```
-
-It is the responsibility of the client to store the token in the auth key provider.
 
 ## Authentication schemes
 
-By default Serverpod will pass the authentication token from client to server in accordance with the HTTP `authorization` header standard with the `basic` scheme name and encoding. This is securely transferred as the connection is TLS encrypted.
+The token travels from the app to the server in the HTTP `authorization` header. Anyone who reads that header can use the token, so serve your production API over HTTPS. See [Security and TLS](https://docs.serverpod.dev/concepts/operations/security-and-tls.md).
 
-The default implementation encodes and wraps the user-provided token in a `basic` scheme which is automatically unwrapped on the server side before being handed to the user-provided authentication handler described above.
+Serverpod does not pick a scheme for you. Whatever your auth key provider returns from `authHeaderValue` is sent as the header value.
 
-In other words the default transport implementation is "invisible" to user code.
+The server accepts three schemes: `Bearer`, `Basic`, and `Digest`. The scheme name is matched case-sensitively, and a header in any other scheme is rejected with a 400 response before your `AuthenticationHandler` runs. Set `validateHeaders` to `false` in your server configuration to turn that check off and receive the raw header value instead.
+
+Before calling your handler, the server unwraps the value. A `Bearer` value has its scheme prefix stripped, and a `Basic` value is base64-decoded, so your handler receives the plain token either way.
+
+Use `Bearer` for a token with no internal structure, which is what the built-in authentication module does and what the example above shows. The `Basic` scheme is only suitable for a key shaped like `username:password`, because it is rejected when the decoded value has no colon or either part is empty.
 
 ### Implementing your own authentication scheme
 
-If you are implementing your own authentication and are using the `basic` scheme, note that this is supported but will be automatically unwrapped i.e. decoded on the server side before being handed to your `AuthenticationHandler` implementation. It will in this case receive the decoded auth key value after the `basic` scheme name.
-
-If you are implementing a different authentication scheme, for example OAuth2 using bearer tokens, you should return the appropriate header value from the `authHeaderValue` getter of your `ClientAuthKeyProvider` implementation. You can use the utility functions `wrapAsBasicAuthHeaderValue` or `wrapAsBearerAuthHeaderValue` to format the token correctly.
-
-You will also need to implement the `AuthenticationHandler` accordingly, in order to process that header value server-side.
+Return the header value you want from the `authHeaderValue` getter of your `ClientAuthKeyProvider` implementation. The utility functions `wrapAsBearerAuthHeaderValue` and `wrapAsBasicAuthHeaderValue` format the token for the two common schemes.
 
 The header value must be compliant with the HTTP header format defined in RFC 9110 HTTP Semantics, 11.6.2. Authorization.
 See:
@@ -177,7 +165,7 @@ See:
 - [HTTP Authorization header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization)
 - [RFC 9110, 11.6.2. Authorization](https://httpwg.org/specs/rfc9110.html#field.authorization)
 
-An approach to adding OAuth handling might make changes to the above code akin to the following.
+The example below adapts the earlier code to bearer tokens, the scheme OAuth2 uses.
 
 Client side:
 
@@ -202,7 +190,7 @@ class MyOAuthKeyProvider implements ClientAuthKeyProvider {
   }
 }
 
-var client = Client('http://$localhost:8080/')
+var client = Client('http://localhost:8080/')
   ..authKeyProvider = MyOAuthKeyProvider()
   ..connectivityMonitor = FlutterConnectivityMonitor();
 ```
@@ -210,17 +198,20 @@ var client = Client('http://$localhost:8080/')
 Server side:
 
 ```dart
-// Initialize Serverpod and connect it with your generated code.
 final pod = Serverpod(
   args,
-  Protocol(),
-  Endpoints(),
   authenticationHandler: (Session session, String token) async {
     /// Bearer token validation handler
-    var (uid, scopes) = myBearerTokenValidator(token)
+    var (uid, scopes) = myBearerTokenValidator(token);
     if (uid == null) return null;
 
-    return AuthenticationInfo(uid, scopes);
+    return AuthenticationInfo(uid, scopes, authId: token);
   },
 );
 ```
+
+## Related
+
+- [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md): the built-in authentication module, which these overrides replace.
+- [The basics](https://docs.serverpod.dev/concepts/authentication/basics.md): how `requireLogin` and scopes restrict endpoints.
+- [Token managers](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md): the built-in token machinery.

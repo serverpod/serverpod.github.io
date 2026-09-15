@@ -1,1 +1,1 @@
-Moved to https://docs.serverpod.dev/tutorials/tutorials/fundamentals.md
+Moved to https://docs.serverpod.dev/tutorials/fundamentals.md

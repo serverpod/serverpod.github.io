@@ -2,6 +2,8 @@
 
 https://docs.serverpod.dev/concepts/testing/advanced-examples
 
+These examples build on [Writing tests](https://docs.serverpod.dev/concepts/testing/writing-tests.md) and cover less common needs: separating unit and integration tests, testing business logic directly, multi-user stream interactions, future calls, connection limits, and exception monitoring.
+
 ## Run unit and integration tests separately
 
 To run unit and integration tests separately, the `"integration"` tag can be used as a filter. See the following examples:
@@ -17,11 +19,11 @@ dart test -t integration
 dart test -x integration
 ```
 
-To change the name of this tag, see the [`testGroupTagsOverride`](https://docs.serverpod.dev/concepts/testing/the-basics.md#configuration) configuration option.
+To change the name of this tag, see the [`testGroupTagsOverride`](https://docs.serverpod.dev/concepts/testing/configuration.md#test-tags) configuration option.
 
 ## Test business logic that depends on `Session`
 
-It is common to break out business logic into modules and keep it separate from the endpoints. If such a module depends on a `Session` object (e.g to interact with the database), then the `withServerpod` helper can still be used and the second `endpoint` argument can simply be ignored:
+It is common to break out business logic into modules and keep it separate from the endpoints. If such a module depends on a `Session` object (e.g to interact with the database), then the `withServerpod` helper can still be used and the second `endpoint` argument can be ignored:
 
 ```dart
 withServerpod('Given decreasing product quantity when quantity is zero', (
@@ -31,13 +33,13 @@ withServerpod('Given decreasing product quantity when quantity is zero', (
   var session = sessionBuilder.build();
 
   setUp(() async {
-    await Product.db.insertRow(session, [
+    await Product.db.insertRow(session,
       Product(
         id: 123,
         name: 'Apple',
         quantity: 0,
       ),
-    ]);
+    );
   });
 
   test('then should throw `InvalidOperationException`',
@@ -103,49 +105,124 @@ withServerpod('Given CommunicationExampleEndpoint', (sessionBuilder, endpoints) 
     );
 
     var stream =
-        endpoints.testTools.listenForNumbersOnSharedStream(userSession1);
+        endpoints.communicationExample.listenForNumbersOnSharedStream(userSession1);
     // Wait for `listenForNumbersOnSharedStream` to execute up to its
     // `yield` statement before continuing
     await flushEventQueue();
 
-    await endpoints.testTools.postNumberToSharedStream(userSession2, 111);
-    await endpoints.testTools.postNumberToSharedStream(userSession2, 222);
+    await endpoints.communicationExample.postNumberToSharedStream(userSession2, 111);
+    await endpoints.communicationExample.postNumberToSharedStream(userSession2, 222);
 
     await expectLater(stream.take(2), emitsInOrder([111, 222]));
   });
 });
 ```
 
-## Optimising number of database connections
+## Run a future call
 
-By default, Dart's test runner runs tests concurrently. The number of concurrent tests depends on the running hosts' available CPU cores. If the host has a lot of cores it could trigger a case where the number of connections to the database exceeeds the maximum connections limit set for the database, which will cause tests to fail.
+The generated test tools expose your [future calls](https://docs.serverpod.dev/concepts/scheduling/future-calls.md) alongside your endpoints, so a test can invoke one immediately instead of waiting for its scheduled time.
 
-Each `withServerpod` call will lazily create its own Serverpod instance which will connect to the database. Specifically, the code that causes the Serverpod instance to be created is `sessionBuilder.build()`, which happens at the latest in an endpoint call if not called by the test before.
-
-If a test needs a session before the endpoint call (e.g. to seed the database), `sessionBuilder.build()` has to be called which then triggers a database connection attempt.
-
-If the max connection limit is hit, there are two options:
-
-- Raise the max connections limit on the database.
-- Build out the session in `setUp`/`setUpAll` instead of the top level scope:
+Given a future call class named `ReminderFutureCall` with a `send` method, the accessor is `reminder`, following the same [naming rule](https://docs.serverpod.dev/concepts/scheduling/future-calls.md#schedule-a-call) as scheduling:
 
 ```dart
-withServerpod('Given example test', (sessionBuilder, endpoints) {
-  // Instead of this
-  var session = sessionBuilder.build();
-
-
-  // Do this to postpone connecting to the database until the test group is running
+withServerpod('Given the reminder future call', (sessionBuilder, endpoints) {
   late Session session;
-  setUpAll(() {
+
+  setUp(() {
     session = sessionBuilder.build();
   });
-  // ...
+
+  test('when invoked then it records a reminder', () async {
+    await endpoints.futureCalls.reminder.send(sessionBuilder, 'user-42');
+
+    final reminders = await Reminder.db.find(session);
+    expect(reminders, hasLength(1));
+  });
 });
 ```
 
-:::info
+This runs the future call's method directly. It does not exercise scheduling, so use it to test what the call does rather than when it runs.
 
-This case should be rare and the above example is not a recommended best practice unless this problem is anticipated, or it has started happening.
+## Too many database connections
 
-:::
+Dart's test runner runs test files in parallel, and each `withServerpod` group starts its own server with its own connection pool. On a machine with many cores, enough files running at once can exceed the database's connection limit and fail the run.
+
+This is uncommon, and worth addressing only once you hit it. When you do, raise the limit on the database or cap how many files run at once:
+
+```bash
+dart test -t integration --concurrency=4
+```
+
+## Testing exception monitoring
+
+The `withServerpod` helper accepts the same `experimentalFeatures` argument as the server, so you can register a [diagnostic event handler](https://docs.serverpod.dev/concepts/operations/exception-monitoring.md) in a test and assert that your code reports the exceptions you expect.
+
+Write a handler that records what it receives, so the test can wait for an event:
+
+```dart
+import 'dart:async';
+
+import 'package:serverpod/serverpod.dart';
+
+class TestExceptionHandler extends ExceptionHandler {
+  final eventsStreamController =
+      StreamController<DiagnosticEventRecord<ExceptionEvent>>();
+
+  Stream<DiagnosticEventRecord<ExceptionEvent>> get events =>
+      eventsStreamController.stream;
+
+  @override
+  Future<void> handleTypedEvent(
+    ExceptionEvent event, {
+    required OriginSpace space,
+    required DiagnosticEventContext context,
+  }) async {
+    eventsStreamController.add(DiagnosticEventRecord(event, space, context));
+  }
+}
+```
+
+Then register it for the test run:
+
+```dart
+void main() {
+  var exceptionHandler = TestExceptionHandler();
+
+  withServerpod(
+    'Given withServerpod with a diagnostic event handler',
+    experimentalFeatures: ExperimentalFeatures(
+      diagnosticEventHandlers: [exceptionHandler],
+    ),
+    (sessionBuilder, endpoints) {
+      test(
+          'when calling an endpoint method that submits an exception event '
+          'then the diagnostic event handler gets called', () async {
+        final result = await endpoints.order.placeOrder(sessionBuilder);
+        expect(result, 'success');
+
+        final record =
+            await exceptionHandler.events.first.timeout(Duration(seconds: 1));
+        expect(record.event.exception, isA<Exception>());
+        expect(record.space, equals(OriginSpace.application));
+        expect(record.context, isA<DiagnosticEventContext>());
+        expect(
+          record.context.toJson(),
+          allOf([
+            containsPair('serverId', 'default'),
+            containsPair('serverRunMode', 'test'),
+            containsPair('serverName', 'Server default'),
+          ]),
+        );
+      });
+    },
+  );
+}
+```
+
+Handlers run asynchronously and are not awaited by the code that triggers them, so wait for the event rather than asserting immediately after the call.
+
+## Related
+
+- [Writing tests](https://docs.serverpod.dev/concepts/testing/writing-tests.md): the pieces these examples build on.
+- [Configuration](https://docs.serverpod.dev/concepts/testing/configuration.md): the options used above, such as `experimentalFeatures` and `rollbackDatabase`.
+- [Best practices](https://docs.serverpod.dev/concepts/testing/best-practices.md): conventions worth following.

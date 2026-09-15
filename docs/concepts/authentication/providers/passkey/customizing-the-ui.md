@@ -1,7 +1,1 @@
-# Customizing the UI
-
-https://docs.serverpod.dev/concepts/authentication/providers/passkey/customizing-the-ui
-
-:::warning
-Flutter UI components for passkeys are not yet available. This section will be updated once official Flutter widgets are released. For now, you'll need to build custom UI using the generated client endpoints and WebAuthn APIs.
-:::
+Moved to https://docs.serverpod.dev/concepts/authentication/providers/passkey/setup.md

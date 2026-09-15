@@ -1,8 +1,8 @@
-# Setup
+# Set up email sign-in
 
 https://docs.serverpod.dev/concepts/authentication/providers/email/setup
 
-To properly configure Sign in with Email, you must connect your Serverpod to an external service that can send the emails. One convenient option is the [mailer](https://pub.dev/packages/mailer) package, which can send emails through any SMTP service. Most email providers, such as Resend, Sendgrid or Mandrill, support SMTP.
+Sign in with Email verifies the user's address with a code, both when they register and when they reset their password.
 
 :::caution
 You need to install the auth module before you continue, see [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md).
@@ -10,19 +10,55 @@ You need to install the auth module before you continue, see [Setup](https://doc
 
 ## Server-side configuration
 
-In your main `server.dart` file, configure the email identity provider using the `EmailIdpConfig` object and add it to your `pod.initializeAuthServices()` configuration:
+Newly generated projects already configure the email identity provider in `pod.initializeAuthServices()` in your main `server.dart` file:
 
 ```dart
-import 'package:serverpod/serverpod.dart';
+pod.initializeAuthServices(
+  tokenManagerBuilders: [
+    JwtConfigFromPasswords(),
+  ],
+  identityProviderBuilders: [
+    ServerpodCloudEmailIdpConfig(
+      appDisplayName: 'My App',
+    ),
+  ],
+);
+```
+
+Set `appDisplayName` to the name recipients should see in the verification emails. In the `development` and `test` run modes the codes are written to the server log instead of being sent, so you can complete the flow locally. In the `staging` and `production` run modes, the codes are sent as email through the Serverpod Cloud email service.
+
+Sending is authenticated with the `scloudAuthEmailKey` password, which Serverpod Cloud sets for you on deploy. The password is read when an email is sent rather than at startup, so a self-hosted server still starts without it, but it cannot deliver any codes. If you host the server yourself, switch to [your own email provider](#use-your-own-email-provider) before you go to staging or production.
+
+If a code cannot be sent, the failure is recorded in the session log and the sign-in flow continues unchanged, so check your [server logs](https://docs.serverpod.dev/concepts/operations/logging.md) when a user reports a missing code.
+
+### Expose the endpoints
+
+Newly generated projects already include the email endpoint at `lib/src/auth/email_idp_endpoint.dart` and the migration that initializes the database, so running `serverpod start` is all that is needed.
+
+If you are adding the auth module to an existing project, extend the abstract endpoint yourself. Create the file anywhere under your server's `lib/` directory (for example, `<project>_server/lib/src/endpoints/`). The generator picks it up:
+
+```dart
+import 'package:serverpod_auth_idp_server/providers/email.dart';
+
+class EmailIdpEndpoint extends EmailIdpBaseEndpoint {}
+```
+
+Then start the server with `serverpod start` to generate the client code, and create and apply the migration that initializes the database for the provider (in the `serverpod start` terminal, press **M**). More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
+
+### Use your own email provider
+
+Serverpod Cloud delivery is there to get sign-in working quickly, and it sends a standard message carrying your `appDisplayName`. You might prefer using a custom email provider to have full control over the body, layout, and language of the emails. For servers hosted outside of Serverpod Cloud, it is the only option.
+
+Changing the email provider is done by replacing `ServerpodCloudEmailIdpConfig` with `EmailIdpConfigFromPasswords`, which requires you to pass your own callbacks for the two codes. One convenient option is the [mailer](https://pub.dev/packages/mailer) package, which can send emails through any SMTP service. Most email providers, such as Resend, SendGrid, or Mandrill, support SMTP.
+
+```dart
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
+import 'src/generated/serverpod.dart';
+
 void run(List<String> args) async {
-  final pod = Serverpod(
-    args,
-    Protocol(),
-    Endpoints(),
-  );
+  final pod = Serverpod(args);
 
   pod.initializeAuthServices(
     tokenManagerBuilders: [
@@ -31,9 +67,7 @@ void run(List<String> args) async {
     identityProviderBuilders: [
       // Configure the Email Identity Provider
       // This is the basic configuration for the Email IDP to work.
-      EmailIdpConfig(
-        // Secret pepper to hash the password and verification code.
-        secretHashPepper: pod.getPassword('emailSecretHashPepper')!,
+      EmailIdpConfigFromPasswords(
         // Callback to send the registration verification code to the user.
         sendRegistrationVerificationCode: _sendRegistrationCode,
         // Callback to send the password reset verification code to the user.
@@ -53,7 +87,7 @@ void _sendRegistrationCode(
   required Transaction? transaction,
 }) {
   // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
+  // the user. For testing, we will log the verification code.
   session.log('[EmailIDP] Registration code ($email): $verificationCode');
 }
 
@@ -65,32 +99,19 @@ void _sendPasswordResetCode(
   required Transaction? transaction,
 }) {
   // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
+  // the user. For testing, we will log the verification code.
   session.log('[EmailIDP] Password reset code ($email): $verificationCode');
 }
 ```
 
-Then, extend the abstract endpoint to expose it on the server:
+#### Basic configuration options
 
-```dart
-import 'package:serverpod_auth_idp_server/providers/email.dart';
-
-class EmailIdpEndpoint extends EmailIdpBaseEndpoint {}
-```
-
-Then, run `serverpod generate` to generate the client code and create a migration to initialize the database for the provider. More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
-
-### Basic configuration options
-
-- `secretHashPepper`: Required. A secret pepper used for hashing passwords and verification codes. Must be at least 10 characters long, but the [recommended pepper length](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2) is 32 bytes.
 - `sendRegistrationVerificationCode`: A callback that will be called to send the registration verification code to the user. Here you should call the email sending service to send the verification code to the user.
 - `sendPasswordResetVerificationCode`: A callback that will be called to send the password reset verification code to the user. Here you should call the email sending service to send the verification code to the user.
 
-For more details on configuration options, such as customizing password requirements, verification code generation, rate limiting, and more, see the [configuration section](https://docs.serverpod.dev/concepts/authentication/providers/email/configuration.md).
+Both configurations hash passwords and verification codes with a secret pepper, which `EmailIdpConfigFromPasswords` reads from the `emailSecretHashPepper` key in `config/passwords.yaml` or the `SERVERPOD_PASSWORD_emailSecretHashPepper` environment variable. Newly generated projects already have a value for every run mode. To pass the pepper directly instead, use `EmailIdpConfig` with its `secretHashPepper` parameter.
 
-:::tip
-If you are using the `config/passwords.yaml` file or environment variables, you can use the `EmailIdpConfigFromPasswords` constructor to automatically load the secret pepper. It will expect the `emailSecretHashPepper` key or the `SERVERPOD_PASSWORD_emailSecretHashPepper` environment variable to be set with the secret pepper value.
-:::
+For more details on configuration options, such as customizing password requirements, verification code generation, rate limiting, and more, see the [configuration section](https://docs.serverpod.dev/concepts/authentication/providers/email/configuration.md).
 
 ## Client-side configuration
 

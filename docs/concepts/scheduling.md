@@ -1,1 +1,1 @@
-Moved to https://docs.serverpod.dev/concepts/scheduling/setup.md
+Moved to https://docs.serverpod.dev/concepts/scheduling/overview.md

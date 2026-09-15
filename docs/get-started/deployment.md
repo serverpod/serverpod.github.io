@@ -1,35 +1,53 @@
-# Deploying Serverpod
+# Deploy your app
 
 https://docs.serverpod.dev/get-started/deployment
 
-## Server requirements
+Your recipe app runs locally. The last step is to put it online. The recommended path is [Serverpod Cloud](https://docs.serverpod.dev/cloud.md), which hosts your server and database with zero configuration.
 
-Serverpod is written in Dart and compiles to native code, allowing it to run on any platform supported by the [Dart tooling](https://dart.dev/get-dart#system-requirements).
+## Deploy to Serverpod Cloud
 
-Many users prefer to deploy Serverpod using Docker. The project includes a basic Dockerfile that you can use to build a Docker image, which can then be run on any Docker-compatible platform.
+From your project's root folder, run:
 
-For non-Docker deployments, you'll need to [compile the Dart code](https://dart.dev/tools/dart-compile) and manually copy your assets and configuration files to the server. This manual step is necessary since [asset bundling is not yet supported by Dart](https://github.com/dart-lang/sdk/issues/55195).
+```bash
+$ serverpod cloud launch
+```
 
-## Server configuration
+The command walks you through these steps:
 
-By default Serverpod is active on three ports:
+1. If the Serverpod Cloud CLI isn't installed yet, `serverpod cloud` installs it first.
+2. If you aren't signed in, your browser opens so you can sign in.
+3. For a new project, the Cloud Console opens so you can create it. Keep the database enabled there, because the recipe app stores its recipes in it. Cloud provisions a managed Postgres database, separate from the embedded one `serverpod start` runs locally.
+4. You choose which custom passwords from `config/passwords.yaml` to copy to Cloud. That file stays on your machine and is never deployed. Select `geminiApiKey` so the deployed server can call Gemini. It isn't selected by default, because it sits in the `development` section.
+5. The command deploys your server along with the web build of your app.
 
-- **8080**: The main port for the server - this is where the generated client will connect to.
-- **8081**: The port for connecting with the [Serverpod Insights](https://docs.serverpod.dev/tools/insights.md) tooling. You may want to restrict which IP addresses can connect to this port.
-- **8082**: The built in webserver is running on this port.
+The first upload includes your Flutter web build and can exceed the default timeout on a slower connection. If the upload times out, retry with a higher limit, for example, `serverpod cloud launch --timeout 600s`.
 
-You will also need to configure the database connection in the `config/production.yaml` file and **securely** provide the `config/passwords.yaml` file to the server.
+If you didn't select `geminiApiKey`, set the key as a secret. Then redeploy so the server picks it up:
 
-## Health checks
+```bash
+$ serverpod cloud password set geminiApiKey "your-gemini-api-key"
+$ serverpod cloud deploy
+```
 
-The server exposes a health check on the root endpoint `/` on port **8080**. Load balancers and monitoring systems can use this endpoint to verify that your server is running and healthy. The endpoint returns a basic health status response.
+Whenever you make changes later, redeploy with:
 
-## Deploying with Serverpod Cloud
+```bash
+$ serverpod cloud deploy
+```
 
-Serverpod Cloud is a managed service that allows you to deploy your Serverpod applications without having to worry about the underlying infrastructure.
-
-Serverpod Cloud is currently in private beta. Request access by [filling out this form](https://docs.google.com/forms/d/e/1FAIpQLSfBteB7hoLJ2xPgs0CXj9RpLt2gogvJZSpEv2ye8ziWuXfGFA/viewform). Once you have access, you can deploy your Serverpod applications to the cloud in just a few minutes and with zero configuration.
+See the [Serverpod Cloud documentation](https://docs.serverpod.dev/cloud.md) for the full walkthrough, including custom domains, logs, and your free trial.
 
 ## Other deployment options
 
-Check out [choosing a deployment strategy](https://docs.serverpod.dev/deployments/deployment-strategy.md) for more information on how to deploy your Serverpod application to other platforms.
+Prefer to host the server yourself? See [Custom hosting](https://docs.serverpod.dev/deployments/custom-hosting/choosing-a-strategy.md) for running on a server cluster, a serverless platform, or your own machine.
+
+## What you've built
+
+You've built and deployed a full-stack app with Flutter and Serverpod:
+
+- A custom endpoint that calls an external API from the server.
+- A type-safe data model shared between the server and the Flutter app.
+- Persistent storage with the database.
+- A Flutter app that talks to your server through the generated client.
+
+We're excited to see what you'll build next. If you need help, join the [Discord community](https://serverpod.dev/discord) or ask in our [community on GitHub](https://github.com/serverpod/serverpod/discussions). To go deeper into any topic, browse the [Concepts](https://docs.serverpod.dev/concepts/endpoints-and-apis.md) section.

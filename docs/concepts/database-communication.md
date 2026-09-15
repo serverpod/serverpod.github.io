@@ -1,1 +1,1 @@
-Moved to https://docs.serverpod.dev/concepts/database/connection.md
+Moved to https://docs.serverpod.dev/concepts/data-and-the-database/database/connection.md

@@ -148,7 +148,7 @@ fields:
   serverField: String, scope=serverOnly
 ```
 
-The keyword `parent` has been moved and should be placed inside the new `relation` keyword, see the section on [relations](https://docs.serverpod.dev/concepts/database/relations/one-to-one.md) for the full new feature set.
+The keyword `parent` has been moved and should be placed inside the new `relation` keyword, see the section on [relations](https://docs.serverpod.dev/concepts/data-and-the-database/database/relations.md) for the full new feature set.
 
 Old syntax:
 

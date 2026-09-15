@@ -399,7 +399,7 @@ fields:
 
 The following APIs have been deprecated but will continue to work for the foreseeable future to maintain compatibility with older clients. They will be removed in a future major version:
 
-- Legacy streaming endpoints → Use [streaming methods](https://docs.serverpod.dev/concepts/streams.md) for new code
+- Legacy streaming endpoints → Use [streaming methods](https://docs.serverpod.dev/3.2.0/concepts/streams.md) for new code
 
 ## Other changes
 

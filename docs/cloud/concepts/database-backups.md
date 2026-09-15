@@ -109,4 +109,4 @@ Backup storage is billed separately from your regular database storage, as its o
 
 - [Database](https://docs.serverpod.dev/cloud/concepts/database.md): how the managed database is provisioned, connected, and reset.
 - [`scloud db` CLI reference](https://docs.serverpod.dev/cloud/reference/cli/commands/db.md): every `db backup` and `db schedule` flag and default.
-- [Migrations](https://docs.serverpod.dev/concepts/database/migrations.md#rolling-back-migrations): rolling a schema change back, which pairs with restoring data.
+- [Migrations](https://docs.serverpod.dev/concepts/data-and-the-database/database/migrations.md#rolling-back-migrations): rolling a schema change back, which pairs with restoring data.

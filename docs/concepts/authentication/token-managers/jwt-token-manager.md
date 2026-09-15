@@ -1,17 +1,21 @@
-# JWT Token Manager
+# JWT token manager
 
 https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager
 
-The `JwtTokenManager` uses JWT (JSON Web Tokens) for stateless authentication. This token manager provides:
+The `JwtTokenManager` uses JWT (JSON Web Tokens) for stateless authentication. It works with two kinds of tokens. The access token is short-lived and is sent with every request. The refresh token is long-lived and is used only to obtain a new access token when the old one expires. This token manager provides:
 
 - Stateless authentication (no database queries for validation).
 - Access tokens with short lifetimes.
 - Refresh tokens for long-term authentication.
 - Automatic token rotation.
 
+:::note Web apps
+With [cookie-based web authentication](https://docs.serverpod.dev/concepts/authentication/web-authentication.md) enabled, browsers keep the access token in memory only and receive the refresh token as an `httpOnly` cookie.
+:::
+
 ## Server-side configuration
 
-This token manager is created by passing a `JwtConfig` object to the `pod.initializeAuthServices()` as a `tokenManagerBuilder`.
+The `JwtTokenManager` is created by passing a `JwtConfig` object in the `tokenManagerBuilders` list of `pod.initializeAuthServices()`:
 
 ```dart
 pod.initializeAuthServices(
@@ -31,7 +35,7 @@ pod.initializeAuthServices(
 ```
 
 :::tip
-You can use the `JwtConfigFromPasswords` constructor in replacement of the `JwtConfig` above to automatically load the credentials from the `config/passwords.yaml` file or environment variables. It will expect either the following keys on the file:
+You can use the `JwtConfigFromPasswords` constructor instead of the `JwtConfig` above. It loads the credentials from the `config/passwords.yaml` file or environment variables. It expects either the following keys in the file:
 
 - `jwtRefreshTokenHashPepper`
 - `jwtHmacSha512PrivateKey`
@@ -42,7 +46,7 @@ Or the following environment variables:
 - `SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey`
   :::
 
-Then, extend the abstract endpoint to expose it on the server:
+The app calls a refresh endpoint to renew expired access tokens without asking the user to sign in again. Extend the abstract endpoint to expose it on the server:
 
 ```dart
 import 'package:serverpod_auth_idp_server/core.dart' as core;
@@ -50,21 +54,29 @@ import 'package:serverpod_auth_idp_server/core.dart' as core;
 class RefreshJwtTokensEndpoint extends core.RefreshJwtTokensEndpoint {}
 ```
 
-Finally, run `serverpod generate` to generate the client code and expose the endpoint on the server.
+Finally, run `serverpod generate` so the app can call the endpoint. If your server runs with `serverpod start`, this happens automatically.
 
 ### Basic configuration options
 
-- `algorithm`: Required. The algorithm to use for signing tokens (HMAC SHA-512 or ECDSA SHA-512).
-- `refreshTokenHashPepper`: Required. A secret pepper for hashing refresh tokens. Must be at least 10 characters long, but [the recommended length is 32 bytes](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2).
+- `algorithm`: Required. The algorithm to use for signing tokens (HMAC SHA-512, HMAC SHA-256 or ECDSA SHA-512).
+- `refreshTokenHashPepper`: Required. A secret pepper for hashing refresh tokens (see [storing secrets](https://docs.serverpod.dev/concepts/authentication/setup.md#storing-secrets) for what a pepper is). Must be at least 10 characters long, but [the recommended length is 32 bytes](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2).
 
-#### Token Algorithms
+#### Token algorithms
 
-There are two supported token algorithms:
+There are three supported token algorithms:
 
 - **HMAC SHA-512**: Use HMAC SHA-512 for symmetric key signing.
 
   ```dart
   algorithm: JwtAlgorithm.hmacSha512(
+    SecretKey(pod.getPassword('authenticationTokenPrivateKey')!),
+  ),
+  ```
+
+- **HMAC SHA-256**: Use HMAC SHA-256 for symmetric key signing.
+
+  ```dart
+  algorithm: JwtAlgorithm.hmacSha256(
     SecretKey(pod.getPassword('authenticationTokenPrivateKey')!),
   ),
   ```
@@ -78,11 +90,11 @@ There are two supported token algorithms:
   ),
   ```
 
-As of now, the `JwtConfigFromPasswords` only supports HMAC SHA-512. To use ECDSA SHA-512, you need to pass the private and public keys manually.
+As of now, the `JwtConfigFromPasswords` only supports HMAC SHA-512. To use HMAC SHA-256 or ECDSA SHA-512, use `JwtConfig` and pass the keys manually.
 
 ### Extra configuration options
 
-Below is an example of a non-exhaustive list of some of the most common configuration options for the `JwtTokenManager`. For more details on all options, check the `JwtConfig` in-code documentation.
+Common configuration options for the `JwtTokenManager`. For more details on all options, check the `JwtConfig` in-code documentation.
 
 ```dart
 final jwtConfig = JwtConfigFromPasswords(
@@ -181,12 +193,14 @@ for (final row in tokenMetadata) {
 }
 ```
 
-#### Attaching metadata when issuing tokens from an endpoint
+#### Attaching metadata when creating tokens from an endpoint
 
-The `onRefreshTokenCreated` callback is global and runs for every new refresh token (including those created by identity providers). When you create a token from an endpoint—for example, a personal access token (PAT) or CLI token—you often have endpoint-specific parameters (e.g. a token name or label) that the callback cannot see. In that case, issue the token with `AuthServices.instance.tokenManager.issueToken`, then use the returned `AuthSuccess.jwtRefreshTokenId` to insert your metadata with the endpoint's parameters:
+The `onRefreshTokenCreated` callback is global and runs for every new refresh token, including those created by identity providers. An endpoint that creates a personal access token (PAT) or CLI token often has its own parameters, such as a token name or label, which the callback can't see.
+
+In that case, create the token with `AuthServices.instance.tokenManager.createToken` rather than `issueToken`, which is for [sign-in flows](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md#issuing-tokens). Then use the returned `AuthSuccess.jwtRefreshTokenId` to insert your metadata with the endpoint's parameters:
 
 ```dart
-final authSuccess = await AuthServices.instance.tokenManager.issueToken(
+final authSuccess = await AuthServices.instance.tokenManager.createToken(
   session,
   authUserId: userId,
   method: 'pat',
@@ -207,8 +221,10 @@ await TokenMetadata.db.insertRow(
 
 ## Client-side configuration
 
-When using the `JwtTokenManager` in the server, no extra configuration is needed on the client. It will automatically include the access token in requests to the server and eagerly refresh the token when it is 30 seconds away from expiring. In case the refresh token expires, the client will automatically sign the user out and redirect to the login page.
+The `JwtTokenManager` needs no extra configuration in your app. The client includes the access token in requests automatically and refreshes it when it is 30 seconds from expiring. If the refresh token itself expires, the client signs the user out the next time it validates the tokens. Your app decides what to show next, for example by listening to [authentication state changes](https://docs.serverpod.dev/concepts/authentication/basics.md#monitor-authentication-changes).
 
-:::warning
-The deprecated `client.openStreamingConnection()` interface is not compatible with JWT authentication. If you are using JWT tokens, migrate to [streaming endpoints](https://docs.serverpod.dev/concepts/streams.md) instead.
-:::
+## Related
+
+- [Managing tokens](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md): issue, validate, revoke, and list tokens.
+- [Server-side sessions token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager.md): the database-backed alternative.
+- [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md): where token managers are configured.

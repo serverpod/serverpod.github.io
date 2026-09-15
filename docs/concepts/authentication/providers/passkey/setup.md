@@ -1,11 +1,11 @@
-# Setup
+# Set up passkey sign-in
 
 https://docs.serverpod.dev/concepts/authentication/providers/passkey/setup
 
 Passkeys provide a passwordless authentication method using WebAuthn/FIDO2 standards. They offer a secure, phishing-resistant way for users to sign in using biometric authentication, security keys, or device PINs.
 
-:::caution
-This provider is currently experimental and implemented only on the server-side. Flutter client-side UI components are not yet available, but you can build custom UI using the generated client endpoints.
+:::warning
+The passkey identity provider is **experimental**. Flutter UI components for passkeys aren't available yet, so build your own UI with the generated client endpoints.
 :::
 
 :::caution
@@ -25,16 +25,13 @@ The hostname should match the domain where your application is hosted. For devel
 In your main `server.dart` file, configure the Passkey identity provider by setting the `PasskeyIdpConfig` in your `pod.initializeAuthServices()` configuration:
 
 ```dart
-import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/passkey.dart';
 
+import 'src/generated/serverpod.dart';
+
 void run(List<String> args) async {
-  final pod = Serverpod(
-    args,
-    Protocol(),
-    Endpoints(),
-  );
+  final pod = Serverpod(args);
 
   // Configure Passkey identity provider
   pod.initializeAuthServices(
@@ -64,7 +61,7 @@ import 'package:serverpod_auth_idp_server/providers/passkey.dart';
 class PasskeyIdpEndpoint extends PasskeyIdpBaseEndpoint {}
 ```
 
-Finally, run `serverpod generate` to generate the client code and create a migration to initialize the database for the provider. More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
+Finally, start the server with `serverpod start` to generate the client code, then create and apply the migration that initializes the database for the provider (in the `serverpod start` terminal, press **M**). More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
 
 ### Basic configuration options
 

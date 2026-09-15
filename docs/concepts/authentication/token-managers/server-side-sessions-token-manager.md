@@ -1,17 +1,20 @@
-# Server-side Sessions Token Manager
+# Server-side sessions token manager
 
 https://docs.serverpod.dev/concepts/authentication/token-managers/server-side-sessions-token-manager
 
-The `ServerSideSessionsTokenManager` uses session-based tokens stored in the database. This token manager provides:
+The `ServerSideSessionsTokenManager` validates each token against a server-side session, a database record of who is signed in on which device. The database stores only a hash of the session key, never the token itself, which stays in the app. These auth sessions are unrelated to the `Session` object that endpoint methods receive, which is the context of a single request. This token manager provides:
 
 - Stateful authentication (database queries for validation).
 - Immediate session revocation.
-- Immediate scopes update on existing sessions.
 - Support for session expiration and inactivity timeouts.
+
+:::info Web apps
+With [cookie-based web authentication](https://docs.serverpod.dev/concepts/authentication/web-authentication.md) enabled, browsers receive the session token as an `httpOnly` cookie instead of in the response body.
+:::
 
 ## Server-side configuration
 
-This token manager is created by passing a `ServerSideSessionsConfig` object to the `pod.initializeAuthServices()` as a `tokenManagerBuilder`.
+The `ServerSideSessionsTokenManager` is created by passing a `ServerSideSessionsConfig` object in the `tokenManagerBuilders` list of `pod.initializeAuthServices()`:
 
 ```dart
 pod.initializeAuthServices(
@@ -25,16 +28,16 @@ pod.initializeAuthServices(
 ```
 
 :::tip
-You can use the `ServerSideSessionsConfigFromPasswords` constructor in replacement of the `ServerSideSessionsConfig` above to automatically load the credentials from the `config/passwords.yaml` file or environment variables. It will expect the `serverSideSessionKeyHashPepper` key on the file or the `SERVERPOD_PASSWORD_serverSideSessionKeyHashPepper` environment variable.
+You can use the `ServerSideSessionsConfigFromPasswords` constructor instead of the `ServerSideSessionsConfig` above. It loads the pepper from the `config/passwords.yaml` file or environment variables. It expects the `serverSideSessionKeyHashPepper` key in the file, or the `SERVERPOD_PASSWORD_serverSideSessionKeyHashPepper` environment variable.
 :::
 
 ### Basic configuration options
 
-- `sessionKeyHashPepper`: Required. A secret pepper used for hashing session keys. Must be at least 10 characters long, but [the recommended length is 32 bytes](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2).
+- `sessionKeyHashPepper`: Required. A secret pepper used for hashing session keys (see [storing secrets](https://docs.serverpod.dev/concepts/authentication/setup.md#storing-secrets) for what a pepper is). Must be at least 10 characters long, but [the recommended length is 32 bytes](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#name-storage-2).
 
 ### Extra configuration options
 
-Below is an example of a non-exhaustive list of some of the most common configuration options for the `ServerSideSessionsTokenManager`. For more details on all options, check the `ServerSideSessionsConfig` in-code documentation.
+Common configuration options for the `ServerSideSessionsTokenManager`. For more details on all options, check the `ServerSideSessionsConfig` in-code documentation.
 
 ```dart
 final serverSideSessionsConfig = ServerSideSessionsConfigFromPasswords(
@@ -68,7 +71,7 @@ fields:
   ### The [ServerSideSession] this metadata belongs to
   serverSideSession: module:serverpod_auth_core:ServerSideSession?, relation(onDelete=Cascade)
 
-  ### The name of the token
+  ### A display name for the session
   name: String?
 
   ### Device information for the session
@@ -111,15 +114,15 @@ ServerSideSessionsConfigFromPasswords(
 ),
 ```
 
-To revoke tokens based on your custom metadata, query the metadata table for the session IDs you want to revoke and call `revokeToken` for each:
+To revoke sessions based on your custom metadata, query the metadata table for the session IDs you want to revoke and call `revokeToken` for each:
 
 ```dart
-final tokenMetadata = await SessionMetadata.db.find(
+final sessionMetadata = await SessionMetadata.db.find(
   session,
   where: (final row) => row.deviceName.equals('Old Device'),
 );
 
-for (final row in tokenMetadata) {
+for (final row in sessionMetadata) {
   await AuthServices.instance.tokenManager.revokeToken(
     session,
     tokenId: row.serverSideSessionId.toString(),
@@ -127,12 +130,14 @@ for (final row in tokenMetadata) {
 }
 ```
 
-#### Attaching metadata when issuing tokens from an endpoint
+#### Attaching metadata when creating tokens from an endpoint
 
-The `onSessionCreated` callback is global and runs for every new session (including those created by identity providers). When you create a token from an endpoint—for example, a personal access token (PAT) or CLI token—you often have endpoint-specific parameters (e.g. a token name or label) that the callback cannot see. In that case, issue the token with `AuthServices.instance.tokenManager.issueToken`, then use the returned `AuthSuccess.serverSideSessionId` to insert your metadata with the endpoint's parameters:
+The `onSessionCreated` callback is global and runs for every new session, including those created by identity providers. An endpoint that creates a personal access token (PAT) or CLI token often has its own parameters, such as a token name or label, which the callback can't see.
+
+In that case, create the token with `AuthServices.instance.tokenManager.createToken` rather than `issueToken`, which is for [sign-in flows](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md#issuing-tokens). Then use the returned `AuthSuccess.serverSideSessionId` to insert your metadata with the endpoint's parameters:
 
 ```dart
-final authSuccess = await AuthServices.instance.tokenManager.issueToken(
+final authSuccess = await AuthServices.instance.tokenManager.createToken(
   session,
   authUserId: userId,
   method: 'pat',
@@ -151,8 +156,12 @@ await SessionMetadata.db.insertRow(
 );
 ```
 
-See [Issuing Tokens](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md#issuing-tokens) in Managing tokens for more context.
-
 ## Client-side configuration
 
-When using the `ServerSideSessionsTokenManager` in the server, no extra configuration is needed on the client. It will automatically include the session token in requests to the server. In case the session expires or is revoked, the client will automatically sign the user out and redirect to the login page.
+The `ServerSideSessionsTokenManager` needs no extra configuration in your app. The client includes the session token in requests automatically. If the session expires or is revoked, the client signs the user out the next time it validates the session. Your app decides what to show next, for example by listening to [authentication state changes](https://docs.serverpod.dev/concepts/authentication/basics.md#monitor-authentication-changes).
+
+## Related
+
+- [Managing tokens](https://docs.serverpod.dev/concepts/authentication/token-managers/managing-tokens.md): issue, validate, revoke, and list tokens.
+- [JWT token manager](https://docs.serverpod.dev/concepts/authentication/token-managers/jwt-token-manager.md): the stateless alternative.
+- [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md): where token managers are configured.

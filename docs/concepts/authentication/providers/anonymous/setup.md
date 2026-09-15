@@ -1,12 +1,12 @@
-# Setup
+# Set up anonymous sign-in
 
 https://docs.serverpod.dev/concepts/authentication/providers/anonymous/setup
 
 :::warning
-The Anonymous identity provider is **experimental** and can not be completely used yet due to the missing support for account linking. The missing parts will be added in the next releases.
+The anonymous identity provider is **experimental**. It doesn't support account linking yet. To move an anonymous user's data to an account from another provider, merge the accounts. See [Merging accounts](https://docs.serverpod.dev/concepts/authentication/working-with-users.md#merging-accounts).
 :::
 
-To properly configure Anonymous authentication, you must allow anonymous access in your Serverpod auth configuration.
+To properly configure anonymous authentication, you must allow anonymous access in your Serverpod auth configuration.
 
 :::caution
 You need to install the auth module before you continue, see [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md).
@@ -17,23 +17,20 @@ You need to install the auth module before you continue, see [Setup](https://doc
 In your main `server.dart` file, configure the anonymous identity provider using the `AnonymousIdpConfig` object and add it to your `pod.initializeAuthServices()` configuration:
 
 ```dart
-import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 
+import 'src/generated/serverpod.dart';
+
 void run(List<String> args) async {
-  final pod = Serverpod(
-    args,
-    Protocol(),
-    Endpoints(),
-  );
+  final pod = Serverpod(args);
 
   pod.initializeAuthServices(
     tokenManagerBuilders: [
       JwtConfigFromPasswords(),
     ],
     identityProviderBuilders: [
-      // Configure the Anonymous Identity Provider
+      // Configure the anonymous identity provider
       AnonymousIdpConfig(),
     ],
   );
@@ -50,17 +47,17 @@ import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 class AnonymousIdpEndpoint extends AnonymousIdpBaseEndpoint {}
 ```
 
-Then, run `serverpod generate` to generate the client code and create a migration to initialize the database for the provider. More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
+Then, start the server with `serverpod start` to generate the client code, then create and apply the migration that initializes the database for the provider (in the `serverpod start` terminal, press **M**). More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
 
 ### Basic configuration options
 
-Although the Anonymous IDP can be used directly with no other configuration, it is recommended to add some form of app attestation to prevent abuse on production environments. See the [Using a token for app attestation section](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/configuration.md#using-a-token-for-app-attestation) for more details.
+Although the anonymous identity provider can be used directly with no other configuration, it is recommended to add some form of app attestation to prevent abuse in production environments. See the [Using a token for app attestation section](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/customizations.md#using-a-token-for-app-attestation) for more details.
 
-For other configuration options such as callbacks (before/after account creation) and rate limiting, see the [configuration section](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/configuration.md).
+For other configuration options such as callbacks (before/after account creation) and rate limiting, see the [customizations page](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/customizations.md).
 
 ## Client-side configuration
 
-If you have configured the `SignInWidget` as described in the [setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#present-the-authentication-ui), the Anonymous identity provider will be automatically detected and displayed in the sign-in widget as a "Continue without account" option.
+If you have configured the `SignInWidget` as described in the [setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#present-the-authentication-ui), the anonymous identity provider will be automatically detected and displayed in the sign-in widget as a "Continue without account" option.
 
 You can also use the `AnonymousSignInWidget` to include anonymous sign-in in your own custom UI:
 
@@ -84,4 +81,4 @@ AnonymousSignInWidget(
 )
 ```
 
-The widget displays a "Continue without account" button that creates an anonymous session when pressed. For details on customizing the button (size, shape), using a custom widget with `SignInWidget`, or building a fully custom UI with `AnonymousAuthController`, see the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/customizing-the-ui.md).
+The widget displays a "Continue without account" button that creates an anonymous session when pressed. For details on customizing the button (size, shape), using a custom widget with `SignInWidget`, or building a fully custom UI with `AnonymousAuthController`, see the [customizations page](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/customizations.md#customize-the-sign-in-button).

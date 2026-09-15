@@ -1,8 +1,8 @@
-# Creating an OAuth2-based Identity Provider
+# Create an OAuth2-based identity provider
 
 https://docs.serverpod.dev/concepts/authentication/providers/custom-providers/oauth2-utility/creating-an-oauth2-based-identity-provider
 
-This page provides a complete, working implementation of a custom OAuth2 provider. The [GitHub IDP](https://docs.serverpod.dev/concepts/authentication/providers/github/setup.md) is built the same way, using the same OAuth2 utility shown here, so this example illustrates the general pattern you can follow when creating your own IDP.
+This page provides a complete, working implementation of a custom OAuth2 provider. The [GitHub provider](https://docs.serverpod.dev/concepts/authentication/providers/github/setup.md) is built the same way, using the same OAuth2 utility shown here, so this example illustrates the general pattern for your own provider.
 
 ## Overview
 
@@ -13,9 +13,9 @@ This example implements authentication with a fictional OAuth2 provider called "
 - Flutter UI integration
 - Error handling
 
-## Server-Side Implementation
+## Server-side implementation
 
-### 1. Data Model
+### 1. Data model
 
 First, create a data model to store provider accounts:
 
@@ -99,7 +99,7 @@ class MyProviderIdpConfig extends IdentityProviderBuilder<MyProviderIdp> {
 }
 ```
 
-### 3. Provider Class
+### 3. Provider class
 
 Create the main identity provider class:
 
@@ -113,8 +113,27 @@ import 'package:serverpod_auth_idp_server/core.dart';
 import '../generated/protocol.dart';
 import 'my_provider_idp_config.dart';
 
-class MyProviderIdp {
-  static const String method = 'myprovider';
+class MyProviderIdp implements IdentityProvider {
+  /// Required by IdentityProvider: the stable method identifier for tokens.
+  @override
+  String get method => 'myprovider';
+
+  /// Required by IdentityProvider: carry this provider's rows over when two
+  /// auth users are merged.
+  @override
+  Future<void> mergeAuthUsers(
+    Session session, {
+    required UuidValue userToKeepId,
+    required UuidValue userToRemoveId,
+    required Transaction transaction,
+  }) async {
+    await MyProviderAccount.db.updateWhere(
+      session,
+      where: (t) => t.authUserId.equals(userToRemoveId),
+      columnValues: (t) => [t.authUserId(userToKeepId)],
+      transaction: transaction,
+    );
+  }
 
   final MyProviderIdpConfig config;
   final TokenIssuer _tokenIssuer;
@@ -319,11 +338,25 @@ Create the endpoint:
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 
+import '../generated/protocol.dart';
 import 'my_provider_idp.dart';
 
 class MyProviderIdpEndpoint extends IdpBaseEndpoint {
   MyProviderIdp get myProviderIdp =>
       AuthServices.getIdentityProvider<MyProviderIdp>();
+
+  /// Required by IdpBaseEndpoint: report whether the signed-in user already
+  /// has an account with this provider.
+  @override
+  Future<bool> hasAccount(Session session) async {
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) return false;
+    return await MyProviderAccount.db.findFirstRow(
+          session,
+          where: (t) => t.authUserId.equals(authUserId),
+        ) !=
+        null;
+  }
 
   Future<AuthSuccess> login(
     Session session, {
@@ -355,22 +388,18 @@ class MyProviderIdpEndpoint extends IdpBaseEndpoint {
 }
 ```
 
-### 5. Server Registration
+### 5. Server registration
 
 Register the provider in `server.dart`:
 
 ```dart
-import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 
+import 'src/generated/serverpod.dart';
 import 'my_provider_idp_config.dart';
 
 void run(List<String> args) async {
-  final pod = Serverpod(
-    args,
-    Protocol(),
-    Endpoints(),
-  );
+  final pod = Serverpod(args);
 
   final myProviderConfig = MyProviderIdpConfig(
     clientId: pod.getPassword('myProviderClientId')!,
@@ -390,7 +419,7 @@ void run(List<String> args) async {
 }
 ```
 
-## Client-Side Implementation
+## Client-side implementation
 
 ### 1. Configuration
 
@@ -530,20 +559,24 @@ class MyProviderAuthController extends ChangeNotifier {
       // Get authorization code from provider
       final result = await MyProviderService.instance.signIn();
 
-      // Exchange for tokens on backend
-      final endpoint = client.getEndpointOfType<MyProviderIdpEndpoint>();
-      await endpoint.login(
+      // Exchange for tokens on the server. The generated client names the
+      // endpoint after the class, with the Endpoint suffix dropped, so
+      // MyProviderIdpEndpoint becomes client.myProviderIdp.
+      final authSuccess = await client.myProviderIdp.login(
         code: result.code,
+        // Safe to unwrap: this config keeps PKCE enabled, so the
+        // verifier is always present.
         codeVerifier: result.codeVerifier!,
         redirectUri: MyProviderConfig.clientConfig.redirectUri,
       );
 
+      // Register the session, otherwise the app is never actually signed in.
+      await client.auth.updateSignedInUser(authSuccess);
+
       _setState(MyProviderAuthState.authenticated);
       onAuthenticated?.call();
-    } on OAuth2PkceUserCancelledException {
-      // User cancelled - just reset to idle
-      _setState(MyProviderAuthState.idle);
     } catch (error) {
+      // A cancelled sign-in arrives as OAuth2PkceUnknownException.
       _error = error;
       _setState(MyProviderAuthState.error);
       onError?.call(error);
@@ -560,7 +593,7 @@ class MyProviderAuthController extends ChangeNotifier {
 }
 ```
 
-### 4. UI Widget
+### 4. UI widget
 
 Create the sign-in button:
 

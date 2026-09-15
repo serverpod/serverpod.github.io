@@ -2,13 +2,11 @@
 
 https://docs.serverpod.dev/concepts/scheduling/inheritance
 
-Inheritance gives you the possibility to modify the behavior of `FutureCall` classes defined in other Serverpod modules. If the parent `FutureCall` class was marked as `abstract`, no code is generated for it.
+A `FutureCall` class can extend another and inherit its future-call methods. You can use this to share common logic across your own classes, or to run future calls that a [module](https://docs.serverpod.dev/concepts/server-fundamentals/modules.md) exposes to the projects that depend on it. A subclass keeps every method it inherits and can add new methods or override inherited ones.
 
-Currently, there are the following possibilities to extend another `FutureCall` class:
+## Extend a class
 
-## Inheriting from a `FutureCall` class
-
-Given an existing `FutureCall` class, it is possible to extend or modify its behavior while retaining the already exposed methods.
+When one `FutureCall` extends another, the generated code exposes both the inherited methods and the new ones.
 
 ```dart
 import 'package:serverpod/serverpod.dart';
@@ -26,12 +24,11 @@ class MyGreeter extends Greeter {
 }
 ```
 
-The generated server code will now be able to access both `Greeter` and `MyGreeter`.
-Whereas the `Greeter` only exposes the original `hello` method, `MyGreeter` now exposes both the inherited `hello` and its own `bye` methods.
+The `Greeter` class exposes `hello`, and `MyGreeter` exposes both the inherited `hello` and its own `bye`.
 
-## Inheriting from a `FutureCall` class marked `abstract`
+## Expose future calls from a module
 
-Future calls marked as `abstract` are not added to the server. But if they are subclassed, their methods will be exposed through the subclass.
+Mark the parent `abstract` when you want it to define methods without being scheduled on its own. Serverpod generates no accessor for an abstract `FutureCall`, so the methods become available only through a concrete subclass.
 
 ```dart
 import 'package:serverpod/serverpod.dart';
@@ -45,19 +42,13 @@ abstract class Greeter extends FutureCall {
 class MyGreeter extends Greeter {}
 ```
 
-Since `Greeter` is `abstract`, it will not be added to the server. However, `MyGreeter` will expose a single `hello` method.
+Here `Greeter` is not scheduled directly, and `MyGreeter` exposes the inherited `hello`.
 
-:::info
-Serverpod modules can expose future calls to users with `abstract` `FutureCall`. Code is only generated on the current project that extends the abstract future call.
-:::
+This is the pattern a module uses to hand future calls to the projects that depend on it. The module ships an abstract `Greeter`, and the consuming project defines a concrete subclass such as `MyGreeter`. The code is generated in the consuming project, so `pod.futureCalls` there exposes the module's `hello` method through the local subclass.
 
-### Extending an `abstract` `FutureCall` class
-
-In the above example, the `MyGreeter` only exposed the inherited `hello` method. It can be further extended with custom methods like this:
+A concrete subclass can still add its own methods on top of the inherited ones:
 
 ```dart
-import 'package:serverpod/serverpod.dart';
-
 class MyGreeter extends Greeter {
   Future<void> bye(Session session, String name) async {
     session.log('Bye $name');
@@ -65,11 +56,11 @@ class MyGreeter extends Greeter {
 }
 ```
 
-In this case, it will expose both a `hello` and a `bye` method.
+This `MyGreeter` exposes both `hello` and `bye`.
 
-### Overriding future call methods
+## Override an inherited method
 
-It is possible to override methods of the superclass. This can be useful when you want to modify the behavior of specific methods but preserve the rest.
+A subclass can override an inherited method to change its behavior. An override replaces the parent's implementation:
 
 ```dart
 import 'package:serverpod/serverpod.dart';
@@ -88,6 +79,11 @@ class ExcitedGreeter extends Greeter {
 }
 ```
 
-Since `Greeter` is `abstract`, it will not be exposed on the server. The `ExcitedGreeter` will expose a single `hello` method, and its implementation will augment the superclass's one by adding `!!!` to the output.
+Here `ExcitedGreeter` exposes a single `hello` that logs `Hello $name!!!`. To build on the parent's behavior instead of replacing it, call `super.hello(session, name)` from inside the override.
 
-This way, you can modify the behavior of future call methods while still sharing the implementation through calls to `super`. Be aware that the method signature has to be compatible with the base class per Dart's rules, meaning you can add optional parameters, but can not add required parameters or change the return type.
+The override must keep a signature compatible with the base method, following Dart's own rules: you can add optional parameters, but you cannot add required parameters or change the return type.
+
+## Related
+
+- [Future calls](https://docs.serverpod.dev/concepts/scheduling/future-calls.md): defining and scheduling a call.
+- [Modules](https://docs.serverpod.dev/concepts/server-fundamentals/modules.md): sharing code between projects.

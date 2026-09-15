@@ -1,6 +1,10 @@
-# Apple
+# Apple sign-in
 
 https://docs.serverpod.dev/concepts/authentication/legacy/providers/apple
+
+:::info
+This page documents the legacy `serverpod_auth` module. To move an existing app to the current authentication framework, see [Migrate from legacy auth](https://docs.serverpod.dev/upgrading/migrate-from-legacy-auth.md).
+:::
 
 Sign-in with Apple, requires that you have a subscription to the [Apple developer program](https://developer.apple.com/programs/), even if you only want to test the feature in development mode.
 
@@ -16,7 +20,15 @@ You need to install the auth module before you continue, see [Setup](https://doc
 
 ## Server-side configuration
 
-No extra steps outside installing the auth module are required.
+Set `appleClientIds` on `AuthConfig` to the client identifiers your server accepts Sign in with Apple tokens for: your app's bundle IDs and any services IDs. Sign in with Apple is disabled until this is set, so every sign-in request fails.
+
+```dart
+auth.AuthConfig.set(auth.AuthConfig(
+  appleClientIds: {'com.example.myapp'},
+));
+```
+
+If you already call `AuthConfig.set`, add `appleClientIds` to that call, because `set` replaces the whole configuration. See [Setup](https://docs.serverpod.dev/concepts/authentication/legacy/setup.md) for where to set `AuthConfig`.
 
 ## Client-side configuration
 
@@ -25,7 +37,7 @@ Add the dependency to your `pubspec.yaml` in your flutter project.
 ```yaml
 dependencies:
   ...
-  serverpod_auth_apple_flutter: ^1.x.x
+  serverpod_auth_apple_flutter: 4.0.0
 ```
 
 ### Config
@@ -41,7 +53,7 @@ Enable the sign-in with Apple capability in your Xcode project, this is the same
 `serverpod_auth_apple_flutter` package comes with the widget `SignInWithAppleButton` that renders a nice Sign in with Apple button and triggers the native sign-in UI.
 
 ```dart
-import 'package:serverpod_auth_email_flutter/serverpod_auth_email_flutter.dart';
+import 'package:serverpod_auth_apple_flutter/serverpod_auth_apple_flutter.dart';
 
 SignInWithAppleButton(
   caller: client.modules.auth,
