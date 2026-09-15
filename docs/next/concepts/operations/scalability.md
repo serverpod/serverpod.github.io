@@ -87,7 +87,7 @@ Local caches (`session.caches.local` and `localPrio`) stay on one process. For v
 
 Cross-instance [server events](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/server-events.md) need Redis as well. `MessageScope.global` throws a `StateError` without Redis, and the default `MessageScope.auto` falls back to local delivery, so without Redis events silently stop reaching other instances.
 
-[Enable Redis in production config](https://docs.serverpod.dev/next/concepts/operations/redis.md#test-staging-and-production) when you run more than one request node that shares cache entries or broadcast events.
+Enable Redis in production config when you run more than one request node that shares cache entries or broadcast events.
 
 ## Choose streams carefully
 
@@ -125,6 +125,5 @@ Full keys and environment variables: [Configuration reference](https://docs.serv
 - [Hosting elsewhere](https://docs.serverpod.dev/next/deployments/custom-hosting/hosting-elsewhere.md): roles and Docker on your own host.
 - [Indexing](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/indexing.md): declare indexes for filters and sorts.
 - [Caching](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/caching.md): local versus Redis-backed global cache.
-- [Redis](https://docs.serverpod.dev/next/concepts/operations/redis.md): enabling Redis, the password, and connecting a GUI.
 - [Health checks](https://docs.serverpod.dev/next/concepts/operations/health-checks.md): probes and metric collection under load.
 - [Configuration reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md): every scale-related env var.

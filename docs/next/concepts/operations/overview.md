@@ -13,7 +13,6 @@ Everything here works the same whether you deploy to [Serverpod Cloud](https://d
 - **[Security and TLS](https://docs.serverpod.dev/next/concepts/operations/security-and-tls.md)**: how traffic to your server is encrypted, and when you need to configure that yourself.
 - **[Exception monitoring](https://docs.serverpod.dev/next/concepts/operations/exception-monitoring.md)**: reporting exceptions to a monitoring service as they happen. This one is an experimental API.
 - **[Scalability](https://docs.serverpod.dev/next/concepts/operations/scalability.md)**: roles for scale-out, isolates for CPU work, Postgres and connection pools, Redis, JWT auth, and streaming tradeoffs.
-- **[Redis](https://docs.serverpod.dev/next/concepts/operations/redis.md)**: the optional service that lets several server instances share a cache, messages, and auth revocation, plus how to enable it, set its password, run it locally in Docker, and connect a GUI.
 - **[Load testing](https://docs.serverpod.dev/next/concepts/operations/load-testing.md)**: measuring how a production-like server behaves under concurrent traffic, with Locust or the generated client.
 
 ## Related
