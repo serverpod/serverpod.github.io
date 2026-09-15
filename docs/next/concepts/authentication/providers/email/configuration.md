@@ -6,6 +6,8 @@ This page covers configuration options for the email identity provider beyond th
 
 ## Configuration options
 
+New projects use `ServerpodCloudEmailIdpConfig`. It reads the [pepper](#peppering) from the `emailSecretHashPepper` password, but it does not take the other options on this page. To set them, switch to `EmailIdpConfigFromPasswords` and pass your own `sendRegistrationVerificationCode` and `sendPasswordResetVerificationCode` callbacks. See [Use your own email provider](https://docs.serverpod.dev/next/concepts/authentication/providers/email/setup.md#use-your-own-email-provider).
+
 Below is a non-exhaustive list of some of the most common configuration options. For more details on all options, check the `EmailIdpConfig` in-code documentation.
 
 ### Peppering

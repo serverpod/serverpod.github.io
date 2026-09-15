@@ -221,10 +221,6 @@ await TokenMetadata.db.insertRow(
 
 The `JwtTokenManager` needs no extra configuration in your app. The client includes the access token in requests automatically and refreshes it when it is 30 seconds from expiring. If the refresh token itself expires, the client signs the user out the next time it validates the tokens. Your app decides what to show next, for example by listening to [authentication state changes](https://docs.serverpod.dev/next/concepts/authentication/basics.md#monitor-authentication-changes).
 
-:::warning
-The deprecated `client.openStreamingConnection()` interface is not compatible with JWT authentication. If you are using JWT tokens, migrate to [streaming methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md) instead.
-:::
-
 ## Related
 
 - [Managing tokens](https://docs.serverpod.dev/next/concepts/authentication/token-managers/managing-tokens.md): issue, validate, revoke, and list tokens.

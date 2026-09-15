@@ -6,7 +6,7 @@ https://docs.serverpod.dev/next/concepts/authentication/providers/apple/setup
 
 Before you start, make sure you have:
 
-- A Serverpod project with the new auth module installed. New projects created with `serverpod create` (Serverpod 3.4 and later) include it by default. If you are upgrading an older project, follow the [auth module setup guide](https://docs.serverpod.dev/next/concepts/authentication/setup.md) first.
+- A Serverpod project with the new auth module installed. New projects created with `serverpod create` include it by default. If you are upgrading an older project, follow the [auth module setup guide](https://docs.serverpod.dev/next/concepts/authentication/setup.md) first.
 - An active subscription to the [Apple Developer Program](https://developer.apple.com/programs/). Sign in with Apple requires this even for local development.
 - Xcode installed if you target iOS or macOS.
 

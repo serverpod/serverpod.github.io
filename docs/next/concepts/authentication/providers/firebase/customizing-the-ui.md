@@ -10,7 +10,7 @@ The [setup guide](https://docs.serverpod.dev/next/concepts/authentication/provid
 
 ### FirebaseAuthController
 
-The controller manages the sync between Firebase authentication state and your Serverpod session. The `client` argument is the global Serverpod `Client` instance created in `main.dart` (see [Initialize Firebase and Serverpod](https://docs.serverpod.dev/next/concepts/authentication/providers/firebase/setup.md#3-initialize-firebase-and-serverpod)).
+The controller manages the sync between Firebase authentication state and your Serverpod session. The `client` argument is the global Serverpod `Client` instance created in `lib/client.dart` (see [Initialize Firebase and Serverpod](https://docs.serverpod.dev/next/concepts/authentication/providers/firebase/setup.md#3-initialize-firebase-and-serverpod)).
 
 ```dart
 controller = FirebaseAuthController(

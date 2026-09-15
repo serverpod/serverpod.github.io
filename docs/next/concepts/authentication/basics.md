@@ -248,7 +248,9 @@ To register a signed in user, call:
 await client.auth.updateSignedInUser(authInfo);
 ```
 
-This will persist the authentication information and refresh any open streaming connection. This is the method used by identity providers to register a signed in user. For more details on providers, see [Custom Providers](https://docs.serverpod.dev/next/concepts/authentication/providers/custom-providers/overview.md).
+This persists the authentication information. Identity providers call this method to register a signed-in user. For more details on providers, see [Custom Providers](https://docs.serverpod.dev/next/concepts/authentication/providers/custom-providers/overview.md).
+
+When the signed-in user changes, open method streams close, and new streams connect as the current user. A token refresh for the same user keeps them open.
 
 ### Monitor authentication changes
 
