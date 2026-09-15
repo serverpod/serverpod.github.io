@@ -23,7 +23,7 @@ try {
 }
 ```
 
-When a database exception is not caught inside an endpoint, it follows Serverpod's normal endpoint exception handling and is logged as an uncaught server exception. Serverpod does not serialize database exception details and send them to the app; those details stay server-side in the logs. See [Error handling and exceptions](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/error-handling-and-exceptions.md) for how uncaught exceptions reach the app.
+When a database exception is not caught inside an endpoint, it follows Serverpod's normal endpoint exception handling and is logged as an uncaught server exception. Serverpod does not serialize database exception details and send them to the app. They stay server-side in the logs. See [Error handling and exceptions](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/error-handling-and-exceptions.md) for how uncaught exceptions reach the app.
 
 ## Exception types
 
@@ -49,7 +49,7 @@ The `DatabaseQueryException` type and its subclasses expose optional fields from
 - `constraintName`
 - `position`
 
-These values are database-adapter details, so write defensive code that handles `null` values. PostgreSQL fills in the violated constraint name; SQLite does not. To react to a specific failure, prefer the typed subclass over inspecting the fields:
+These values are database-adapter details, so write defensive code that handles `null` values. PostgreSQL fills in the violated constraint name. SQLite does not. To react to a specific failure, prefer the typed subclass over inspecting the fields:
 
 ```dart
 try {

@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.ee97b23b.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.b25aea66.js" defer="defer"></script>
 <script src="/assets/js/main.52b302cb.js" defer="defer"></script>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <p>The PostGIS extension will be automatically enabled during the first migration that includes a geography column.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="for-managed-postgresql-services">For managed PostgreSQL services<a href="#for-managed-postgresql-services" class="hash-link" aria-label="Direct link to For managed PostgreSQL services" title="Direct link to For managed PostgreSQL services" translate="no">​</a></h2>
 <p>For cloud providers (AWS RDS, Google Cloud SQL, Azure Database, etc.), ensure that the PostGIS extension is available on your PostgreSQL instance. Most major managed services support PostGIS with no additional setup required. If available, the extension will be enabled automatically when applying the migration.</p>
-<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg></span>tip</div><div class="admonitionContent_BuS1"><p>If the cloud provider instructs you to run a <code>CREATE EXTENSION postgis;</code> command, you can skip this step as Serverpod will handle it automatically during migration.</p></div></div>
+<p>If the cloud provider instructs you to run a <code>CREATE EXTENSION postgis;</code> command, you can skip that step. Serverpod handles it automatically during migration.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="troubleshooting">Troubleshooting<a href="#troubleshooting" class="hash-link" aria-label="Direct link to Troubleshooting" title="Direct link to Troubleshooting" translate="no">​</a></h2>
 <p>If you encounter issues with PostGIS:</p>
 <ul>
