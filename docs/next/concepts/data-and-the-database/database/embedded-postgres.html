@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.b0291a46.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8e701cb7.js" defer="defer"></script>
 <script src="/assets/js/main.3eac14b9.js" defer="defer"></script>
 </head>
 <body>
@@ -41,6 +41,13 @@
 <p>A relative <code>dataPath</code> is resolved from the root of the server package, and each run mode needs its own directory, for example <code>.serverpod/test/pgdata</code> in <code>config/test.yaml</code>. The directory holds a complete database, so keep it out of version control.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-happens-when-the-server-starts">What happens when the server starts<a href="#what-happens-when-the-server-starts" class="hash-link" aria-label="Direct link to What happens when the server starts" title="Direct link to What happens when the server starts" translate="no">​</a></h2>
 <p>The first start downloads the PostgreSQL binaries for your operating system and architecture into a per-user cache, which every later start and every other project reuses. Binaries are available for Linux and macOS on x64 and Arm64, and for Windows on x64.</p>
+<p>The cache location depends on your operating system:</p>
+<ul>
+<li class=""><strong>macOS:</strong> <code>~/Library/Caches/serverpod/pg-binaries</code></li>
+<li class=""><strong>Linux:</strong> <code>$XDG_CACHE_HOME/serverpod/pg-binaries</code>, or <code>~/.cache/serverpod/pg-binaries</code> when <code>XDG_CACHE_HOME</code> is not set</li>
+<li class=""><strong>Windows:</strong> <code>%LOCALAPPDATA%\serverpod\Cache\pg-binaries</code></li>
+</ul>
+<p>Set <code>SERVERPOD_PG_CACHE_DIR</code> to keep the binaries in a different directory.</p>
 <p>Serverpod starts the database before it opens its connection pool, and connects over a Unix domain socket instead of a TCP port, so several projects can run at once without competing for ports. If another Serverpod process already runs a database in the same <code>dataPath</code>, the new process attaches to it rather than starting a second one.</p>
 <p>The files under <code>dataPath</code> are kept when the server stops, so your data is still there on the next start. After an unclean exit, Serverpod clears the leftover process state and brings the database back up.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="connect-a-database-tool">Connect a database tool<a href="#connect-a-database-tool" class="hash-link" aria-label="Direct link to Connect a database tool" title="Direct link to Connect a database tool" translate="no">​</a></h2>

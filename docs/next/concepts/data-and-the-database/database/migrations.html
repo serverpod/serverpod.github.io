@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.b0291a46.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8e701cb7.js" defer="defer"></script>
 <script src="/assets/js/main.3eac14b9.js" defer="defer"></script>
 </head>
 <body>
@@ -95,11 +95,16 @@
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="in-production-or-ci">In production or CI<a href="#in-production-or-ci" class="hash-link" aria-label="Direct link to In production or CI" title="Direct link to In production or CI" translate="no">​</a></h3>
 <p>To apply migrations explicitly, start the server runtime with the <code>--apply-migrations</code> flag from your <code>server</code> package directory. Migrations are applied as part of the startup sequence and the framework asserts that each migration is only applied once to the database.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ dart run bin/main.dart --apply-migrations</span><br></div></code></pre></div></div>
-<p>Migrations can also be applied with the <a class="" href="/next/concepts/server-fundamentals/running-your-server#choose-a-server-role">maintenance role</a>. The server applies the migrations and then exits, with an exit code that reports success or failure. This suits CI jobs and other automated processes.</p>
+<p>If a migration fails, or the database doesn&#x27;t match the latest migration afterward, the outcome depends on the run mode:</p>
+<ul>
+<li class=""><strong>Any run mode except <code>development</code>:</strong> the server logs <code>Failed to apply database migrations.</code> or <code>Database does not match target state.</code> and keeps starting.</li>
+<li class=""><strong><code>development</code>:</strong> the server exits with code 1.</li>
+</ul>
+<p>Migrations can also be applied with the <a class="" href="/next/concepts/server-fundamentals/running-your-server#choose-a-server-role">maintenance role</a>. The server applies the migrations and then stops, which suits CI jobs and other automated processes. Outside <code>development</code>, it can still exit with code 0 after a failed migration, so check the logs for failures.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ dart run bin/main.dart </span><span class="token parameter variable" style="color:#36acaa">--role</span><span class="token plain"> maintenance --apply-migrations</span><br></div></code></pre></div></div>
 <p>If migrations are applied at the same time as repair migration, the repair migration is applied first.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="on-serverpod-cloud">On Serverpod Cloud<a href="#on-serverpod-cloud" class="hash-link" aria-label="Direct link to On Serverpod Cloud" title="Direct link to On Serverpod Cloud" translate="no">​</a></h3>
-<p>Serverpod Cloud applies migrations for you. Every deploy starts the server with <code>--apply-migrations</code>, so any pending migrations run before the server serves requests. If a migration fails, the deploy fails; fix the migration and redeploy. See <a class="" href="/cloud/concepts/database#migrations-run-on-every-deploy">Cloud database</a> for the full flow.</p>
+<p>Serverpod Cloud applies pending migrations for you on every deploy. If a migration fails, the server logs <code>Failed to apply database migrations.</code> Fix the migration and redeploy. See <a class="" href="/cloud/concepts/database#migrations-run-on-every-deploy">Cloud database</a> for the full flow.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="creating-a-repair-migration">Creating a repair migration<a href="#creating-a-repair-migration" class="hash-link" aria-label="Direct link to Creating a repair migration" title="Direct link to Creating a repair migration" translate="no">​</a></h2>
 <p>If the database has been manually modified the database schema may be out of sync with the migration system. In this case, a repair migration can be created to bring the database schema up to date with the migration system.</p>
 <p>By default, the command connects to and pulls a live database schema from a running development server.</p>

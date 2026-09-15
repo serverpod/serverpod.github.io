@@ -19,7 +19,7 @@ All vector types support specialized distance operations for similarity search a
 To ensure optimal performance with vector similarity searches, consider creating specialized vector indexes on your vector fields. See the [Vector indexes](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/indexing.md#vector-indexes) section for more details.
 
 :::info
-Vector fields require a PostgreSQL database with the `pgvector` extension installed. Support depends on how your database runs: the Docker Postgres setup ships a pgvector-enabled image, the embedded PostgreSQL used in development does not include the extension yet, and SQLite does not support vector queries. To add the extension to an older Docker project or an external Postgres, see the [Upgrade to pgvector](https://docs.serverpod.dev/next/upgrading/archive/upgrade-to-pgvector.md) guide.
+Vector fields require a PostgreSQL database with the `pgvector` extension installed. New projects have it. The embedded PostgreSQL bundles pgvector 0.8.3, and the `ghcr.io/serverpod/postgres:16` Docker image ships with it as well. SQLite does not support vector queries. To add the extension to an older Docker project or an external Postgres, see the [Upgrade to pgvector](https://docs.serverpod.dev/next/upgrading/archive/upgrade-to-pgvector.md) guide.
 :::
 
 ### Vector
@@ -127,7 +127,7 @@ All geography types support spatial filter operations such as proximity search, 
 To ensure optimal performance with spatial queries, consider creating a spatial index on your geography fields. See the [Geography indexes](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/indexing.md#geography-indexes) section for more details.
 
 :::info
-Geography fields require the PostGIS PostgreSQL extension. Unlike pgvector, PostGIS is not included in the default Docker image, and the embedded PostgreSQL does not include it either. To set it up on a Docker or external Postgres project, see the [Upgrading to PostGIS support](https://docs.serverpod.dev/next/upgrading/upgrade-to-postgis.md) guide.
+Geography fields require the PostGIS PostgreSQL extension. New projects have it. The embedded PostgreSQL bundles PostGIS 3.5.4, and the `ghcr.io/serverpod/postgres:16` Docker image ships with it as well. To set it up on an older Docker project or an external Postgres, see the [Upgrading to PostGIS support](https://docs.serverpod.dev/next/upgrading/upgrade-to-postgis.md) guide.
 :::
 
 :::warning

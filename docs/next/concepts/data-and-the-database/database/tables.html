@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.b0291a46.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8e701cb7.js" defer="defer"></script>
 <script src="/assets/js/main.3eac14b9.js" defer="defer"></script>
 </head>
 <body>
@@ -98,7 +98,7 @@
 <ul>
 <li class="">The <code>id</code> field cannot have a column name override.</li>
 <li class="">The column name must be unique within the model.</li>
-<li class="">The <code>column</code> keyword is only allowed on the <a class="" href="/next/concepts/data-and-the-database/database/relations/one-to-one#with-an-id-field">foreign key field</a> of a relation.</li>
+<li class="">On a relation, set <code>column</code> on the <a class="" href="/next/concepts/data-and-the-database/database/relations/one-to-one#with-an-id-field">foreign key field</a>, not on the object relation field.</li>
 </ul>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="relations">Relations<a href="#relations" class="hash-link" aria-label="Direct link to Relations" title="Direct link to Relations" translate="no">​</a></h3>
 <p>You can use the <code>column</code> keyword to override the name of the foreign key field in a relation.</p>

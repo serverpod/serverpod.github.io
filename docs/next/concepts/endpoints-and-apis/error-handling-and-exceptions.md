@@ -200,7 +200,7 @@ A call from the client can fail in a few ways, and you usually handle each one d
 
 Both extend the sealed `ServerpodClientException`, along with `ServerpodClientUnknownException` for failures the client cannot classify. Catching `ServerpodClientException` handles all of them at once.
 
-Calls to [streaming methods](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md) fail with their own connection-level exception family; see [error handling in streams](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md#error-handling).
+A call to a [streaming method](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md) that the server refuses to open fails with the same `ServerpodClientHttpException` subclasses. Failures in the stream connection itself use their own exception family. See [error handling in streams](https://docs.serverpod.dev/next/concepts/endpoints-and-apis/streaming.md#error-handling).
 
 Catch the specific cases first, then fall back to the general one:
 
