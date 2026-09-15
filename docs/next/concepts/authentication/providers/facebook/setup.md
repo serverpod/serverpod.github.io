@@ -54,7 +54,7 @@ Configure the authentication settings:
 - In **Allowed Domains for the JavaScript SDK**, add:
 
   - `https://www.facebook.com` (required to avoid CORS issues)
-  - Your own domain if you plan to support web authentication (e.g., `https://yourdomain.com`)
+  - Your own domain if you plan to support web authentication (for example, `https://yourdomain.com`)
 
   ![Allowed Domains](https://docs.serverpod.dev/img/authentication/providers/facebook/3-allowed-domains.png)
 
@@ -102,7 +102,7 @@ For production, add the same two keys to the `production:` section, or set the `
 
 ### Add the Facebook identity provider
 
-Your server's `server.dart` file (e.g., `my_project_server/lib/server.dart`) should already contain a `pod.initializeAuthServices()` call if your project was created with the Serverpod project template (`serverpod create`). If it's not there, see [Setup](https://docs.serverpod.dev/next/concepts/authentication/setup.md) first to configure the auth module and JWT settings.
+Your server's `server.dart` file (for example, `my_project_server/lib/server.dart`) should already contain a `pod.initializeAuthServices()` call if your project was created with the Serverpod project template (`serverpod create`). If it's not there, see [Setup](https://docs.serverpod.dev/next/concepts/authentication/setup.md) first to configure the auth module and JWT settings.
 
 Add the Facebook import and `FacebookIdpConfigFromPasswords()` to the existing `identityProviderBuilders` list:
 
@@ -130,7 +130,7 @@ If you need more control over how the credentials are loaded, use `FacebookIdpCo
 
 ### Create the endpoint
 
-Create a new endpoint file in your server project (e.g., `my_project_server/lib/src/auth/facebook_idp_endpoint.dart`) alongside the existing auth endpoints. Extending the base class registers the sign-in methods with your server so your app can call them to complete the authentication flow:
+Create a new endpoint file in your server project (for example, `my_project_server/lib/src/auth/facebook_idp_endpoint.dart`) alongside the existing auth endpoints. Extending the base class registers the sign-in methods with your server so your app can call them to complete the authentication flow:
 
 ```dart
 import 'package:serverpod_auth_idp_server/providers/facebook.dart';
@@ -140,7 +140,7 @@ class FacebookIdpEndpoint extends FacebookIdpBaseEndpoint {}
 
 ### Start the server
 
-Start the server from your server project directory (e.g., `my_project_server/`):
+Start the server from your server project directory (for example, `my_project_server/`):
 
 ```bash
 serverpod start
@@ -384,7 +384,7 @@ Follow these steps:
 
 **1. Add Site URL in Quickstart**
 
-Enter your website's Site URL (e.g., `https://yourdomain.com`) and save your changes.
+Enter your website's Site URL (for example, `https://yourdomain.com`) and save your changes.
 
 :::note
 You can skip the remaining steps (2-5) as they are not required for Flutter apps or have already been covered.
@@ -396,7 +396,7 @@ Go to **Use cases** > **Customize** > **Settings** and configure the following:
 
 - Confirm **Login with the JavaScript SDK** is set to **Yes** (from the [Settings step](#2-settings) above). Web sign-in fails with "JSSDK Option is Not Toggled" without it.
 - Under **Allowed Domains for the JavaScript SDK**, add all domains where your app will be accessible:
-  - Your development domain: `http://localhost:PORT` (e.g., `http://localhost:8082` when serving the Flutter web build from Serverpod).
+  - Your development domain: `http://localhost:PORT` (for example, `http://localhost:8082` when serving the Flutter web build from Serverpod).
   - Your production domain: `https://yourdomain.com`.
 
 This enables Facebook authentication on these domains. Without it, Facebook sign-in fails due to CORS restrictions.
@@ -501,7 +501,7 @@ Going Live requires a valid **Privacy Policy URL** (**App settings** > **Basic**
 
 ### 2. Add your production domains and platforms
 
-- **Web and macOS**: In **Use cases** > **Customize** > **Settings**, confirm **Login with the JavaScript SDK** is **Yes** and add your production domain to **Allowed Domains for the JavaScript SDK** (e.g., `https://yourdomain.com`) alongside your development domain. Both can stay registered so dev and prod work at the same time.
+- **Web and macOS**: In **Use cases** > **Customize** > **Settings**, confirm **Login with the JavaScript SDK** is **Yes** and add your production domain to **Allowed Domains for the JavaScript SDK** (for example, `https://yourdomain.com`) alongside your development domain. Both can stay registered so dev and prod work at the same time.
 
 - **Android**: Add your **release key hash** (not only the debug one) to the Android platform in the Facebook app. Generate it from your release keystore:
 
