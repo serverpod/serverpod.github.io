@@ -8,7 +8,7 @@ Serverpod Cloud builds your server with one of a fixed set of Dart SDK versions.
 
 ## How the version is selected
 
-The `scloud deploy` command reads the Dart SDK version from the first of these sources that sets one:
+The `serverpod cloud deploy` command reads the Dart SDK version from the first of these sources that sets one:
 
 1. The `--dart-version` flag.
 2. The `dartSdk` field in `scloud.yaml`.
@@ -23,7 +23,7 @@ When no source sets a version, your server builds with Dart .
 
 ```bash
 # Deploy with a one-off Dart SDK version override
-scloud deploy --dart-version 3.10
+serverpod cloud deploy --dart-version 3.10
 ```
 
 ### Set the version in scloud.yaml
@@ -55,6 +55,6 @@ This example builds with the highest supported version, since the constraint all
 
 ## Related documentation
 
-- [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md) - The `dartSdk` field and how scloud commands preserve it.
+- [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md) - The `dartSdk` field and how Cloud CLI commands preserve it.
 - [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) - Deploy operations, status checks, and package validation.
-- [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) - The deploy command and its flags.
+- [CLI reference: `deploy` command](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) - All deploy flags.

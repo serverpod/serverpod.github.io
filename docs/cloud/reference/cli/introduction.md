@@ -4,11 +4,13 @@ https://docs.serverpod.dev/cloud/reference/cli/introduction
 
 The Serverpod Cloud CLI (`scloud`) creates, manages, and deploys your Serverpod projects on Cloud. This reference covers every command, option, and flag.
 
+Every command also runs through the Serverpod CLI as `serverpod cloud <command>`, which is the form the rest of the Cloud docs use. See [`serverpod cloud`](https://docs.serverpod.dev/concepts/cli/commands/cloud.md).
+
 ## Install and authenticate
 
 Before running any command:
 
-- Install `scloud`. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+- Set up the CLI, either through the Serverpod CLI or as `scloud` on its own. See [Set up the Cloud CLI](https://docs.serverpod.dev/cloud/getting-started/installation.md).
 - Authenticate with `scloud auth login` interactively, or pass a personal access token in non-interactive contexts like CI pipelines. See [Personal access tokens](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md).
 
 ## Command syntax

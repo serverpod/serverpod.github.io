@@ -7,7 +7,7 @@ Bundle non-Dart files (configuration, templates, CSV data, binary blobs) with yo
 ## Before you start
 
 - A Serverpod server project on disk (alongside `lib/` and `bin/`).
-- The `scloud` CLI installed and authenticated. See [Install scloud](https://docs.serverpod.dev/cloud/getting-started/installation.md).
+- The Serverpod Cloud CLI set up and authenticated. See [Set up the Cloud CLI](https://docs.serverpod.dev/cloud/getting-started/installation.md).
 
 ## Add files to your project
 
@@ -30,7 +30,7 @@ my_server/
 Then deploy:
 
 ```bash
-scloud deploy
+serverpod cloud deploy
 ```
 
 Cloud zips your project directory and includes every file that isn't excluded from the deploy package (see [Control what gets uploaded](#control-what-gets-uploaded) below). The `assets/` name is the Serverpod naming convention for this folder. You can call it anything, but the rest of this guide assumes `assets/`.
@@ -38,7 +38,7 @@ Cloud zips your project directory and includes every file that isn't excluded fr
 To preview which files Cloud will upload before deploying:
 
 ```bash
-scloud deploy --wet-run --show-files
+serverpod cloud deploy --wet-run --show-files
 ```
 
 ## Read an asset at runtime
@@ -119,11 +119,11 @@ Asset files count toward your deployment package size. Large folders slow upload
 
 ## Troubleshooting
 
-**File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `scloud deploy --wet-run --show-files` before debugging at runtime.
+**File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `serverpod cloud deploy --wet-run --show-files` before debugging at runtime.
 
 **Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**`.
 
 ## Related
 
 - [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for what's in the deployment package and how `.scloudignore` works.
-- [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) for the deploy command and its flags.
+- [CLI reference: `deploy` command](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) for all deploy flags.

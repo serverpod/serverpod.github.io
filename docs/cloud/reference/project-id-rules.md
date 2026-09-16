@@ -9,15 +9,15 @@ The identifier given to a project in Serverpod Cloud must adhere to these rules:
 - Contain only lowercase letters, numbers, and hyphens
 
 When creating a new project (see also the
-[`scloud launch`](https://docs.serverpod.dev/cloud/reference/cli/commands/launch.md)
+[`serverpod cloud launch`](https://docs.serverpod.dev/cloud/reference/cli/commands/launch.md)
 or
-[`scloud project`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)
+[`serverpod cloud project`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)
 commands) you will get an error message if the name is not valid.
 
-Most `scloud` commands need to know which project to operate on, which can be
+Most `serverpod cloud` commands need to know which project to operate on, which can be
 specified in multiple ways:
 
-- The `scloud.yaml` file in your project directory (see [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md) for the file format and the [`scloud project link`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md) command for how to generate or update it)
+- The `scloud.yaml` file in your project directory (see [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md) for the file format and the [`serverpod cloud project link`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md) command for how to generate or update it)
 - The `-p` / `--project` command line option
 - The `SERVERPOD_CLOUD_PROJECT_ID` environment variable
 

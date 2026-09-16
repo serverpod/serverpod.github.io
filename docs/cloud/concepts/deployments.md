@@ -2,18 +2,18 @@
 
 https://docs.serverpod.dev/cloud/concepts/deployments
 
-When you ship a code change to Serverpod Cloud, `scloud deploy` builds and rolls out a new version of your server. Cloud switches traffic automatically to the latest successful deploy, keeping the previous one live if a build fails.
+When you ship a code change to Serverpod Cloud, `serverpod cloud deploy` builds and rolls out a new version of your server. Cloud switches traffic automatically to the latest successful deploy, keeping the previous one live if a build fails.
 
 ## Deploy your app
 
 :::info
-If this is the first time you're deploying this project to Cloud, follow [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md) first. It walks through `scloud launch`, which creates the project before the first deploy.
+If this is the first time you're deploying this project to Cloud, follow [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md) first. It walks through `serverpod cloud launch`, which creates the project before the first deploy.
 :::
 
 Deploy your project to Cloud:
 
 ```bash
-scloud deploy
+serverpod cloud deploy
 ```
 
 The CLI packages your project, uploads it, and waits for the new version to go live. Once the deployment is live, your project is reachable at its default URLs:
@@ -22,7 +22,7 @@ The CLI packages your project, uploads it, and waits for the new version to go l
 - API: `https://<project-id>.api.serverpod.space/`
 - Insights: `https://<project-id>.insights.serverpod.space/`
 
-To use your own URL instead, see [`scloud domain`](https://docs.serverpod.dev/cloud/reference/cli/commands/domain.md).
+To use your own URL instead, see [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md).
 
 Other flags:
 
@@ -37,7 +37,7 @@ To regenerate code or run other tasks before each deploy, configure a pre-deploy
 Watch the latest deployment as it runs:
 
 ```bash
-scloud status deployment show
+serverpod cloud status deployment show
 ```
 
 The command tracks the deployment through its three lifecycle stages and updates each line as it progresses. When complete:
@@ -56,7 +56,7 @@ The three stages are **Upload** (your project package reaches Cloud), **Cloud bu
 List recent deployments:
 
 ```bash
-scloud status deployment list
+serverpod cloud status deployment list
 ```
 
 The list shows deploy IDs alongside status and timestamps:
@@ -71,13 +71,13 @@ The list shows deploy IDs alongside status and timestamps:
 Inspect a specific deployment by its ID:
 
 ```bash
-scloud status deployment show <deployment-id>
+serverpod cloud status deployment show <deployment-id>
 ```
 
 Stream the build log for a deployment that failed during the build stage:
 
 ```bash
-scloud build log
+serverpod cloud build log
 ```
 
 ## Validate before deploying
@@ -85,25 +85,25 @@ scloud build log
 A wet run performs every step except the deployment itself, leaving the running app untouched:
 
 ```bash
-scloud deploy --wet-run
+serverpod cloud deploy --wet-run
 ```
 
 Preview the file tree that will be uploaded, with ignored files marked:
 
 ```bash
-scloud deploy --show-files
+serverpod cloud deploy --show-files
 ```
 
 Combine the two flags to inspect what will be uploaded without deploying:
 
 ```bash
-scloud deploy --wet-run --show-files
+serverpod cloud deploy --wet-run --show-files
 ```
 
 Save the package to a local zip (useful for CI inspection or air-gapped environments):
 
 ```bash
-scloud deploy --output deployment.zip --wet-run
+serverpod cloud deploy --output deployment.zip --wet-run
 ```
 
 ## Configure what's included
@@ -126,7 +126,7 @@ By default, every file ignored by `.gitignore` is also excluded from the deploym
 !lib/src/generated/
 ```
 
-The `scloud` CLI may generate intermediate files under `.scloud/` directories. Add the pattern to your project's `.gitignore` so they don't end up in version control:
+The Serverpod Cloud CLI may generate intermediate files under `.scloud/` directories. Add the pattern to your project's `.gitignore` so they don't end up in version control:
 
 ```text title=".gitignore"
 # scloud deployment generated files
@@ -136,7 +136,7 @@ The `scloud` CLI may generate intermediate files under `.scloud/` directories. A
 Verify your ignore patterns:
 
 ```bash
-scloud deploy --wet-run --show-files
+serverpod cloud deploy --wet-run --show-files
 ```
 
 ## Troubleshooting
@@ -144,7 +144,7 @@ scloud deploy --wet-run --show-files
 **Build failure.** Stream the build log and look for lines beginning with `ERROR:` or `FAILED:`:
 
 ```bash
-scloud build log
+serverpod cloud build log
 ```
 
 Common causes are missing dependencies in `pubspec.yaml` or compile errors in your code.
