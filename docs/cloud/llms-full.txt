@@ -2374,9 +2374,15 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 
 ---
 
-# reference/cli/commands/build/build
+# scloud build
 
 https://docs.serverpod.dev/cloud/reference/cli/commands/build
+
+The `scloud build` commands cover the Cloud build stage of a deploy: reading a deployment's build log and managing the secrets the build can use. Build-time errors surface in the build log, not in the runtime logs that `scloud log` fetches.
+
+Build secrets cover credentials the build needs and your source code shouldn't carry. See [Private dependencies](https://docs.serverpod.dev/cloud/reference/private-dependencies.md) for the setup that uses them, and [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for the values your server reads at runtime.
+
+For where the build sits in the deploy lifecycle, see [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md). To work through a failed build step by step, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
 
 ## Usage
 
@@ -3680,9 +3686,15 @@ See the full documentation at: https://docs.serverpod.dev/cloud/reference/cli/co
 
 ---
 
-# reference/cli/commands/storage/storage
+# scloud storage
 
 https://docs.serverpod.dev/cloud/reference/cli/commands/storage
+
+The `scloud storage` commands manage your project's storages and the files in them. Your app uploads those files while it runs. From the terminal you can list what users uploaded, download a file to debug it, or upload one yourself.
+
+Decide who may read a storage before you create it, because that choice cannot be changed later.
+
+For how your server connects to these storages, see [File uploads](https://docs.serverpod.dev/concepts/endpoints-and-apis/file-uploads.md#configure-a-storage-provider) in the framework documentation.
 
 ## Usage
 

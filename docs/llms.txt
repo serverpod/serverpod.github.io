@@ -209,7 +209,7 @@
 - [Global options](https://docs.serverpod.dev/cloud/reference/cli/global_options.md)
 - [CLI environment variables](https://docs.serverpod.dev/cloud/reference/cli/env_vars.md): The scloud command supports a number of environment variables, many of which
 - [scloud auth](https://docs.serverpod.dev/cloud/reference/cli/commands/auth.md)
-- [reference/cli/commands/build/build](https://docs.serverpod.dev/cloud/reference/cli/commands/build.md)
+- [scloud build](https://docs.serverpod.dev/cloud/reference/cli/commands/build.md)
 - [scloud completion](https://docs.serverpod.dev/cloud/reference/cli/commands/completion.md)
 - [scloud db](https://docs.serverpod.dev/cloud/reference/cli/commands/db.md)
 - [scloud deploy](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md)
@@ -222,7 +222,7 @@
 - [scloud project](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)
 - [scloud settings](https://docs.serverpod.dev/cloud/reference/cli/commands/settings.md)
 - [scloud status](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
-- [reference/cli/commands/storage/storage](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md)
+- [scloud storage](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md)
 - [scloud variable](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md)
 - [scloud version](https://docs.serverpod.dev/cloud/reference/cli/commands/version.md)
 
