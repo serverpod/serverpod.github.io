@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.7340a1bc.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.9f3be80f.js" defer="defer"></script>
 <script src="/assets/js/main.31b68ef4.js" defer="defer"></script>
 </head>
 <body>
@@ -63,7 +63,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="action-inputs">Action inputs<a href="#action-inputs" class="hash-link" aria-label="Direct link to Action inputs" title="Direct link to Action inputs" translate="no">​</a></h2>
 <table><thead><tr><th>Input</th><th>Required</th><th>What it does</th></tr></thead><tbody><tr><td><code>token</code></td><td>yes</td><td>Your personal access token, passed from the repository secret.</td></tr><tr><td><code>working_directory</code></td><td>no</td><td>The directory the action runs in. Defaults to the repository root.</td></tr><tr><td><code>project_id</code></td><td>no</td><td>The Cloud project to deploy to. Inferred from <code>scloud.yaml</code> when present.</td></tr><tr><td><code>project_dir</code></td><td>no</td><td>Path to the server package. Useful for monorepos where the server isn&#x27;t at the repository root.</td></tr><tr><td><code>project_config_file</code></td><td>no</td><td>Path to <code>scloud.yaml</code> if it&#x27;s not in the default location.</td></tr></tbody></table>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="troubleshooting">Troubleshooting<a href="#troubleshooting" class="hash-link" aria-label="Direct link to Troubleshooting" title="Direct link to Troubleshooting" translate="no">​</a></h2>
-<p><strong><code>scloud auth login</code> is required in the run output.</strong> The <code>token</code> input is empty or the secret name in the workflow doesn&#x27;t match what&#x27;s in your repository&#x27;s secrets. Confirm the secret name in your repository matches the name your workflow references in <code>${{ secrets.&lt;name&gt; }}</code>.</p>
+<p><strong>Authentication fails.</strong> The run output says &quot;The credentials for this session seem to no longer be valid.&quot; The <code>token</code> input is empty, the secret name in the workflow doesn&#x27;t match what&#x27;s in your repository&#x27;s secrets, or the token was revoked. Check the secret name against what your workflow references in <code>${{ secrets.&lt;name&gt; }}</code>, and create a new token if the old one is gone. Ignore the hint to run <code>scloud auth login</code>, which can&#x27;t work in CI.</p>
 <p><strong>Project not found.</strong> Either <code>scloud.yaml</code> isn&#x27;t committed and the action can&#x27;t resolve the project, or <code>project_id</code> was passed but doesn&#x27;t match a project on your Cloud account. Commit <code>scloud.yaml</code>, or pass the correct <code>project_id</code> as an action input.</p>
 <p><strong>Generated files missing.</strong> The primary workflow assumes generated Serverpod files are committed. Either commit them, or switch to the variant workflow that runs <code>serverpod generate</code> in CI.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="related">Related<a href="#related" class="hash-link" aria-label="Direct link to Related" title="Direct link to Related" translate="no">​</a></h2>
