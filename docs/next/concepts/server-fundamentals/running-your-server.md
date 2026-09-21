@@ -112,7 +112,7 @@ In production, the `--role` argument controls which parts of the server run:
 
 - **`monolith`** (default) runs everything: the API, Insights, and web servers, plus [future calls](https://docs.serverpod.dev/next/concepts/scheduling/overview.md) and [health checks](https://docs.serverpod.dev/next/concepts/operations/health-checks.md).
 - **`serverless`** serves requests only. Future calls and [health metric collection](https://docs.serverpod.dev/next/concepts/operations/health-checks.md#health-metrics) are disabled, which fits platforms that start and stop instances on demand. The health probes still answer.
-- **`maintenance`** starts no servers. It performs one-shot work and exits, which fits CI jobs and scheduled maintenance tasks. With `--apply-migrations` or `--apply-repair-migration`, it applies the migrations and does nothing else. Without those flags, it runs any due future calls and one round of health checks. Outside `development`, a failed migration is only logged, so the process can still exit with code 0.
+- **`maintenance`** starts no servers. It performs one-shot work and exits, which fits CI jobs and scheduled maintenance tasks. With `--apply-migrations` or `--apply-repair-migration`, it applies the migrations and does nothing else. Without those flags, it runs any due future calls and one round of health checks. If a migration fails, or the database doesn't match the latest migration afterward, the process exits with code 1 in every run mode.
 
 ## Run code on shutdown
 

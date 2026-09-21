@@ -127,7 +127,7 @@ If a migration fails, or the database doesn't match the latest migration afterwa
 - **Any run mode except `development`:** the server logs `Failed to apply database migrations.` or `Database does not match target state.` and keeps starting.
 - **`development`:** the server exits with code 1.
 
-Migrations can also be applied with the [maintenance role](https://docs.serverpod.dev/next/concepts/server-fundamentals/running-your-server.md#choose-a-server-role). The server applies the migrations and then stops, which suits CI jobs and other automated processes. Outside `development`, it can still exit with code 0 after a failed migration, so check the logs for failures.
+Migrations can also be applied with the [maintenance role](https://docs.serverpod.dev/next/concepts/server-fundamentals/running-your-server.md#choose-a-server-role). The server applies the migrations and then exits, which suits CI jobs and other automated processes. If a migration fails, or the database doesn't match the latest migration afterward, it exits with code 1 in every run mode, so the job fails.
 
 ```bash
 $ dart run bin/main.dart --role maintenance --apply-migrations
