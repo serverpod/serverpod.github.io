@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.e58fa602.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8f5d1f9f.js" defer="defer"></script>
 <script src="/assets/js/main.0c5f706b.js" defer="defer"></script>
 </head>
 <body>
@@ -100,7 +100,7 @@
 <li class=""><strong>Any run mode except <code>development</code>:</strong> the server logs <code>Failed to apply database migrations.</code> or <code>Database does not match target state.</code> and keeps starting.</li>
 <li class=""><strong><code>development</code>:</strong> the server exits with code 1.</li>
 </ul>
-<p>Migrations can also be applied with the <a class="" href="/concepts/server-fundamentals/running-your-server#choose-a-server-role">maintenance role</a>. The server applies the migrations and then stops, which suits CI jobs and other automated processes. Outside <code>development</code>, it can still exit with code 0 after a failed migration, so check the logs for failures.</p>
+<p>Migrations can also be applied with the <a class="" href="/concepts/server-fundamentals/running-your-server#choose-a-server-role">maintenance role</a>. The server applies the migrations and then exits, which suits CI jobs and other automated processes. If a migration fails, or the database doesn&#x27;t match the latest migration afterward, it exits with code 1 in every run mode, so the job fails.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ dart run bin/main.dart </span><span class="token parameter variable" style="color:#36acaa">--role</span><span class="token plain"> maintenance --apply-migrations</span><br></div></code></pre></div></div>
 <p>If migrations are applied at the same time as repair migration, the repair migration is applied first.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="on-serverpod-cloud">On Serverpod Cloud<a href="#on-serverpod-cloud" class="hash-link" aria-label="Direct link to On Serverpod Cloud" title="Direct link to On Serverpod Cloud" translate="no">​</a></h3>
@@ -141,7 +141,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="applying-a-repair-migration">Applying a repair migration<a href="#applying-a-repair-migration" class="hash-link" aria-label="Direct link to Applying a repair migration" title="Direct link to Applying a repair migration" translate="no">​</a></h2>
 <p>The repair migration is applied using the server runtime. To apply a repair migration, start the server with the <code>--apply-repair-migration</code> flag. The repair migration is applied as part of the startup sequence and the framework asserts that each repair migration is only applied once to the database.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ dart run bin/main.dart --apply-repair-migration</span><br></div></code></pre></div></div>
-<p>The repair migration can also be applied with the <a class="" href="/concepts/server-fundamentals/running-your-server#choose-a-server-role">maintenance role</a>, where the server exits after applying it.</p>
+<p>The repair migration can also be applied with the <a class="" href="/concepts/server-fundamentals/running-your-server#choose-a-server-role">maintenance role</a>, where the server exits after applying it, with code 1 if it fails.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">$ dart run bin/main.dart </span><span class="token parameter variable" style="color:#36acaa">--role</span><span class="token plain"> maintenance --apply-repair-migration</span><br></div></code></pre></div></div>
 <p>If a repair migration is applied at the same time as migrations, the repair migration is applied first.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="rolling-back-migrations">Rolling back migrations<a href="#rolling-back-migrations" class="hash-link" aria-label="Direct link to Rolling back migrations" title="Direct link to Rolling back migrations" translate="no">​</a></h2>

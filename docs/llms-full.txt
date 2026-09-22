@@ -1699,7 +1699,7 @@ In production, the `--role` argument controls which parts of the server run:
 
 - **`monolith`** (default) runs everything: the API, Insights, and web servers, plus [future calls](https://docs.serverpod.dev/concepts/scheduling/overview.md) and [health checks](https://docs.serverpod.dev/concepts/operations/health-checks.md).
 - **`serverless`** serves requests only. Future calls and [health metric collection](https://docs.serverpod.dev/concepts/operations/health-checks.md#health-metrics) are disabled, which fits platforms that start and stop instances on demand. The health probes still answer.
-- **`maintenance`** starts no servers. It performs one-shot work and exits, which fits CI jobs and scheduled maintenance tasks. With `--apply-migrations` or `--apply-repair-migration`, it applies the migrations and does nothing else. Without those flags, it runs any due future calls and one round of health checks. Outside `development`, a failed migration is only logged, so the process can still exit with code 0.
+- **`maintenance`** starts no servers. It performs one-shot work and exits, which fits CI jobs and scheduled maintenance tasks. With `--apply-migrations` or `--apply-repair-migration`, it applies the migrations and does nothing else. Without those flags, it runs any due future calls and one round of health checks. If a migration fails, or the database doesn't match the latest migration afterward, the process exits with code 1 in every run mode.
 
 ## Run code on shutdown
 
@@ -9694,7 +9694,7 @@ If a migration fails, or the database doesn't match the latest migration afterwa
 - **Any run mode except `development`:** the server logs `Failed to apply database migrations.` or `Database does not match target state.` and keeps starting.
 - **`development`:** the server exits with code 1.
 
-Migrations can also be applied with the [maintenance role](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#choose-a-server-role). The server applies the migrations and then stops, which suits CI jobs and other automated processes. Outside `development`, it can still exit with code 0 after a failed migration, so check the logs for failures.
+Migrations can also be applied with the [maintenance role](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#choose-a-server-role). The server applies the migrations and then exits, which suits CI jobs and other automated processes. If a migration fails, or the database doesn't match the latest migration afterward, it exits with code 1 in every run mode, so the job fails.
 
 ```bash
 $ dart run bin/main.dart --role maintenance --apply-migrations
@@ -9793,7 +9793,7 @@ The repair migration is applied using the server runtime. To apply a repair migr
 $ dart run bin/main.dart --apply-repair-migration
 ```
 
-The repair migration can also be applied with the [maintenance role](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#choose-a-server-role), where the server exits after applying it.
+The repair migration can also be applied with the [maintenance role](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#choose-a-server-role), where the server exits after applying it, with code 1 if it fails.
 
 ```bash
 $ dart run bin/main.dart --role maintenance --apply-repair-migration
