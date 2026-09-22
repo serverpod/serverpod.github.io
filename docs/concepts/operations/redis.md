@@ -223,4 +223,4 @@ Those templates do not generate a `redis` password. Add `redis:` under that run 
 - [Configuration reference](https://docs.serverpod.dev/concepts/lookups/configuration-reference.md): every Redis option and environment variable.
 - [Caching](https://docs.serverpod.dev/concepts/endpoints-and-apis/caching.md): the global cache Redis backs.
 - [Server events](https://docs.serverpod.dev/concepts/endpoints-and-apis/server-events.md): cluster messaging through Redis.
-- [Use Redis for PubSub and caching](https://docs.serverpod.dev/cloud/guides/redis.md): managed Redis on Serverpod Cloud.
+- [Use Redis for PubSub and caching](https://docs.serverpod.dev/cloud/guides/redis.md): connecting a third-party Redis service to Serverpod Cloud.

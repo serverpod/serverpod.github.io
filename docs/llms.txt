@@ -185,7 +185,7 @@
 
 ## Serverpod Cloud documentation
 
-- [Introduction](https://docs.serverpod.dev/cloud.md): Serverpod Cloud is a managed hosting platform for Serverpod apps. Deploy from the command line; Cloud manages runtime, networking, database, and secrets.
+- [Introduction](https://docs.serverpod.dev/cloud.md): Serverpod Cloud is a managed hosting platform for Serverpod apps. Deploy from the command line. Cloud manages runtime, networking, database, and secrets.
 - [Set up the Cloud CLI](https://docs.serverpod.dev/cloud/getting-started/installation.md): Run the Cloud CLI through the Serverpod CLI or install it on its own, then authenticate it with your account.
 - [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md): Run serverpod cloud launch to create a Cloud project, deploy your Serverpod server, and open it at a public URL. Takes about five minutes.
 - [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md): Deploy your Serverpod app to Cloud, check deployment status, validate packages before deploying, and control what's included in the deployment.
