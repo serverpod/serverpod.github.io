@@ -207,6 +207,19 @@ pod.addCloudStorage(
 );
 ```
 
+To connect a storage you created in your Serverpod Cloud project under another id, use `custom` with that id. This needs `serverpod_cloud_storage` 4.0.2 or later:
+
+```dart
+pod.addCloudStorage(
+  await ServerpodCloudProvider.custom(
+    storageId: 'exports',
+    fallback: () => DatabaseCloudStorage('exports'),
+  ),
+);
+```
+
+If the storage does not exist in your Cloud project, the server throws a `CloudStorageException` at startup. To create one, use the [storage commands](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md) in the Cloud CLI.
+
 When Serverpod Cloud provides storage for your project, these calls connect to it. Otherwise, for example when you run the server locally, the `fallback` runs and files are stored in the database. To keep files somewhere else, replace these calls with one of the storages below.
 
 Pick the package that matches your provider. Use [serverpod\_cloud\_storage\_s3](https://pub.dev/packages/serverpod_cloud_storage_s3) for AWS S3, [serverpod\_cloud\_storage\_gcp](https://pub.dev/packages/serverpod_cloud_storage_gcp) for Google Cloud Storage, or [serverpod\_cloud\_storage\_r2](https://pub.dev/packages/serverpod_cloud_storage_r2) for Cloudflare R2.
