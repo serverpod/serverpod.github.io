@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.8f5d1f9f.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.4e9e1489.js" defer="defer"></script>
 <script src="/assets/js/main.0c5f706b.js" defer="defer"></script>
 </head>
 <body>
@@ -56,7 +56,7 @@
 <p>The steps:</p>
 <ol>
 <li class="">Run <code>serverpod cloud db connection</code> to print the host, port, and database name.</li>
-<li class="">Run <code>serverpod cloud db user create &lt;username&gt;</code> to create a superuser. The password is shown <strong>once</strong>, so save it.</li>
+<li class="">Run <code>serverpod cloud db user create &lt;username&gt;</code> to create a database user. It can read and write data, but it can&#x27;t create or change tables. The password is shown <strong>once</strong>, so save it.</li>
 <li class="">Connect from your client with the host, port, database, your username, and the saved password.</li>
 </ol>
 <p>Both commands need to know which project you&#x27;re working with. From a project directory that&#x27;s been linked (any project created with <code>serverpod cloud launch</code> is linked automatically), the project ID is picked up from <code>scloud.yaml</code>. From anywhere else, pass <code>-p your-project-id</code>.</p>
@@ -80,7 +80,7 @@
 <ul>
 <li class=""><strong>TLS is required for all connections.</strong> Cloud sets <code>SERVERPOD_DATABASE_REQUIRE_SSL</code> to <code>true</code> for your server, and the same applies to direct connections from <code>psql</code> or a GUI client.</li>
 <li class=""><strong>The server&#x27;s password is managed by the platform.</strong> It&#x27;s never written into your repo and never shown to you. Your server reads it from the injected environment at runtime.</li>
-<li class=""><strong>Direct access uses separate superusers that you create.</strong> The server&#x27;s user and the users you create with <code>serverpod cloud db user create</code> are distinct, so revoking or rotating a direct-access password does not affect the server.</li>
+<li class=""><strong>Direct access uses separate database users that you create.</strong> The server connects as its own user, not as one you create with <code>serverpod cloud db user create</code>. Revoking or rotating a direct-access password doesn&#x27;t affect the server.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="performance">Performance<a href="#performance" class="hash-link" aria-label="Direct link to Performance" title="Direct link to Performance" translate="no">​</a></h2>
 <p>The managed database includes infrastructure features you&#x27;d otherwise wire up yourself:</p>
