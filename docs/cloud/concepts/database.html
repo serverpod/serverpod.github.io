@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.9aeaac9a.css">
-<script src="/assets/js/runtime~main.0849d389.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.fc1a12f3.js" defer="defer"></script>
 <script src="/assets/js/main.0804eebd.js" defer="defer"></script>
 </head>
 <body>
@@ -70,6 +70,7 @@
 <li class=""><code>psql</code>, the standard PostgreSQL command-line client</li>
 <li class="">A PostgreSQL VS Code extension if you prefer to stay in your editor</li>
 </ul>
+<div class="theme-admonition theme-admonition-warning admonition_xJq3 alert alert--warning"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></span>warning</div><div class="admonitionContent_BuS1"><p>Session settings can carry over between direct connections, because they go through a connection pool. A <code>SET</code> from one connection, such as a change to <code>search_path</code>, can still apply the next time you connect as the same user. Use <code>SET LOCAL</code> inside a transaction, so the setting ends with the transaction.</p></div></div>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="reset-the-database">Reset the database<a href="#reset-the-database" class="hash-link" aria-label="Direct link to Reset the database" title="Direct link to Reset the database" translate="no">​</a></h2>
 <p>The <code>serverpod cloud db wipe</code> command deletes all tables, all data, and all applied migrations from the managed database. It asks for confirmation by default.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod cloud db wipe</span><br></div></code></pre></div></div>
