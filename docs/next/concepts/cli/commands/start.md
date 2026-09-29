@@ -8,7 +8,7 @@ The `serverpod start` command runs your project in development mode. It generate
 serverpod start
 ```
 
-Run it from anywhere inside your project folder.
+Run it from anywhere inside your project folder. To run another server entry point, see [Choose the server entry point](https://docs.serverpod.dev/next/concepts/server-fundamentals/running-your-server.md#choose-the-server-entry-point).
 
 ## Usage
 
