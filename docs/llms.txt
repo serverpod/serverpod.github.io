@@ -5,7 +5,7 @@
 ## Framework documentation
 
 - [Introduction](https://docs.serverpod.dev/index.md): Serverpod is an open-source backend framework for Flutter developers. Write your server in Dart and call it from your app through generated, type-safe code.
-- [Installation](https://docs.serverpod.dev/installation.md): Prerequisites
+- [Installation](https://docs.serverpod.dev/installation.md): Set up with an AI agent
 - [Quickstart](https://docs.serverpod.dev/quickstart.md): Build and deploy a full-stack Flutter and Serverpod app, hosted on the web, in 10–15 minutes. We have tested the default setup with Antigravity, Cursor, and Claude Code, but most agentic editors will work.
 - [How Serverpod works](https://docs.serverpod.dev/how-it-works.md): Start building with Serverpod. Learn how to add endpoints, call them from Flutter, define data models, and work with hot reload across the backend and your app.
 - [Create your first endpoint](https://docs.serverpod.dev/get-started/creating-endpoints.md): Build a Serverpod endpoint that turns a list of ingredients into an AI-generated recipe with Gemini, and call it from your Flutter app.
