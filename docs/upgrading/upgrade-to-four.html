@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.abdf1766.css">
-<script src="/assets/js/runtime~main.a4fe6397.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.25a59d29.js" defer="defer"></script>
 <script src="/assets/js/main.7422ffff.js" defer="defer"></script>
 </head>
 <body>
@@ -38,6 +38,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="before-you-start">Before you start<a href="#before-you-start" class="hash-link" aria-label="Direct link to Before you start" title="Direct link to Before you start" translate="no">​</a></h2>
 <ul>
 <li class="">You have Flutter 3.44.4 or later. It includes Dart 3.12.2, which Serverpod 4.0 requires. Check with <code>flutter --version</code>, and run <code>flutter upgrade</code> if your version is older.</li>
+<li class="">Your Postgres is version 16 or later, which Serverpod 4.0 requires. Check with <code>SELECT version();</code>, and upgrade the database before you upgrade Serverpod. The <code>pgvector/pgvector:pg16</code> image from 3.4 projects, the <code>ghcr.io/serverpod/postgres:16</code> image, and the embedded Postgres all meet the requirement. On Postgres 14, the server can&#x27;t read the database schema. Its startup integrity check fails, and <code>serverpod create-repair-migration</code> can&#x27;t run.</li>
 <li class="">Your project is on the latest Serverpod 3.4.x release.</li>
 <li class="">Your project compiles and its tests pass.</li>
 <li class="">You have committed your current state to Git, so you can roll back if needed.</li>
@@ -126,7 +127,7 @@
 <p>The data directory holds a complete database, so keep it out of version control. Upgrading doesn&#x27;t add the ignore rule that new projects get, so add this line to <code>&lt;project&gt;_server/.gitignore</code>:</p>
 <div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">.serverpod/</span><br></div></code></pre></div></div>
 <p>Once <code>dataPath</code> is set, <code>serverpod start</code> uses the embedded Postgres automatically.</p>
-<p>Don&#x27;t add <code>dataPath</code> to <code>production.yaml</code> or <code>staging.yaml</code>. In production, use a managed Postgres, such as a <a class="" href="/cloud">Serverpod Cloud</a> database, Cloud SQL, or RDS.</p>
+<p>Don&#x27;t add <code>dataPath</code> to <code>production.yaml</code> or <code>staging.yaml</code>. In production, use a managed Postgres, such as a <a class="" href="/cloud">Serverpod Cloud</a> database, Cloud SQL, or RDS. Pick an engine version of 16 or later, which Serverpod 4.0 requires.</p>
 <p>The server reaches the embedded Postgres over the socket, but database tools like <code>psql</code> connect over TCP. To connect a tool, stop the server and run <code>serverpod database start</code>. See <a class="" href="/concepts/data-and-the-database/database/embedded-postgres#connect-a-database-tool">Connect a database tool</a>.</p>
 <div class="theme-admonition theme-admonition-note admonition_xJq3 alert alert--secondary"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path><path d="M7 11h10"></path><path d="M7 15h6"></path><path d="M7 7h8"></path></svg></span>note</div><div class="admonitionContent_BuS1"><p>With <code>dataPath</code> set, the server connects to the embedded Postgres even if you pass <code>--docker</code>. The <code>--docker</code> flag only controls whether <code>serverpod start</code> brings up the Docker Compose stack. Your Docker volume stays intact, so remove <code>dataPath</code> to go back to the Docker Postgres.</p></div></div>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="start-the-server">Start the server<a href="#start-the-server" class="hash-link" aria-label="Direct link to Start the server" title="Direct link to Start the server" translate="no">​</a></h3>

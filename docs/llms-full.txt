@@ -107,6 +107,8 @@ $ flutter doctor
 
 :::
 
+New projects use an embedded PostgreSQL that Serverpod downloads and runs for you, so no database setup is needed. If you connect to your own PostgreSQL instead, it must be version 16 or later.
+
 ### Install Serverpod
 
 Serverpod is installed using the Dart package manager. To install Serverpod, run the following command in your terminal:
@@ -166,6 +168,8 @@ $ flutter doctor
 ```
 
 :::
+
+New projects use an embedded PostgreSQL that Serverpod downloads and runs for you, so no database setup is needed.
 
 ## Install Serverpod
 
@@ -1873,6 +1877,8 @@ database:
   user: postgres
   maxConnectionCount: 10
 ```
+
+The external PostgreSQL must be version 16 or later.
 
 Set the database password in `passwords.yaml` (`database`) or through `SERVERPOD_PASSWORD_database`.
 
@@ -28221,6 +28227,7 @@ Compile errors after you regenerate are expected. Most match a section on [Break
 ## Before you start
 
 - You have Flutter 3.44.4 or later. It includes Dart 3.12.2, which Serverpod 4.0 requires. Check with `flutter --version`, and run `flutter upgrade` if your version is older.
+- Your Postgres is version 16 or later, which Serverpod 4.0 requires. Check with `SELECT version();`, and upgrade the database before you upgrade Serverpod. The `pgvector/pgvector:pg16` image from 3.4 projects, the `ghcr.io/serverpod/postgres:16` image, and the embedded Postgres all meet the requirement. On Postgres 14, the server can't read the database schema. Its startup integrity check fails, and `serverpod create-repair-migration` can't run.
 - Your project is on the latest Serverpod 3.4.x release.
 - Your project compiles and its tests pass.
 - You have committed your current state to Git, so you can roll back if needed.
@@ -28408,7 +28415,7 @@ The data directory holds a complete database, so keep it out of version control.
 
 Once `dataPath` is set, `serverpod start` uses the embedded Postgres automatically.
 
-Don't add `dataPath` to `production.yaml` or `staging.yaml`. In production, use a managed Postgres, such as a [Serverpod Cloud](https://docs.serverpod.dev/cloud.md) database, Cloud SQL, or RDS.
+Don't add `dataPath` to `production.yaml` or `staging.yaml`. In production, use a managed Postgres, such as a [Serverpod Cloud](https://docs.serverpod.dev/cloud.md) database, Cloud SQL, or RDS. Pick an engine version of 16 or later, which Serverpod 4.0 requires.
 
 The server reaches the embedded Postgres over the socket, but database tools like `psql` connect over TCP. To connect a tool, stop the server and run `serverpod database start`. See [Connect a database tool](https://docs.serverpod.dev/concepts/data-and-the-database/database/embedded-postgres.md#connect-a-database-tool).
 
@@ -28597,24 +28604,24 @@ Serverpod 4.0 changes APIs and behavior that 3.4 code relies on. Find your error
 
 For the upgrade steps themselves, see [Upgrade to 4.0](https://docs.serverpod.dev/upgrading/upgrade-to-four.md).
 
-| Change                                                                                                              | Affects you if                                                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Model files use the `.spy.yaml` extension](#model-files-use-the-spyyaml-extension)                                 | Your model files end in `.yaml` or `.yml` instead of `.spy.yaml`.                                                                                         |
-| [Client exceptions are a sealed hierarchy](#client-exceptions-are-a-sealed-hierarchy)                               | Your app catches `ServerpodClientException` or checks `statusCode == -1`.                                                                                 |
-| [Database exceptions are typed](#database-exceptions-are-typed)                                                     | Your server catches `DatabaseInsertRowException` or another row exception.                                                                                |
-| [Future calls run at least once](#future-calls-run-at-least-once)                                                   | You use future calls.                                                                                                                                     |
-| [Removed deprecated APIs](#removed-deprecated-apis)                                                                 | You use the string-based future call methods, `orderDescending`, `ignoreEndpoint`, `SerializationManagerServer`, the old web widget classes, or `--mini`. |
-| [Message central delivers globally by default](#message-central-delivers-globally-by-default)                       | You call `session.messages.postMessage` with Redis enabled, or pass `global: true`.                                                                       |
-| [File storage APIs are renamed](#file-storage-apis-are-renamed)                                                     | Your server uses `session.storage`, subclasses `CloudStorage`, or serves public files from native Google Cloud Storage.                                   |
-| [Google sign-in on the web uses the OAuth2 redirect flow](#google-sign-in-on-the-web-uses-the-oauth2-redirect-flow) | Your Flutter web app uses Google sign-in from `serverpod_auth_idp_flutter`.                                                                               |
-| [Sign-in buttons share one set of style enums](#sign-in-buttons-share-one-set-of-style-enums)                       | You set style arguments on sign-in buttons from `serverpod_auth_idp_flutter`.                                                                             |
-| [Legacy streaming endpoints are removed](#legacy-streaming-endpoints-are-removed)                                   | Your endpoints use `StreamingSession`.                                                                                                                    |
-| [Insights database endpoints are disabled by default](#insights-database-endpoints-are-disabled-by-default)         | Your own tooling calls the Insights database endpoints.                                                                                                   |
-| [The `columnOverride` experimental feature is removed](#the-columnoverride-experimental-feature-is-removed)         | You pass `--experimental-features columnOverride`.                                                                                                        |
-| [`Session.close()` returns `Future<void>`](#sessionclose-returns-futurevoid)                                        | Your code uses the value that `session.close()` returns.                                                                                                  |
-| [Unused email exceptions are removed](#unused-email-exceptions-are-removed)                                         | Your app catches `EmailAccountRequestAlreadyExistsException` or `EmailPasswordResetAccountNotFoundException`.                                             |
-| [If you use the legacy auth module](#if-you-use-the-legacy-auth-module)                                             | Your project uses the `serverpod_auth` packages.                                                                                                          |
-| [If you use the new auth module on Android](#if-you-use-the-new-auth-module-on-android)                             | Your Flutter app still has `flutter_secure_storage` 9.x.                                                                                                  |
+| Change                                                                                                                                    | Affects you if                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Model files use the `.spy.yaml` extension](#model-files-use-the-spyyaml-extension)                                                       | Your model files end in `.yaml` or `.yml` instead of `.spy.yaml`.                                                                                         |
+| [Client exceptions are a sealed hierarchy](#client-exceptions-are-a-sealed-hierarchy)                                                     | Your app catches `ServerpodClientException` or checks `statusCode == -1`.                                                                                 |
+| [Database exceptions are typed](#database-exceptions-are-typed)                                                                           | Your server catches `DatabaseInsertRowException` or another row exception.                                                                                |
+| [Future calls run at least once](#future-calls-run-at-least-once)                                                                         | You use future calls.                                                                                                                                     |
+| [Removed deprecated APIs](#removed-deprecated-apis)                                                                                       | You use the string-based future call methods, `orderDescending`, `ignoreEndpoint`, `SerializationManagerServer`, the old web widget classes, or `--mini`. |
+| [Message central delivers globally by default](#message-central-delivers-globally-by-default)                                             | You call `session.messages.postMessage` with Redis enabled, or pass `global: true`.                                                                       |
+| [File storage APIs are renamed and throw instead of returning `null`](#file-storage-apis-are-renamed-and-throw-instead-of-returning-null) | Your server uses `session.storage`, checks its results for `null`, subclasses `CloudStorage`, or serves public files from native Google Cloud Storage.    |
+| [Google sign-in on the web uses the OAuth2 redirect flow](#google-sign-in-on-the-web-uses-the-oauth2-redirect-flow)                       | Your Flutter web app uses Google sign-in from `serverpod_auth_idp_flutter`.                                                                               |
+| [Sign-in buttons share one set of style enums](#sign-in-buttons-share-one-set-of-style-enums)                                             | You set style arguments on sign-in buttons from `serverpod_auth_idp_flutter`.                                                                             |
+| [Legacy streaming endpoints are removed](#legacy-streaming-endpoints-are-removed)                                                         | Your endpoints use `StreamingSession`.                                                                                                                    |
+| [Insights database endpoints are disabled by default](#insights-database-endpoints-are-disabled-by-default)                               | Your own tooling calls the Insights database endpoints.                                                                                                   |
+| [The `columnOverride` experimental feature is removed](#the-columnoverride-experimental-feature-is-removed)                               | You pass `--experimental-features columnOverride`.                                                                                                        |
+| [`Session.close()` returns `Future<void>`](#sessionclose-returns-futurevoid)                                                              | Your code uses the value that `session.close()` returns.                                                                                                  |
+| [Unused email exceptions are removed](#unused-email-exceptions-are-removed)                                                               | Your app catches `EmailAccountRequestAlreadyExistsException` or `EmailPasswordResetAccountNotFoundException`.                                             |
+| [If you use the legacy auth module](#if-you-use-the-legacy-auth-module)                                                                   | Your project uses the `serverpod_auth` packages.                                                                                                          |
+| [If you use the new auth module on Android](#if-you-use-the-new-auth-module-on-android)                                                   | Your Flutter app still has `flutter_secure_storage` 9.x.                                                                                                  |
 
 ## Model files use the `.spy.yaml` extension
 
@@ -28663,9 +28670,9 @@ In 3.4, Serverpod removed a future call from the database before running it, so 
 
 Calls to `session.messages.postMessage` now default to `MessageScope.auto`. When Redis is enabled, the message goes through Redis to every server instance. Otherwise, the message stays local. If your code relied on local-only delivery, pass `scope: MessageScope.local`. The `global: true` argument is removed, so replace it with `scope: MessageScope.global`. See [Message scope](https://docs.serverpod.dev/concepts/endpoints-and-apis/server-events.md#message-scope).
 
-## File storage APIs are renamed
+## File storage APIs are renamed and throw instead of returning `null`
 
-Several `session.storage` methods are renamed in 4.0. The methods that return a single file or URL now throw instead of returning `null`. Update your server code as follows:
+Several `session.storage` methods are renamed in 4.0. The methods that return a single file or URL now throw instead of returning `null`. An existing `null` check still compiles. For example, `if (file == null)` after `retrieveFile` only triggers an analyzer warning that the check is unnecessary. The branch inside it never runs. Update your server code as follows:
 
 | 3.4                                                                                                                                          | 4.0                                                                                |
 | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -28847,7 +28854,7 @@ The `serverpod_auth_bridge` and `serverpod_auth_migration` packages are experime
 - A Serverpod 4.0.x project. If you are on an earlier version, follow [Upgrade to 4.0](https://docs.serverpod.dev/upgrading/upgrade-to-four.md) first.
 - Dart SDK 3.12.2 or later.
 - Flutter SDK 3.44.4 or later (only if you are migrating the Flutter app).
-- Postgres 14 or later, or SQLite3.
+- Postgres 16 or later, or SQLite3.
 - The new auth packages at `4.0.0`: the server, client, and Flutter variants of `serverpod_auth_core`, `serverpod_auth_idp`, and `serverpod_auth_bridge`, plus the server and client variants of `serverpod_auth_migration`. [Add the new auth packages](#add-the-new-auth-packages) shows which ones each `pubspec.yaml` needs.
 - Back up your production database.
 - Commit your current state on a clean branch.
