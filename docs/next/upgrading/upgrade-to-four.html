@@ -21,7 +21,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.abdf1766.css">
-<script src="/assets/js/runtime~main.25a59d29.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.a349f29b.js" defer="defer"></script>
 <script src="/assets/js/main.7422ffff.js" defer="defer"></script>
 </head>
 <body>
@@ -182,7 +182,7 @@
 <p>Each editor reads the servers from its own file:</p>
 <table><thead><tr><th>Editor</th><th>Config file</th><th>Format</th></tr></thead><tbody><tr><td>Claude</td><td><code>.mcp.json</code></td><td>The sample above.</td></tr><tr><td>Cursor</td><td><code>.cursor/mcp.json</code></td><td>The sample above.</td></tr><tr><td>VS Code</td><td><code>.vscode/mcp.json</code></td><td>The sample above, with the entries under a <code>servers</code> key instead of <code>mcpServers</code>.</td></tr><tr><td>Antigravity</td><td><code>.agents/plugins/serverpod-local/mcp_config.json</code></td><td>The sample above, with the Dart entry named <code>dart-mcp-server</code>. Antigravity also needs a <code>plugin.json</code> file in the same folder, with <code>&quot;name&quot;</code> set to <code>&quot;serverpod-local&quot;</code>.</td></tr><tr><td>Codex</td><td><code>.codex/config.toml</code></td><td>Codex&#x27;s TOML format. Pass <code>--force-roots-fallback</code> to <code>dart mcp-server</code>.</td></tr><tr><td>OpenCode</td><td><code>opencode.json</code></td><td>OpenCode&#x27;s <code>mcp</code> format.</td></tr></tbody></table>
 <p>In the Codex and OpenCode formats, register the same two commands as the sample: <code>serverpod mcp-server --server-dir &lt;project&gt;_server</code> and <code>dart mcp-server</code>.</p>
-<p>If you are using Cursor, enable the <strong>Serverpod</strong> and <strong>Dart</strong> MCP servers in your project settings (<em>Cursor Settings</em> &gt; <em>Tools &amp; MCPs</em>).</p>
+<p>If you are using Cursor, enable the <strong>Serverpod</strong> and <strong>Dart</strong> MCP servers: open <strong>Customize</strong> in the sidebar, click <strong>MCPs</strong>, and turn on both servers.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="whats-new-in-40">What&#x27;s new in 4.0<a href="#whats-new-in-40" class="hash-link" aria-label="Direct link to What&#x27;s new in 4.0" title="Direct link to What&#x27;s new in 4.0" translate="no">​</a></h2>
 <ul>
 <li class=""><strong><code>serverpod start</code> terminal UI</strong>: hot reload on save. Press <strong>R</strong> to hot restart, <strong>M</strong> to create and apply a migration, or <strong>P</strong> to create and apply a repair migration.</li>

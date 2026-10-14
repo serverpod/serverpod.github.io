@@ -57,7 +57,7 @@ Next, open your newly created project with your favorite AI powered editor. Open
 
 :::important
 
-If you are using Cursor, you will need to **enable the Serverpod and Dart MCP servers** in your project settings (*Cursor Settings* > *Tools & MCPs*).
+If you are using Cursor, you will need to **enable the Serverpod and Dart MCP servers**: open **Customize** in the sidebar, click **MCPs**, and turn on both servers.
 
 :::
 
