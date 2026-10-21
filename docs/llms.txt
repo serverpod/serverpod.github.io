@@ -226,6 +226,7 @@
 - [scloud settings](https://docs.serverpod.dev/cloud/reference/cli/commands/settings.md)
 - [scloud status](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
 - [scloud storage](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md)
+- [reference/cli/commands/top/top](https://docs.serverpod.dev/cloud/reference/cli/commands/top.md)
 - [scloud variable](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md)
 - [scloud version](https://docs.serverpod.dev/cloud/reference/cli/commands/version.md)
 
