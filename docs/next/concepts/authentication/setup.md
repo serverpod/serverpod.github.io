@@ -79,7 +79,7 @@ For more details on how to configure token managers or create custom ones, see t
 
 Identity providers handle authentication with different methods (Email, Google, Apple, etc.). Each provider has its own configuration:
 
-- **[Email](https://docs.serverpod.dev/next/concepts/authentication/providers/email/setup.md)**: sign-up and sign-in with email and password.
+- **[Email](https://docs.serverpod.dev/next/concepts/authentication/providers/email/setup.md)**: sign-in with a one-time code sent by email, or with email and password.
 - **[Anonymous](https://docs.serverpod.dev/next/concepts/authentication/providers/anonymous/setup.md)** (experimental): accounts without any credentials, for trying the app before registering.
 - **[Google](https://docs.serverpod.dev/next/concepts/authentication/providers/google/setup.md)**, **[Apple](https://docs.serverpod.dev/next/concepts/authentication/providers/apple/setup.md)**, **[Facebook](https://docs.serverpod.dev/next/concepts/authentication/providers/facebook/setup.md)**, **[GitHub](https://docs.serverpod.dev/next/concepts/authentication/providers/github/setup.md)**, and **[Microsoft](https://docs.serverpod.dev/next/concepts/authentication/providers/microsoft/setup.md)**: sign-in with the respective account.
 - **[Firebase](https://docs.serverpod.dev/next/concepts/authentication/providers/firebase/setup.md)**: reuse Firebase Authentication, including its phone and social sign-ins.
@@ -112,7 +112,7 @@ By default, endpoints for all providers are disabled. To enable a provider:
    ```dart
    import 'package:serverpod_auth_idp_server/providers/email.dart';
 
-   class EmailIdpEndpoint extends EmailIdpBaseEndpoint {}
+   class EmailIdpEndpoint extends EmailOtpIdpBaseEndpoint {}
    ```
 
 3. Start the server with `serverpod start`. It generates the client code and endpoint methods for the provider, then runs the server with hot reload.
