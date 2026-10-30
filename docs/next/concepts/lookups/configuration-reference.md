@@ -112,7 +112,6 @@ Options for `config/generator.yaml`, which configures `serverpod generate`.
 | modules                           | map    | -                            | Module dependencies with optional nicknames.                                                |
 | extraClasses                      | list   | -                            | List of custom serializable classes to include in code generation.                          |
 | serialize\_as\_jsonb\_by\_default | bool   | false                        | When true, all serializable fields default to `jsonb` storage instead of `json`.            |
-| features                          | map    | {database: true}             | Feature flags. Currently only `database` is supported.                                      |
 | experimental\_features            | map    | -                            | Experimental features. Available keys: `databaseSync` (enables `database: sync`) and `all`. |
 
 ## Related

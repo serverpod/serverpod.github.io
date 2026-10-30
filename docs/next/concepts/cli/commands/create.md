@@ -8,7 +8,7 @@ In an interactive terminal, `serverpod create` opens a setup screen where you ch
 
 The `--database`, `--redis`, `--auth`, `--webapp`, `--website`, and `--ide` flags apply only when the setup screen does not open, for example with `--no-interactive` or in CI. Without the setup screen, the project also gets Redis configuration and editor setup for Claude, Cursor, and VS Code, unless you pass `--no-redis` or choose editors with `--ide`.
 
-To create a project without a database, deselect **Database (recommended)** under **Database & caching** on the setup screen, or pass `--no-interactive --no-database`. The new project still has the generator's database feature on, so set `database: false` under [`features`](https://docs.serverpod.dev/next/concepts/server-fundamentals/configuration.md#features) in `config/generator.yaml`, then run `serverpod generate`.
+To create a project without a database, deselect **Database (recommended)** under **Database & caching** on the setup screen, or pass `--no-interactive --no-database`. The new project's run mode files then have no `database` section, which is what turns off database code generation. See [Database backends](https://docs.serverpod.dev/next/concepts/server-fundamentals/configuration.md#database-backends).
 
 ## Usage
 

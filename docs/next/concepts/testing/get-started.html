@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.02a3c3ed.css">
-<script src="/assets/js/runtime~main.0c9cc4a0.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.6c938759.js" defer="defer"></script>
 <script src="/assets/js/main.73cb1a19.js" defer="defer"></script>
 </head>
 <body>
@@ -37,7 +37,7 @@
 <p>That means no separate server to start, no HTTP client to write, and no mocked database. It also means these are integration tests: they check your code end to end rather than one class in isolation. Plain unit tests still work as they always do, and they need none of this.</p>
 <p>Two things follow from that:</p>
 <ul>
-<li class=""><strong>Tests stay independent.</strong> Anything a test writes to the database is rolled back once that test finishes, so tests never see each other&#x27;s data and you do not clean up after yourself. Each <code>withServerpod</code> group also runs against its own temporary database, which is dropped when the group finishes.</li>
+<li class=""><strong>Tests stay independent.</strong> Anything a test writes to the database is rolled back once that test finishes, so tests never see each other&#x27;s data and you do not clean up after yourself. By default, each <code>withServerpod</code> group also runs against its own temporary database, which is dropped when the group finishes.</li>
 <li class=""><strong>Each test sets its own scene.</strong> A session builder decides what the server state looks like for a call, such as who is signed in.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="set-up">Set up<a href="#set-up" class="hash-link" aria-label="Direct link to Set up" title="Direct link to Set up" translate="no">​</a></h2>

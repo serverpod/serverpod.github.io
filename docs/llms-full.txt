@@ -1498,7 +1498,6 @@ myproject/
 ├── AGENTS.md                     # Instructions for AI agents working in the project
 ├── .github/                      # CI workflows: analyze, format, and test
 ├── .vscode/                      # Attach-to-server debug configs and a serverpod start task, plus mcp.json if you picked VS Code
-├── CLAUDE.md                     # If you picked Claude: loads AGENTS.md for Claude
 ├── .mcp.json, .claude/           # If you picked Claude: MCP config and skills
 ├── .cursor/                      # If you picked Cursor: MCP config and skills
 ├── .codex/                       # If you picked Codex: MCP config
@@ -1526,7 +1525,7 @@ myproject/
     └── assets/config.json        # The server URL the app reads at startup
 ```
 
-The exact set depends on your create-time choices: the auth endpoints and sign-in screen come with authentication, the web pieces with the web server option, and the MCP configs and skills with the editors you picked. `AGENTS.md` is always created, and `CLAUDE.md` only when you pick Claude.
+The exact set depends on your create-time choices: the auth endpoints and sign-in screen come with authentication, the web pieces with the web server option, and the MCP configs and skills with the editors you picked. The `AGENTS.md` file is always created.
 
 ## How the packages relate
 
@@ -1859,10 +1858,10 @@ The three server blocks configure Serverpod's three servers: the API server your
 
 ### Database backends
 
-Serverpod supports both PostgreSQL and SQLite as database backends.
+Serverpod supports both PostgreSQL and SQLite as database backends. A server that does not use a database leaves the `database` section out of every run mode file. Its models then can't use `table`, and `serverpod create-migration` won't create migrations.
 
 :::warning
-All run modes must use the same database backend: creating migrations fails otherwise. This also keeps your development environment consistent with production.
+All run modes must use the same database backend, and either all of them or none of them configure a database: `serverpod generate` fails otherwise. This also keeps your development environment consistent with production.
 :::
 
 #### PostgreSQL
@@ -2085,17 +2084,6 @@ extraClasses:
 ```
 
 See the [serialization documentation](https://docs.serverpod.dev/concepts/data-and-the-database/models/custom-serialization.md) for implementing custom serializable classes.
-
-### Features
-
-Control which Serverpod features are enabled:
-
-```yaml
-features:
-  database: false
-```
-
-A server that does not use a database can set `database: false` to skip migrations and table generation. Projects created without a database, for example with `--no-database`, don't include this setting, so add it yourself.
 
 ### Experimental features
 
@@ -26431,7 +26419,7 @@ That means no separate server to start, no HTTP client to write, and no mocked d
 
 Two things follow from that:
 
-- **Tests stay independent.** Anything a test writes to the database is rolled back once that test finishes, so tests never see each other's data and you do not clean up after yourself. Each `withServerpod` group also runs against its own temporary database, which is dropped when the group finishes.
+- **Tests stay independent.** Anything a test writes to the database is rolled back once that test finishes, so tests never see each other's data and you do not clean up after yourself. By default, each `withServerpod` group also runs against its own temporary database, which is dropped when the group finishes.
 - **Each test sets its own scene.** A session builder decides what the server state looks like for a call, such as who is signed in.
 
 ## Set up
@@ -26663,6 +26651,7 @@ withServerpod(
 | `configOverride`           | A function that changes values in the loaded config before the server starts.                                                                                   | `null`                                 |
 | `databaseInterceptor`      | A [database interceptor](https://docs.serverpod.dev/concepts/data-and-the-database/database/database-interceptors.md) for the test server to use.               | `null`                                 |
 | `enableSessionLogging`     | Whether session logging is on.                                                                                                                                  | `false`                                |
+| `ephemeralDatabase`        | Whether the group gets its own empty database. See [below](#ephemeraldatabase).                                                                                 | `true`                                 |
 | `experimentalFeatures`     | Experimental features to enable, such as [diagnostic event handlers](https://docs.serverpod.dev/concepts/operations/exception-monitoring.md).                   | `null`                                 |
 | `rollbackDatabase`         | When database changes are rolled back. See [below](#rollbackdatabase).                                                                                          | `RollbackDatabase.afterEach`           |
 | `runMode`                  | The run mode the server starts in.                                                                                                                              | `test`                                 |
@@ -26674,9 +26663,7 @@ withServerpod(
 | `testServerOutputMode`     | How much server output reaches your terminal. See [below](#server-output).                                                                                      | `TestServerOutputMode.normal`          |
 
 :::note
-When `config/generator.yaml` sets `features: database: false`, the generated `withServerpod` has no `applyMigrations`, `databaseInterceptor`, `rollbackDatabase`, or `runtimeParametersBuilder` parameter, so passing one is a compile error. Rollback is off in that case and there is nothing to migrate.
-
-Projects created without a database, for example with `--no-database`, don't include this setting, so add it and run `serverpod generate`.
+When the run mode files configure no database, for example in a project created with `--no-database`, the generated `withServerpod` has no `applyMigrations`, `databaseInterceptor`, `ephemeralDatabase`, `rollbackDatabase`, or `runtimeParametersBuilder` parameter, so passing one is a compile error. Rollback is off in that case and there is nothing to migrate.
 :::
 
 Set `serverDirectory` when tests run from somewhere other than the server package, such as the workspace root. Without it the server resolves those paths against the current directory, misses your config, and falls over later on whatever it needed from it.
@@ -26694,6 +26681,22 @@ withServerpod(
   runMode: ServerpodRunMode.development,
 );
 ```
+
+## Use an existing database {#ephemeraldatabase}
+
+Each `withServerpod` group runs against its own empty database, created when the group starts and dropped when it finishes. To run against the database configured for the run mode instead, for example one you seeded beforehand, pass `ephemeralDatabase: false`:
+
+```dart
+withServerpod(
+  'Given a seeded database',
+  (sessionBuilder, endpoints) {
+    /* test code */
+  },
+  ephemeralDatabase: false,
+);
+```
+
+Serverpod then neither creates nor drops that database, and [`rollbackDatabase`](#rollbackdatabase) still decides whether the group's writes are rolled back. Groups that share the database can't run in parallel, so run their test files one at a time with `dart test --concurrency=1`.
 
 ## Database rollback {#rollbackdatabase}
 
@@ -27329,7 +27332,7 @@ In an interactive terminal, `serverpod create` opens a setup screen where you ch
 
 The `--database`, `--redis`, `--auth`, `--webapp`, `--website`, and `--ide` flags apply only when the setup screen does not open, for example with `--no-interactive` or in CI. Without the setup screen, the project also gets Redis configuration and editor setup for Claude, Cursor, and VS Code, unless you pass `--no-redis` or choose editors with `--ide`.
 
-To create a project without a database, deselect **Database (recommended)** under **Database & caching** on the setup screen, or pass `--no-interactive --no-database`. The new project still has the generator's database feature on, so set `database: false` under [`features`](https://docs.serverpod.dev/concepts/server-fundamentals/configuration.md#features) in `config/generator.yaml`, then run `serverpod generate`.
+To create a project without a database, deselect **Database (recommended)** under **Database & caching** on the setup screen, or pass `--no-interactive --no-database`. The new project's run mode files then have no `database` section, which is what turns off database code generation. See [Database backends](https://docs.serverpod.dev/concepts/server-fundamentals/configuration.md#database-backends).
 
 ## Usage
 
@@ -27836,7 +27839,6 @@ Options for `config/generator.yaml`, which configures `serverpod generate`.
 | modules                           | map    | -                            | Module dependencies with optional nicknames.                                                |
 | extraClasses                      | list   | -                            | List of custom serializable classes to include in code generation.                          |
 | serialize\_as\_jsonb\_by\_default | bool   | false                        | When true, all serializable fields default to `jsonb` storage instead of `json`.            |
-| features                          | map    | {database: true}             | Feature flags. Currently only `database` is supported.                                      |
 | experimental\_features            | map    | -                            | Experimental features. Available keys: `databaseSync` (enables `database: sync`) and `all`. |
 
 ## Related
@@ -28535,7 +28537,6 @@ In a folder that already has a Serverpod server, `serverpod create .` runs an up
 - `<project>_server/docker-compose.yaml` and the workflows in `.github/workflows/`.
 - The scaffolded authentication endpoints in `<project>_server/lib/src/auth/`, and the scaffolded web server files in `<project>_server/lib/src/web/` and `<project>_server/web/`.
 - `lib/main.dart`, `lib/client.dart`, and `lib/screens/greetings_screen.dart` in your Flutter app.
-- `CLAUDE.md`, which becomes a pointer to an `AGENTS.md` file that the command doesn't create.
 
 The command also adds dependencies to your `pubspec.yaml` files. In an interactive terminal on a project that already has migrations, it only asks which editors to set up. In that case, it turns every other option off, so the rewritten files lose your setup.
 

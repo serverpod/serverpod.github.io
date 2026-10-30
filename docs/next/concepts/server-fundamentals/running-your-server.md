@@ -136,7 +136,7 @@ Outside `serverpod start`, the server is a plain Dart program you can run yourse
 dart run bin/main.dart --apply-migrations
 ```
 
-The server accepts arguments that control how it starts: `--mode` selects the run mode, `--role` selects the [server role](#choose-a-server-role), and `--apply-migrations` applies pending migrations during startup. Without `--apply-migrations`, the server still checks the database schema at startup. On a mismatch, it exits with code 1 in the `development` run mode and logs a warning in other run modes. See the [run options reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md#run-options) for the full list, and the [Deploy](https://docs.serverpod.dev/next/deployments/deploy-to-serverpod-cloud.md) section for running in production.
+The server accepts arguments that control how it starts: `--mode` selects the run mode, `--role` selects the [server role](#choose-a-server-role), and `--apply-migrations` applies pending migrations during startup. Without `--apply-migrations`, the server still checks the database schema at startup. On a mismatch, it logs a warning and keeps running. See the [run options reference](https://docs.serverpod.dev/next/concepts/lookups/configuration-reference.md#run-options) for the full list, and the [Deploy](https://docs.serverpod.dev/next/deployments/deploy-to-serverpod-cloud.md) section for running in production.
 
 ## Choose a server role
 
