@@ -93,6 +93,35 @@ var companies = await Company.db.find(
 - [Vector](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#vector-fields) queries are not supported, and [geography](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/vector-and-geography-fields.md#geography-fields) values round-trip through CRUD but throw on spatial query operations.
 - Column types and encodings differ from Postgres. See [Field types](https://docs.serverpod.dev/next/concepts/data-and-the-database/models/field-types.md#postgres-vs-sqlite).
 
+## Rebuild widgets when data changes
+
+To keep a widget in sync with the database, [watch](https://docs.serverpod.dev/next/concepts/data-and-the-database/database/crud.md#watching-rows) a query and pass the stream to a `StreamBuilder`. The builder runs with the current rows, then again after every committed write to the watched tables. This example assumes the widget receives the session as `session`:
+
+```dart
+class _CompanyListState extends State<CompanyList> {
+  // Create the stream once, so rebuilds don't restart the query.
+  late final _companies = Company.db.watch(
+    widget.session,
+    orderBy: (t) => t.name,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: _companies,
+      builder: (context, snapshot) {
+        final companies = snapshot.data ?? [];
+        return ListView(
+          children: [for (final company in companies) Text(company.name)],
+        );
+      },
+    );
+  }
+}
+```
+
+The `StreamBuilder` cancels its subscription when the widget is removed, which stops the watch.
+
 ## Sync tables with the server
 
 :::warning

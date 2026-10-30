@@ -122,12 +122,12 @@ Everything a test writes to the database is rolled back when the test ends, so e
 
 The generated file exports these, so you can name them in a test without importing anything else.
 
-| Exception                              | Thrown when                                                                                                                                                                                                          |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ServerpodUnauthenticatedException`    | An endpoint call was made without authentication and the endpoint requires it.                                                                                                                                       |
-| `ServerpodInsufficientAccessException` | The authentication used did not carry the scopes the endpoint requires.                                                                                                                                              |
-| `ConnectionClosedException`            | A stream connection closed with an error, for example because authentication was revoked.                                                                                                                            |
-| `InvalidConfigurationException`        | The endpoint ran database calls or transactions in parallel, which the automatic rollback cannot wrap. See [`rollbackDatabase`](https://docs.serverpod.dev/next/concepts/testing/configuration.md#rollbackdatabase). |
+| Exception                              | Thrown when                                                                                                                                                                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ServerpodUnauthenticatedException`    | An endpoint call was made without authentication and the endpoint requires it.                                                                                                                                                          |
+| `ServerpodInsufficientAccessException` | The authentication used did not carry the scopes the endpoint requires.                                                                                                                                                                 |
+| `ConnectionClosedException`            | A stream connection closed with an error, for example because authentication was revoked.                                                                                                                                               |
+| `InvalidConfigurationException`        | Database calls or transactions ran in parallel, or a query was watched, neither of which the automatic rollback can wrap. See [`rollbackDatabase`](https://docs.serverpod.dev/next/concepts/testing/configuration.md#rollbackdatabase). |
 
 The test server also throws when it fails to start or takes longer than the start timeout. That error type is not exported, so you cannot catch it by name, but the message says which of the two happened.
 
