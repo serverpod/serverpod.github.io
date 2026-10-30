@@ -147,6 +147,7 @@
 - [Introduction to the Serverpod CLI](https://docs.serverpod.dev/concepts/cli/introduction.md): The Serverpod CLI reference. Every command, with the global options and environment variables that apply across all of them.
 - [Global options](https://docs.serverpod.dev/concepts/cli/global_options.md)
 - [CLI environment variables](https://docs.serverpod.dev/concepts/cli/env_vars.md): These environment variables affect the serverpod command:
+- [serverpod clean](https://docs.serverpod.dev/concepts/cli/commands/clean.md)
 - [serverpod cloud](https://docs.serverpod.dev/concepts/cli/commands/cloud.md)
 - [serverpod completion](https://docs.serverpod.dev/concepts/cli/commands/completion.md)
 - [serverpod create](https://docs.serverpod.dev/concepts/cli/commands/create.md)
