@@ -1,6 +1,8 @@
-# concepts/cli/commands/runner/runner
+# serverpod runner
 
 https://docs.serverpod.dev/next/concepts/cli/commands/runner
+
+The `serverpod runner` command manages the development stack of a server project: the background process that runs the server, database, and Flutter apps for [`serverpod start`](https://docs.serverpod.dev/next/concepts/cli/commands/start.md). Use it to start the stack without the interactive terminal, attach to it later, print its addresses, or stop it. See [Run the stack in the background](https://docs.serverpod.dev/next/concepts/server-fundamentals/running-your-server.md#run-the-stack-in-the-background).
 
 ## Usage
 
