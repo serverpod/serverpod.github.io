@@ -295,11 +295,11 @@ Serverpod is a full backend. It manages your database, authentication, file uplo
 
 A Serverpod project starts with the `serverpod create` command, which walks you through a few choices that shape what it generates:
 
+- **Code editors and AI agents:** Pick any of Antigravity, Claude, Codex, Cursor, OpenCode, and VS Code, or **None**. Serverpod installs skills and MCP servers for each one you select.
 - **Project type:** A server with a Flutter app (the default), a server only, or a reusable [module](https://docs.serverpod.dev/concepts/server-fundamentals/modules.md) shared across servers.
 - **Database and caching:** Add a Postgres database and Redis (for pub/sub and caching).
-- **Authentication:** Built-in email and social sign-ins.
 - **Web server:** Optionally serve web pages and your Flutter web app alongside your API.
-- **Code editors and AI agents (optional):** Pick any of Antigravity, Claude, Codex, Cursor, OpenCode, and VS Code. Serverpod installs skills and MCP servers for each one you select.
+- **Authentication:** Built-in email and social sign-ins.
 
 The result is one workspace. For the default project type, it has three Dart packages:
 
@@ -429,7 +429,7 @@ Use `serverpod create` to generate a new project with a server, a client, and a 
 $ serverpod create magic_recipe
 ```
 
-The command is interactive. Step through the prompts, accepting the defaults.
+The command is interactive. Pick your editors or **None** on the first screen, then accept the defaults on the rest.
 
 Open the project's **root** folder (`magic_recipe`) in your editor, not one of the sub-packages. This keeps the analyzer in sync when code is generated and makes it easy to move between the server and app.
 
@@ -1057,13 +1057,13 @@ With the release of Serverpod 2.1, a new feature called [streaming methods](http
 
 ## Setting up the project
 
-We begin by creating a new project with the `serverpod create` command. Pixorama keeps its image in memory, so it doesn't need a database. In the interactive setup, deselect **Database (recommended)** under **Database & caching** and keep the other defaults:
+We begin by creating a new project with the `serverpod create` command. Pixorama keeps its image in memory, so it doesn't need a database. In the interactive setup, pick your editors or **None**, deselect **Database (recommended)** on the **Database & caching** screen, and keep the other defaults:
 
 ```bash
 serverpod create pixorama
 ```
 
-If you run the command non-interactively, pass `--no-interactive --no-database --no-redis --ide none` instead. The last two flags match the interactive defaults. Without them, the command adds Redis and AI agent setup for Claude, Cursor, and VS Code.
+If you run the command non-interactively, pass `--no-interactive --no-database --no-redis --ide none` instead. Without the last two flags, the command adds Redis and AI agent setup for Claude, Cursor, and VS Code.
 
 Now, let's open the project in VS Code and explore the structure. The server code resides in the `pixorama_server` package. We'll start by creating models - classes that we can serialize and pass between the client and server. Our models will be placed in the `lib/src/models` directory.
 
@@ -1602,7 +1602,7 @@ Each editor you pick at create time gets its own MCP config, which registers Ser
 | OpenCode    | `opencode.json`                    | `.opencode/skills/` |
 | Antigravity | `.agents/plugins/serverpod-local/` | `.agents/skills/`   |
 
-The setup screen preselects no editors, so pick the ones you use. With `--no-interactive`, `serverpod create` configures Claude, Cursor, and VS Code unless you pass `--ide`.
+The first `serverpod create` screen preselects no editors, so pick the ones you use, or **None**. With `--no-interactive`, `serverpod create` configures Claude, Cursor, and VS Code unless you pass `--ide`.
 
 The workspace `.gitignore` excludes these files for every editor except OpenCode, so Git picks up `opencode.json` and `.opencode/` unless you add them to `.gitignore`.
 
@@ -1860,7 +1860,7 @@ The three server blocks configure Serverpod's three servers: the API server your
 
 ### Database backends
 
-Serverpod supports both PostgreSQL and SQLite as database backends. A server that does not use a database leaves the `database` section out of every run mode file. Its models then can't use `table`, and `serverpod create-migration` won't create migrations.
+Serverpod supports both PostgreSQL and SQLite as database backends. A server that does not use a database leaves the `database` section out of every run mode file. Its models then can't use `table`, and `serverpod create-migration` won't create migrations. Serverpod 4.0.0 instead needs `database: false` under `features` in `config/generator.yaml`, which later versions ignore.
 
 :::warning
 All run modes must use the same database backend, and either all of them or none of them configure a database: `serverpod generate` fails otherwise. This also keeps your development environment consistent with production.
@@ -25320,28 +25320,43 @@ You configure future calls in your Serverpod config files or through environment
 
 | Option                         | Default | Controls                                                     |
 | ------------------------------ | ------- | ------------------------------------------------------------ |
-| `futureCallExecutionEnabled`   | `true`  | Whether this server runs future calls at all.                |
+| `futureCall.enabled`           | `true`  | Whether future calls can be scheduled and executed.          |
+| `futureCall.executionEnabled`  | `true`  | Whether this server runs due calls. Scheduling still works.  |
 | `futureCall.concurrencyLimit`  | `1`     | How many calls may run at once.                              |
 | `futureCall.scanInterval`      | `5000`  | How often, in milliseconds, the server checks for due calls. |
 | `futureCall.checkBrokenCalls`  | unset   | Whether to scan for broken calls on startup.                 |
 | `futureCall.deleteBrokenCalls` | `false` | Whether to delete broken calls that are found.               |
 
 ```yaml
-futureCallExecutionEnabled: true
-
 futureCall:
+  enabled: true           # default
+  executionEnabled: true  # default
   concurrencyLimit: 1     # default
   scanInterval: 5000      # default, in milliseconds
 ```
+
+The `futureCall.enabled` and `futureCall.executionEnabled` options need Serverpod 4.0.3 or later. Earlier versions set execution with the top-level `futureCallExecutionEnabled` key, which later versions still read when `futureCall.executionEnabled` is not set.
+
+## Disable future calls
+
+The `futureCall.enabled` option turns future calls off completely. It is `true` by default. When set to `false`, calls can neither be scheduled nor executed. Use it when your project does not use future calls.
+
+```yaml
+futureCall:
+  enabled: false
+```
+
+If you schedule a call while it is off, the server throws a `StateError` with the message `FutureCalls is not initialized.` Future calls also need a database. Without one, they are off regardless of this option.
 
 ## Execution options
 
 ### Enable or disable execution
 
-The `futureCallExecutionEnabled` option turns future call execution on or off for a server. It is `true` by default. Set it to `false` in environments where background tasks should not run, such as a staging server where you want to test API behavior without triggering scheduled work.
+The `futureCall.executionEnabled` option turns future call execution on or off for a server. It is `true` by default. Unlike `futureCall.enabled`, it does not stop calls from being scheduled; they are stored and run by any server that has execution enabled. Set it to `false` in environments where background tasks should not run, such as a staging server where you want to test API behavior without triggering scheduled work.
 
 ```yaml
-futureCallExecutionEnabled: false
+futureCall:
+  executionEnabled: false
 ```
 
 ### Concurrency limit
@@ -25926,7 +25941,7 @@ Use roles so request capacity and background work do not share the same scaling 
 dart run bin/main.dart --mode production --role serverless
 ```
 
-Schedule a separate process in the `maintenance` role (for example once per minute) when request nodes run as `serverless`. On pure request nodes you can also set `futureCallExecutionEnabled` to `false`; see [Future call configuration](https://docs.serverpod.dev/concepts/scheduling/configuration.md).
+Schedule a separate process in the `maintenance` role (for example once per minute) when request nodes run as `serverless`. On pure request nodes you can also disable execution with the `SERVERPOD_FUTURE_CALL_EXECUTION_ENABLED` environment variable set to `false`, so the maintenance process, which reads the same config file, keeps running calls; see [Future call configuration](https://docs.serverpod.dev/concepts/scheduling/configuration.md).
 
 ## Offload CPU work to isolates
 
@@ -26037,8 +26052,8 @@ Turn Redis on when more than one Serverpod instance must share a cache, pass mes
 
 Whether a new project includes Redis configuration depends on how you created it:
 
-- **`serverpod create` with the setup screen:** only if you select Redis.
-- **`serverpod create` without the setup screen** (for example with `--no-interactive`): included by default.
+- **Interactive `serverpod create`:** only if you select Redis on the **Database & caching** screen.
+- **`serverpod create` without questions** (for example with `--no-interactive`): included by default.
 - **`serverpod quickstart`:** always included.
 
 Including it copies the config, the Compose service, and a generated password. It doesn't turn Redis on.
@@ -26698,7 +26713,7 @@ withServerpod(
 );
 ```
 
-Serverpod then neither creates nor drops that database, and [`rollbackDatabase`](#rollbackdatabase) still decides whether the group's writes are rolled back. Groups that share the database can't run in parallel, so run their test files one at a time with `dart test --concurrency=1`.
+Serverpod then neither creates nor drops that database, and [`rollbackDatabase`](#rollbackdatabase) still decides whether the group's writes are rolled back. Groups that share the database can't run in parallel, so run their test files one at a time with `dart test --concurrency=1`. The option needs Serverpod 4.0.3 or later.
 
 ## Database rollback {#rollbackdatabase}
 
@@ -27355,11 +27370,11 @@ https://docs.serverpod.dev/concepts/cli/commands/create
 
 `serverpod create` scaffolds a new Serverpod project. By default it generates a full server project with a database, a server package, a client package, and a Flutter app.
 
-In an interactive terminal, `serverpod create` opens a setup screen where you choose the project's features. Pass `--template server` for a server without a Flutter app, or `--template module` to create a shareable module. To set up the prerequisites first, see [Installation](https://docs.serverpod.dev/installation.md).
+In an interactive terminal, `serverpod create` asks about the project's features one screen at a time, starting with the editors and AI agents you use. Pass `--template server` for a server without a Flutter app, or `--template module` to create a shareable module. To set up the prerequisites first, see [Installation](https://docs.serverpod.dev/installation.md).
 
-The `--database`, `--redis`, `--auth`, `--webapp`, `--website`, and `--ide` flags apply only when the setup screen does not open, for example with `--no-interactive` or in CI. Without the setup screen, the project also gets Redis configuration and editor setup for Claude, Cursor, and VS Code, unless you pass `--no-redis` or choose editors with `--ide`.
+The `--database`, `--redis`, `--auth`, `--webapp`, `--website`, and `--ide` flags apply only when there are no questions, for example with `--no-interactive` or in CI. In that case, the project also gets Redis configuration and editor setup for Claude, Cursor, and VS Code, unless you pass `--no-redis` or choose editors with `--ide`.
 
-To create a project without a database, deselect **Database (recommended)** under **Database & caching** on the setup screen, or pass `--no-interactive --no-database`. The new project's run mode files then have no `database` section, which is what turns off database code generation. See [Database backends](https://docs.serverpod.dev/concepts/server-fundamentals/configuration.md#database-backends).
+To create a project without a database, deselect **Database (recommended)** on the **Database & caching** screen, or pass `--no-interactive --no-database`. The new project's run mode files then have no `database` section, which is what turns off database code generation. See [Database backends](https://docs.serverpod.dev/concepts/server-fundamentals/configuration.md#database-backends).
 
 ## Usage
 
@@ -27607,6 +27622,84 @@ Usage: serverpod mcp-server
 Run "serverpod help" to see global options.
 ```
 
+## Tools
+
+The bridge exposes the following tools. Each one acts on the running `serverpod start` session, so they report an error when no session is running.
+
+### `apply_migrations`
+
+Apply pending database migrations without restarting the server. Call after creating a migration.
+
+Takes no parameters.
+
+### `create_migration`
+
+Create a new database migration from the current model definitions. Only writes the migration files to disk, without applying to the database. Follow up with `apply_migrations` to apply the changes.
+
+| Parameter | Type      | Required | Description                                                                                                     |
+| --------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `force`   | `boolean` | No       | Create the migration even if warnings are present (data may be destroyed). Required for destructive migrations. |
+| `tag`     | `string`  | No       | Optional tag appended to the migration version name.                                                            |
+
+### `create_repair_migration`
+
+Create a repair migration that brings the live database in line with the target migration version (default: latest). Connects to the running server to read the live schema, diffs it against the target, and writes a `.sql` repair file. Use when a migration was partially applied or the database drifted out of sync. Does not apply the migration; follow up with `apply_migrations`.
+
+| Parameter | Type      | Required | Description                                                                                                             |
+| --------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `force`   | `boolean` | No       | Create the repair migration even when warnings are present or when no schema drift is detected (data may be destroyed). |
+| `tag`     | `string`  | No       | Optional tag appended to the repair migration version name.                                                             |
+| `version` | `string`  | No       | Optional target migration version to repair against. Defaults to the latest migration version.                          |
+
+### `get_flutter_app_dtd`
+
+Return the Dart Tooling Daemon (DTD) URI for Flutter apps started from `serverpod start`. The JSON object is keyed by app id, the same ids used as keys under `serverpod: flutter_apps:` in the server pubspec. Apps that have not been launched are absent from the map; apps that have not published their DTD yet map to null; apps that have published their DTD map to their DTD URI.
+
+Takes no parameters.
+
+### `hot_reload`
+
+Hot-reload the running server isolate, preserving in-memory state, and hot-reload the Flutter app (if one is running) so it picks up the changes. In `--watch` mode the runner auto-reloads on file changes, so this is mainly useful with `--no-watch`.
+
+Takes no parameters.
+
+### `hot_restart`
+
+Restart the running server process, dropping all in-memory state, then hot-restart the Flutter app (if one is running) so it reconnects to the fresh server. Use when reload would not suffice (e.g. `main()` changes) or to recover a stuck isolate.
+
+Takes no parameters.
+
+### `spawn_flutter_app`
+
+Start a Flutter app configured under `serverpod: flutter_apps:` in the server pubspec.yaml. No-op if the app is already running.
+
+| Parameter | Type     | Required | Description                                                                                                                                                                                                                                                                                                                  |
+| --------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appId`   | `string` | No       | Which Flutter app to target. The id is the map key on the server pubspec under `serverpod: flutter_apps:`. Ids are case-sensitive; pass the key exactly as written. Optional when only one app is configured. When multiple apps are configured and no `appId` is provided, the tool returns an error listing available ids. |
+
+### `tail_flutter_logs`
+
+Return recent raw stdout/stderr lines for a Flutter app started from `serverpod start`, newest last.
+
+| Parameter | Type      | Required | Description                                                                                                                                                                                                                                                                                                                  |
+| --------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appId`   | `string`  | No       | Which Flutter app to target. The id is the map key on the server pubspec under `serverpod: flutter_apps:`. Ids are case-sensitive; pass the key exactly as written. Optional when only one app is configured. When multiple apps are configured and no `appId` is provided, the tool returns an error listing available ids. |
+| `limit`   | `integer` | No       | Max lines to return (default 200, max 10000).                                                                                                                                                                                                                                                                                |
+
+### `tail_server_logs`
+
+Return recent log entries from the running server (structured log entries plus completed operations). Newest last.
+
+| Parameter | Type      | Required | Description                                     |
+| --------- | --------- | -------- | ----------------------------------------------- |
+| `limit`   | `integer` | No       | Max entries to return (default 200, max 10000). |
+
+## Resources
+
+| Resource                 | Description                                                                                                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `serverpod://vm-service` | Dart VM service HTTP URI for the running server isolate. Stable across hot reloads; changes on restart (e.g. `hot_restart` or crash recovery). Subscribe to be notified when the URI changes. |
+
 ---
 
 # serverpod quickstart
@@ -27825,7 +27918,8 @@ Ports, hosts, and connection settings for the API, Insights, and web servers, th
 | SERVERPOD\_SESSION\_LOG\_RETENTION\_COUNT             | sessionLogs.retentionCount          | -         | Maximum number of session log entries to keep. Set to null to disable count-based cleanup. Defaults to `100000` only when `sessionLogs` is not configured at all. See [Purge old records](https://docs.serverpod.dev/concepts/operations/logging.md#purge-old-records).                                                                                                                                                                                                                          |
 | SERVERPOD\_SESSION\_CONSOLE\_LOG\_ENABLED             | sessionLogs.consoleEnabled          | -         | Enables or disables logging session data to the console. Defaults to `true` if no database is configured or the run mode is `development`, otherwise `false`.                                                                                                                                                                                                                                                                                                                                    |
 | SERVERPOD\_SESSION\_CONSOLE\_LOG\_FORMAT              | sessionLogs.consoleLogFormat        | -         | The format for console logging of session data. Valid options are `text` and `json`. Defaults to `text` for run mode `development`, otherwise `json`.                                                                                                                                                                                                                                                                                                                                            |
-| SERVERPOD\_FUTURE\_CALL\_EXECUTION\_ENABLED           | futureCallExecutionEnabled          | true      | Enables or disables the execution of future calls.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| SERVERPOD\_FUTURE\_CALL\_ENABLED                      | futureCall.enabled                  | true      | Enables or disables future calls entirely. When disabled, future calls can neither be scheduled nor executed.                                                                                                                                                                                                                                                                                                                                                                                    |
+| SERVERPOD\_FUTURE\_CALL\_EXECUTION\_ENABLED           | futureCall.executionEnabled         | true      | Enables or disables the execution of future calls.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | SERVERPOD\_FUTURE\_CALL\_CONCURRENCY\_LIMIT           | futureCall.concurrencyLimit         | 1         | The maximum number of concurrent future calls allowed. If the value is negative or null, no limit is applied.                                                                                                                                                                                                                                                                                                                                                                                    |
 | SERVERPOD\_FUTURE\_CALL\_SCAN\_INTERVAL               | futureCall.scanInterval             | 5000      | The interval in milliseconds for scanning future calls                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | SERVERPOD\_FUTURE\_CALL\_CHECK\_BROKEN\_CALLS         | futureCall.checkBrokenCalls         | -         | Enables or disables the automatic check for broken future calls on startup. By default, the server performs an automatic check if there are less than 1000 calls in the database.                                                                                                                                                                                                                                                                                                                |
@@ -28742,7 +28836,7 @@ In 3.4, Serverpod removed a future call from the database before running it, so 
   - `WidgetRedirect` to `RedirectWidget`
 - If a widget extends `WebWidget` directly, implement the new abstract `String render({String? Function(String)? onMissingVariable})` method. The `WidgetRoute` class builds the response from `render` instead of `toString`. Widgets that extend `TemplateWidget`, `ListWidget`, `JsonWidget`, or `RedirectWidget` inherit `render`. The `WidgetRoute.build` method now returns `Future<WebWidget?>`. A `null` return yields a 404. See [Server-side HTML](https://docs.serverpod.dev/concepts/web-server/server-side-html.md#creating-a-widgetroute).
 - The `RouteStaticDirectory` and `PathCacheMaxAge` classes are removed. Serve directories with `StaticRoute.directory`, and set cache headers with its `cacheControlFactory` parameter. See [Static files](https://docs.serverpod.dev/concepts/web-server/static-files.md#cache-control).
-- The `--mini` flag on `serverpod create` is removed. To create a project without a database, deselect **Database (recommended)** on the setup screen, or pass `--no-interactive --no-database`. To create a project without a Flutter app, use `--template server`.
+- The `--mini` flag on `serverpod create` is removed. To create a project without a database, deselect **Database (recommended)** on the **Database & caching** screen, or pass `--no-interactive --no-database`. To create a project without a Flutter app, use `--template server`.
 
 ## Message central delivers globally by default
 

@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.02a3c3ed.css">
-<script src="/assets/js/runtime~main.c9bb4cdd.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.b803dadb.js" defer="defer"></script>
 <script src="/assets/js/main.df41a92d.js" defer="defer"></script>
 </head>
 <body>
@@ -75,7 +75,7 @@
 <p>The workspace ships ready for IDE debugging and AI agents: <code>.vscode/</code> contains attach configurations that connect the debugger to a running <code>serverpod start</code> session, and <code>AGENTS.md</code> instructs AI agents on how to work in the project.</p>
 <p>Each editor you pick at create time gets its own MCP config, which registers Serverpod&#x27;s <a class="" href="/concepts/cli/commands/mcp-server">MCP server</a>, and a skills folder:</p>
 <table><thead><tr><th>Editor</th><th>MCP config</th><th>Skills</th></tr></thead><tbody><tr><td>Claude</td><td><code>.mcp.json</code></td><td><code>.claude/skills/</code></td></tr><tr><td>Cursor</td><td><code>.cursor/mcp.json</code></td><td><code>.cursor/skills/</code></td></tr><tr><td>VS Code</td><td><code>.vscode/mcp.json</code></td><td><code>.agents/skills/</code></td></tr><tr><td>Codex</td><td><code>.codex/config.toml</code></td><td><code>.agents/skills/</code></td></tr><tr><td>OpenCode</td><td><code>opencode.json</code></td><td><code>.opencode/skills/</code></td></tr><tr><td>Antigravity</td><td><code>.agents/plugins/serverpod-local/</code></td><td><code>.agents/skills/</code></td></tr></tbody></table>
-<p>The setup screen preselects no editors, so pick the ones you use. With <code>--no-interactive</code>, <code>serverpod create</code> configures Claude, Cursor, and VS Code unless you pass <code>--ide</code>.</p>
+<p>The first <code>serverpod create</code> screen preselects no editors, so pick the ones you use, or <strong>None</strong>. With <code>--no-interactive</code>, <code>serverpod create</code> configures Claude, Cursor, and VS Code unless you pass <code>--ide</code>.</p>
 <p>The workspace <code>.gitignore</code> excludes these files for every editor except OpenCode, so Git picks up <code>opencode.json</code> and <code>.opencode/</code> unless you add them to <code>.gitignore</code>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="related">Related<a href="#related" class="hash-link" aria-label="Direct link to Related" title="Direct link to Related" translate="no">​</a></h2>
 <ul>
