@@ -71,9 +71,9 @@
 - [Working with users](https://docs.serverpod.dev/concepts/authentication/working-with-users.md): Authenticated users have a stable identifier across your server. Access them and their profile data from the Session object.
 - [Set up anonymous sign-in](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/setup.md): Anonymous authentication lets users access your app without creating an account. Enable it in your Serverpod auth configuration to get started.
 - [Customize anonymous sign-in](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/customizations.md): Configuration options and UI customizations for the anonymous identity provider, including app attestation tokens, rate limiting, and the AnonymousSignInWidget and AnonymousAuthController.
-- [Set up email sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md): Sign in with Email lets users authenticate with an email and password, with verification codes delivered by Serverpod Cloud or your own email provider.
+- [Set up email sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md): Sign in with Email lets users authenticate with a one-time code or a password, with codes delivered by Serverpod Cloud or your own email provider.
 - [Configure email sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/configuration.md): Email identity provider options include password peppering and other security settings. Configure them beyond the basic setup.
-- [Customize the email sign-in UI](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md): Email sign-in UI can be customized with the EmailSignInWidget and EmailAuthController to build a custom authentication flow.
+- [Customize the email sign-in UI](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md): Customize email sign-in with the EmailOtpSignInWidget, or build your own sign-in UI on top of the EmailOtpAuthController that drives it.
 - [Email admin operations](https://docs.serverpod.dev/concepts/authentication/providers/email/admin-operations.md): Email admin operations manage email accounts and clean up expired or dangling verification requests through the EmailIdpAdmin server-side API.
 - [Set up Google sign-in](https://docs.serverpod.dev/concepts/authentication/providers/google/setup.md): Sign in with Google requires Google Cloud OAuth credentials. Create them for your platforms and add the provider to your Serverpod app.
 - [Customize Google sign-in](https://docs.serverpod.dev/concepts/authentication/providers/google/customizations.md): Configuration options for Google sign-in, including GoogleIdpConfig callbacks on the server, client IDs and redirect URIs in the app, sign-in button customization, and custom UIs with GoogleAuthController.
@@ -154,11 +154,13 @@
 - [serverpod create-migration](https://docs.serverpod.dev/concepts/cli/commands/create-migration.md)
 - [serverpod create-repair-migration](https://docs.serverpod.dev/concepts/cli/commands/create-repair-migration.md)
 - [serverpod database](https://docs.serverpod.dev/concepts/cli/commands/database.md)
+- [serverpod doctor](https://docs.serverpod.dev/concepts/cli/commands/doctor.md)
 - [serverpod generate](https://docs.serverpod.dev/concepts/cli/commands/generate.md)
 - [serverpod language-server](https://docs.serverpod.dev/concepts/cli/commands/language-server.md)
 - [serverpod mcp-server](https://docs.serverpod.dev/concepts/cli/commands/mcp-server.md)
 - [serverpod quickstart](https://docs.serverpod.dev/concepts/cli/commands/quickstart.md)
 - [serverpod run](https://docs.serverpod.dev/concepts/cli/commands/run.md)
+- [serverpod runner](https://docs.serverpod.dev/concepts/cli/commands/runner.md)
 - [serverpod start](https://docs.serverpod.dev/concepts/cli/commands/start.md)
 - [serverpod upgrade](https://docs.serverpod.dev/concepts/cli/commands/upgrade.md)
 - [serverpod version](https://docs.serverpod.dev/concepts/cli/commands/version.md)

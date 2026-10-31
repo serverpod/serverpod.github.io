@@ -2,16 +2,18 @@
 
 https://docs.serverpod.dev/concepts/cli/commands/clean
 
-The `serverpod clean` command deletes the cached server build of a server project, so the next `serverpod start` compiles the server from scratch. Run it when `serverpod start` keeps reporting compilation errors you already fixed. The command needs Serverpod 4.0.4 or later.
+The `serverpod clean` command deletes the cached server build of a server project, so the next `serverpod start` compiles the server from scratch and the next `serverpod generate` regenerates all code. Run it when `serverpod start` keeps reporting compilation errors you already fixed, or when `serverpod generate` leaves bad output.
 
-Stop `serverpod start` before you run the command, then start it again to rebuild.
+Stop the stack with `serverpod runner stop` before you run the command, then start it again to rebuild.
 
 ## Usage
 
 ```console
-Delete the cached server build so the next `serverpod start` recompiles from scratch.
+Delete the cached server build and generation staleness stamp.
 
-Only needed when `serverpod start` keeps reporting compilation errors that have already been fixed, even after restarting it.
+The next `serverpod start` recompiles from scratch, and the next `serverpod generate` regenerates code.
+
+Only needed when `serverpod start` keeps reporting compilation errors that have already been fixed, or `serverpod generate` leaves bad output.
 
 Usage: serverpod clean [arguments]
 -h, --help         Print this usage information.

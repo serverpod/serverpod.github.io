@@ -21,7 +21,7 @@ Expand the full workspace tree.
 myproject/
 ├── pubspec.yaml                  # Workspace root: one `dart pub get` resolves all packages
 ├── AGENTS.md                     # Instructions for AI agents working in the project
-├── .github/                      # CI workflows: analyze, format, and test
+├── .github/                      # CI workflows: analyze, format, test, and deploy to Serverpod Cloud
 ├── .vscode/                      # Attach-to-server debug configs and a serverpod start task, plus mcp.json if you picked VS Code
 ├── .mcp.json, .claude/           # If you picked Claude: MCP config and skills
 ├── .cursor/                      # If you picked Cursor: MCP config and skills

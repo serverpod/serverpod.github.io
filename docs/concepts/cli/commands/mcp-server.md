@@ -6,7 +6,7 @@ https://docs.serverpod.dev/concepts/cli/commands/mcp-server
 
 The server directory is auto-detected from the current working directory. Pass `--server-dir` explicitly in monorepos that contain more than one server project.
 
-The bridge drives a running session, so start one with `serverpod start` before asking an agent to use these tools. The bridge itself can stay connected while the session stops and starts.
+The bridge drives a running session, so start one with `serverpod start`, or with `serverpod runner start` to run it in the background, before asking an agent to use these tools. The bridge itself can stay connected while the session stops and starts.
 
 ## Set up your editor
 
@@ -70,7 +70,7 @@ Run "serverpod help" to see global options.
 
 ## Tools
 
-The bridge exposes the following tools. Each one acts on the running `serverpod start` session, so they report an error when no session is running.
+The bridge exposes the following tools. Each one acts on the running `serverpod start` session, so they report an error when no session is running. The exception is `tail_runner_logs`, which the bridge answers from the runner's log file whether or not a session is running.
 
 ### `apply_migrations`
 
@@ -99,7 +99,7 @@ Create a repair migration that brings the live database in line with the target 
 
 ### `get_flutter_app_dtd`
 
-Return the Dart Tooling Daemon (DTD) URI for Flutter apps started from `serverpod start`. The JSON object is keyed by app id, the same ids used as keys under `serverpod: flutter_apps:` in the server pubspec. Apps that have not been launched are absent from the map; apps that have not published their DTD yet map to null; apps that have published their DTD map to their DTD URI.
+Return the Dart Tooling Daemon (DTD) URI for Flutter apps started by the runner. The JSON object is keyed by app id, the same ids used as keys under `serverpod: flutter_apps:` in the server pubspec. Apps that have not been launched are absent from the map; apps that have not published their DTD yet map to null; apps that have published their DTD map to their DTD URI.
 
 Takes no parameters.
 
@@ -125,12 +125,20 @@ Start a Flutter app configured under `serverpod: flutter_apps:` in the server pu
 
 ### `tail_flutter_logs`
 
-Return recent raw stdout/stderr lines for a Flutter app started from `serverpod start`, newest last.
+Return recent raw stdout/stderr lines for a Flutter app started by the runner, newest last.
 
 | Parameter | Type      | Required | Description                                                                                                                                                                                                                                                                                                                  |
 | --------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `appId`   | `string`  | No       | Which Flutter app to target. The id is the map key on the server pubspec under `serverpod: flutter_apps:`. Ids are case-sensitive; pass the key exactly as written. Optional when only one app is configured. When multiple apps are configured and no `appId` is provided, the tool returns an error listing available ids. |
 | `limit`   | `integer` | No       | Max lines to return (default 200, max 10000).                                                                                                                                                                                                                                                                                |
+
+### `tail_runner_logs`
+
+Return the last lines of the runner log file, which records everything the runner printed: code generation, compilation, Docker, the server's raw stdout/stderr and Flutter output. Newest last, with a `--- serverpod runner <pid> started ---` line at the start of each run. Unlike the other tools, this works while the server is still starting and after it stopped or crashed, so call it to find out why a tool reports the server is not running.
+
+| Parameter | Type      | Required | Description                                   |
+| --------- | --------- | -------- | --------------------------------------------- |
+| `limit`   | `integer` | No       | Max lines to return (default 200, max 10000). |
 
 ### `tail_server_logs`
 

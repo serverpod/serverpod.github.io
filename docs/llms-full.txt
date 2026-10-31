@@ -1496,7 +1496,7 @@ Expand the full workspace tree.
 myproject/
 ├── pubspec.yaml                  # Workspace root: one `dart pub get` resolves all packages
 ├── AGENTS.md                     # Instructions for AI agents working in the project
-├── .github/                      # CI workflows: analyze, format, and test
+├── .github/                      # CI workflows: analyze, format, test, and deploy to Serverpod Cloud
 ├── .vscode/                      # Attach-to-server debug configs and a serverpod start task, plus mcp.json if you picked VS Code
 ├── .mcp.json, .claude/           # If you picked Claude: MCP config and skills
 ├── .cursor/                      # If you picked Cursor: MCP config and skills
@@ -1628,7 +1628,7 @@ Run it from your project's root folder or one of its package folders:
 serverpod start
 ```
 
-The interactive terminal shows a tab for the server and for each running app, with the most common actions along the bottom. Shortcuts are unshifted key presses: **M** means typing a lowercase `m`, while **Shift+M** produces the capital and triggers the variant. Press **H** for the full list of shortcuts, and **Q** to quit the session. If a session is already running for the project, a second `serverpod start` tells you so and exits. While the session runs, it also exposes an MCP endpoint that AI agents can use to drive it. See the [`serverpod mcp-server` reference](https://docs.serverpod.dev/concepts/cli/commands/mcp-server.md).
+The interactive terminal shows a tab for the server and for each running app, with the most common actions along the bottom. Shortcuts are unshifted key presses: **M** means typing a lowercase `m`, while **Shift+M** produces the capital and triggers the variant. Press **H** for the full list of shortcuts, and **Q** to stop the session. If a session is already running for the project, `serverpod start` attaches to it instead of starting a second one. See [Run the stack in the background](#run-the-stack-in-the-background). While the session runs, it also exposes an MCP endpoint that AI agents can use to drive it. See the [`serverpod mcp-server` reference](https://docs.serverpod.dev/concepts/cli/commands/mcp-server.md).
 
 New projects use an embedded PostgreSQL database that the server manages for you, so there is nothing else to start. See [Database backends](https://docs.serverpod.dev/concepts/server-fundamentals/configuration.md#database-backends) for how it is configured and how to use an external database instead.
 
@@ -1671,6 +1671,16 @@ serverpod start -- --mode staging
 ```
 
 The run mode selects which configuration and passwords the server loads. See [Run modes](https://docs.serverpod.dev/concepts/server-fundamentals/configuration.md#run-modes) for what each mode reads. Flutter apps only launch in the `development` run mode.
+
+## Choose the server entry point
+
+By default, `serverpod start` runs `bin/main.dart` in the server package. To run another entry point, pass its path relative to the server package with `--target`:
+
+```bash
+serverpod start --target bin/main_enterprise.dart
+```
+
+See [The server entry point](https://docs.serverpod.dev/concepts/server-fundamentals/your-serverpod-project.md#the-server-entry-point) for what `bin/main.dart` does.
 
 ## Choose which Flutter apps start
 
@@ -1716,6 +1726,28 @@ If your project has a Docker Compose file (`docker-compose.yaml`, `compose.yaml`
 
 To run without the interactive terminal, pass `--no-tui`. When the output is not a terminal, for example in CI, `serverpod start` falls back to plain output on its own.
 
+## Run the stack in the background
+
+The server, database, and Flutter apps run in a background process called the runner. The `serverpod start` terminal attaches to it. To start the runner without a terminal, for example from a script or an AI agent, run this from your project's root folder or one of its package folders:
+
+```bash
+serverpod runner start
+```
+
+The command returns once the server is up and prints its addresses. It takes the same options as `serverpod start`, such as `--no-watch` and `--target`. Flutter apps [set to launch automatically](#choose-which-flutter-apps-start) wait until a terminal attaches.
+
+Manage the running stack with these commands:
+
+| Command                                        | What it does                                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `serverpod start` or `serverpod runner attach` | Opens the interactive terminal on the running stack.                                                    |
+| `serverpod runner status`                      | Prints the stack's state, the API, Insights, web, and database addresses, and the path to its log file. |
+| `serverpod runner stop`                        | Stops the stack.                                                                                        |
+
+In a terminal that attached to a stack it did not start, **Q** asks before stopping it: press **Q** again to leave the stack running, or **Shift+Q** to stop it.
+
+Each server package runs one stack. A `serverpod start` with options that differ from the running stack's, such as `--no-watch`, fails and names the differences, so stop the stack first to change them. When another stack on the machine, for example in another worktree, holds the configured ports, the new stack moves to free ones. Check `serverpod runner status` for the addresses in use.
+
 ## Run the server directly
 
 Outside `serverpod start`, the server is a plain Dart program you can run yourself from the server package directory:
@@ -1724,7 +1756,7 @@ Outside `serverpod start`, the server is a plain Dart program you can run yourse
 dart run bin/main.dart --apply-migrations
 ```
 
-The server accepts arguments that control how it starts: `--mode` selects the run mode, `--role` selects the [server role](#choose-a-server-role), and `--apply-migrations` applies pending migrations during startup. Without `--apply-migrations`, the server still checks the database schema at startup. On a mismatch, it exits with code 1 in the `development` run mode and logs a warning in other run modes. See the [run options reference](https://docs.serverpod.dev/concepts/lookups/configuration-reference.md#run-options) for the full list, and the [Deploy](https://docs.serverpod.dev/deployments/deploy-to-serverpod-cloud.md) section for running in production.
+The server accepts arguments that control how it starts: `--mode` selects the run mode, `--role` selects the [server role](#choose-a-server-role), and `--apply-migrations` applies pending migrations during startup. Without `--apply-migrations`, the server still checks the database schema at startup. On a mismatch, it logs a warning and keeps running. See the [run options reference](https://docs.serverpod.dev/concepts/lookups/configuration-reference.md#run-options) for the full list, and the [Deploy](https://docs.serverpod.dev/deployments/deploy-to-serverpod-cloud.md) section for running in production.
 
 ## Choose a server role
 
@@ -1860,7 +1892,7 @@ The three server blocks configure Serverpod's three servers: the API server your
 
 ### Database backends
 
-Serverpod supports both PostgreSQL and SQLite as database backends. A server that does not use a database leaves the `database` section out of every run mode file. Its models then can't use `table`, and `serverpod create-migration` won't create migrations. Serverpod 4.0.0 instead needs `database: false` under `features` in `config/generator.yaml`, which later versions ignore.
+Serverpod supports both PostgreSQL and SQLite as database backends. A server that does not use a database leaves the `database` section out of every run mode file. Its models then can't use `table`, and `serverpod create-migration` won't create migrations.
 
 :::warning
 All run modes must use the same database backend, and either all of them or none of them configure a database: `serverpod generate` fails otherwise. This also keeps your development environment consistent with production.
@@ -6715,7 +6747,7 @@ When using `ignoreConflicts` with models that have [non-persistent fields](https
 
 ## Read
 
-There are three different read operations available.
+There are four different read operations available.
 
 ### Finding by id
 
@@ -6759,6 +6791,44 @@ var companies = await Company.db.find(
 This operation returns a `List` of your models matching the filtering criteria.
 
 See [filter](https://docs.serverpod.dev/concepts/data-and-the-database/database/filtering.md) and [sort](https://docs.serverpod.dev/concepts/data-and-the-database/database/sorting.md) for all filter and sorting operations and [pagination](https://docs.serverpod.dev/concepts/data-and-the-database/database/pagination.md) for how to paginate the result.
+
+### Watching rows
+
+To keep a result up to date, use the `watch` method. It takes the same `where`, `orderBy`, `orderByList`, `limit`, `offset`, and `include` parameters as `find`, and returns a `Stream` that emits the matching rows as soon as you listen to it.
+
+```dart
+var subscription = Company.db.watch(
+  session,
+  where: (t) => t.name.like('%Ltd'),
+  orderBy: (t) => t.name,
+).listen((companies) {
+  // Handle the latest matching rows.
+});
+```
+
+The stream runs the query again and emits the result every time a write to one of the watched tables commits, until you cancel the subscription. The watched tables are the model's table and every table that `where`, `orderBy`, `orderByList`, and `include` refer to. Writes inside a [transaction](https://docs.serverpod.dev/concepts/data-and-the-database/database/transactions.md) emit once it commits, and a rolled-back transaction emits nothing.
+
+To also react to writes on other tables, pass them with `alsoTriggerOnTables`. This is needed when a filter reads a table only through raw SQL, written as an `Expression`, because `watch` does not inspect raw SQL. In this example, `Company` has a `town` relation, and the filter selects companies in Stockholm with a subquery:
+
+```dart
+var subscription = Company.db.watch(
+  session,
+  where: (t) => const Expression(
+    "townId IN (SELECT id FROM town WHERE name = 'Stockholm')",
+  ),
+  alsoTriggerOnTables: [Town.t],
+).listen((companies) {
+  // Handle the latest matching rows.
+});
+```
+
+Without `alsoTriggerOnTables`, renaming a town to Stockholm would not update the result. The typed [relation filter](https://docs.serverpod.dev/concepts/data-and-the-database/database/filtering.md#relation-operations) `t.town.name.equals('Stockholm')` selects the same rows and needs no `alsoTriggerOnTables`, because `watch` sees the `town` table in it. An `Expression` inserts its SQL into the query as is, so never build it from user input.
+
+By default, the query runs at most once every 30 milliseconds, no matter how many writes happen in between. Pass a different `Duration` as `throttle` to change the interval, or `null` to run the query after every write.
+
+:::note
+The `watch` method is only supported on SQLite, which includes the [client-side database](https://docs.serverpod.dev/concepts/data-and-the-database/database/client-side-database.md). On PostgreSQL, calling it throws an `UnsupportedError`.
+:::
 
 ## Update
 
@@ -9524,6 +9594,27 @@ int result = await session.db.unsafeExecute(
 );
 ```
 
+## `unsafeWatch`
+
+Returns a `Stream` that runs a read query and emits its `DatabaseResult` as soon as you listen to it, then again every time a write to one of the queried tables commits. It is the raw counterpart of the generated [`watch`](https://docs.serverpod.dev/concepts/data-and-the-database/database/crud.md#watching-rows) method and takes the same `throttle` parameter.
+
+```dart
+var subscription = session.db.unsafeWatch(
+  r'SELECT id, size FROM apparel WHERE color = @color',
+  parameters: QueryParameters.named({'color': 'green'}),
+).listen((result) {
+  // Handle the latest rows.
+});
+```
+
+The queried tables are detected automatically. To set them yourself, pass their names with `triggerOnTables`. The list replaces the detection, so include every table the stream should react to.
+
+The method is only supported on SQLite. On PostgreSQL, calling it throws an `UnsupportedError`.
+
+:::warning
+A raw `DELETE` without a `WHERE` clause can skip SQLite's change notifications. Streams from `unsafeWatch` and the generated `watch` method then don't emit after it. Add a `WHERE` clause, such as `WHERE true`, when clearing a watched table. The generated delete methods always include one.
+:::
+
 ## `unsafeSimpleQuery`
 
 Similar to `unsafeQuery`, but uses the simple query protocol. This protocol does not support parameter binding, making it more susceptible to SQL injection. **Use with extreme caution and only when absolutely necessary.**
@@ -9580,7 +9671,7 @@ var result = await session.db.unsafeQuery(
 ```
 
 :::danger
-Always sanitize your input when using raw query methods. For the `unsafeQuery` and `unsafeExecute` methods, use query parameters to prevent SQL injection. Avoid using `unsafeSimpleQuery` and `unsafeSimpleExecute` unless the simple query protocol is strictly required.
+Always sanitize your input when using raw query methods. For the `unsafeQuery`, `unsafeExecute`, and `unsafeWatch` methods, use query parameters to prevent SQL injection. Avoid using `unsafeSimpleQuery` and `unsafeSimpleExecute` unless the simple query protocol is strictly required.
 :::
 
 ## Working with results
@@ -9736,10 +9827,7 @@ To apply migrations explicitly, start the server runtime with the `--apply-migra
 $ dart run bin/main.dart --apply-migrations
 ```
 
-If a migration fails, or the database doesn't match the latest migration afterward, the outcome depends on the run mode:
-
-- **Any run mode except `development`:** the server logs `Failed to apply database migrations.` or `Database does not match target state.` and keeps starting.
-- **`development`:** the server exits with code 1.
+If a migration fails, or the database doesn't match the latest migration afterward, the server logs `Failed to apply database migrations.` or `Database does not match target state.` and keeps starting. Requests that use the mismatched tables can fail until you fix the schema.
 
 Migrations can also be applied with the [maintenance role](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#choose-a-server-role). The server applies the migrations and then exits, which suits CI jobs and other automated processes. If a migration fails, or the database doesn't match the latest migration afterward, it exits with code 1 in every run mode, so the job fails.
 
@@ -10503,6 +10591,35 @@ var companies = await Company.db.find(
 - [Vector](https://docs.serverpod.dev/concepts/data-and-the-database/database/vector-and-geography-fields.md#vector-fields) queries are not supported, and [geography](https://docs.serverpod.dev/concepts/data-and-the-database/database/vector-and-geography-fields.md#geography-fields) values round-trip through CRUD but throw on spatial query operations.
 - Column types and encodings differ from Postgres. See [Field types](https://docs.serverpod.dev/concepts/data-and-the-database/models/field-types.md#postgres-vs-sqlite).
 
+## Rebuild widgets when data changes
+
+To keep a widget in sync with the database, [watch](https://docs.serverpod.dev/concepts/data-and-the-database/database/crud.md#watching-rows) a query and pass the stream to a `StreamBuilder`. The builder runs with the current rows, then again after every committed write to the watched tables. This example assumes the widget receives the session as `session`:
+
+```dart
+class _CompanyListState extends State<CompanyList> {
+  // Create the stream once, so rebuilds don't restart the query.
+  late final _companies = Company.db.watch(
+    widget.session,
+    orderBy: (t) => t.name,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: _companies,
+      builder: (context, snapshot) {
+        final companies = snapshot.data ?? [];
+        return ListView(
+          children: [for (final company in companies) Text(company.name)],
+        );
+      },
+    );
+  }
+}
+```
+
+The `StreamBuilder` cancels its subscription when the widget is removed, which stops the watch.
+
 ## Sync tables with the server
 
 :::warning
@@ -10827,23 +10944,28 @@ This sets up the database and starts the server and your app.
 
 The app opens on the sign-in screen. To create an account:
 
-1. Choose to create a new account, enter your email, and continue.
+1. Enter your email and select **Send code**.
 
-2. Look in the server console for the verification code. While testing, it is logged instead of emailed:
+2. Look in the server console for the code. While testing, it is logged instead of emailed:
 
    ```text
-   Registration code for you@example.com: <12345678>
+   Login code for you@example.com: <123456>
    ```
 
-3. Enter the code, then set a password to finish.
+3. Enter the code, then select **Create account** to finish.
 
-Once you are signed in, the app shows your content with a sign-out button.
+Once you are signed in, the app shows your content with a sign-out button. The next time you sign in with the same email, entering the code takes you straight to your account.
+
+:::note
+Projects created before Serverpod 4.1 use password sign-in, so you set a password when you create the account. To switch, see [Switch from password-only sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#switch-from-password-only-sign-in).
+:::
 
 ## Next steps
 
 - Send verification emails from your own email service instead of the default. See [Use your own email provider](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#use-your-own-email-provider).
 - Customize the sign-in screen. See [UI components](https://docs.serverpod.dev/concepts/authentication/ui-components.md).
 - Build your own sign-in UI with the email controller. See [Customizing the UI](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md).
+- Let users sign in with a password as well as a code. See [Customizing the UI](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md#using-the-emailotpsigninwidget).
 - Change password rules, code length, and rate limits. See [Email configuration](https://docs.serverpod.dev/concepts/authentication/providers/email/configuration.md).
 - Require sign-in on your endpoints. See [The basics](https://docs.serverpod.dev/concepts/authentication/basics.md#requiring-authentication-on-endpoints).
 - Add more sign-in options, like Google or Apple. See [Identity providers configuration](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
@@ -10931,7 +11053,7 @@ For more details on how to configure token managers or create custom ones, see t
 
 Identity providers handle authentication with different methods (Email, Google, Apple, etc.). Each provider has its own configuration:
 
-- **[Email](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md)**: sign-up and sign-in with email and password.
+- **[Email](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md)**: sign-in with a one-time code sent by email, or with email and password.
 - **[Anonymous](https://docs.serverpod.dev/concepts/authentication/providers/anonymous/setup.md)** (experimental): accounts without any credentials, for trying the app before registering.
 - **[Google](https://docs.serverpod.dev/concepts/authentication/providers/google/setup.md)**, **[Apple](https://docs.serverpod.dev/concepts/authentication/providers/apple/setup.md)**, **[Facebook](https://docs.serverpod.dev/concepts/authentication/providers/facebook/setup.md)**, **[GitHub](https://docs.serverpod.dev/concepts/authentication/providers/github/setup.md)**, and **[Microsoft](https://docs.serverpod.dev/concepts/authentication/providers/microsoft/setup.md)**: sign-in with the respective account.
 - **[Firebase](https://docs.serverpod.dev/concepts/authentication/providers/firebase/setup.md)**: reuse Firebase Authentication, including its phone and social sign-ins.
@@ -10964,7 +11086,7 @@ By default, endpoints for all providers are disabled. To enable a provider:
    ```dart
    import 'package:serverpod_auth_idp_server/providers/email.dart';
 
-   class EmailIdpEndpoint extends EmailIdpBaseEndpoint {}
+   class EmailIdpEndpoint extends EmailOtpIdpBaseEndpoint {}
    ```
 
 3. Start the server with `serverpod start`. It generates the client code and endpoint methods for the provider, then runs the server with hot reload.
@@ -12206,7 +12328,12 @@ Remember to dispose the controller when it is no longer needed (e.g. in your wid
 
 https://docs.serverpod.dev/concepts/authentication/providers/email/setup
 
-Sign in with Email verifies the user's address with a code, both when they register and when they reset their password.
+Sign in with Email offers two ways to sign in:
+
+- **One-time code.** The user enters their email and the code sent to it. A new email gets an account.
+- **Password.** The user enters their email and password. This is off by default.
+
+Both work for the same account.
 
 :::caution
 You need to install the auth module before you continue, see [Setup](https://docs.serverpod.dev/concepts/authentication/setup.md).
@@ -12244,7 +12371,7 @@ If you are adding the auth module to an existing project, extend the abstract en
 ```dart
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
-class EmailIdpEndpoint extends EmailIdpBaseEndpoint {}
+class EmailIdpEndpoint extends EmailOtpIdpBaseEndpoint {}
 ```
 
 Then start the server with `serverpod start` to generate the client code, and create and apply the migration that initializes the database for the provider (in the `serverpod start` terminal, press **M**). More detailed instructions can be found in the general [identity providers setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#identity-providers-configuration).
@@ -12253,7 +12380,7 @@ Then start the server with `serverpod start` to generate the client code, and cr
 
 Serverpod Cloud delivery is there to get sign-in working quickly, and it sends a standard message carrying your `appDisplayName`. You might prefer using a custom email provider to have full control over the body, layout, and language of the emails. For servers hosted outside of Serverpod Cloud, it is the only option.
 
-Changing the email provider is done by replacing `ServerpodCloudEmailIdpConfig` with `EmailIdpConfigFromPasswords`, which requires you to pass your own callbacks for the two codes. One convenient option is the [mailer](https://pub.dev/packages/mailer) package, which can send emails through any SMTP service. Most email providers, such as Resend, SendGrid, or Mandrill, support SMTP.
+Changing the email provider is done by replacing `ServerpodCloudEmailIdpConfig` with `EmailIdpConfigFromPasswords`, which requires you to pass your own callbacks for sending the codes. One convenient option is the [mailer](https://pub.dev/packages/mailer) package, which can send emails through any SMTP service. Most email providers, such as Resend, SendGrid, or Mandrill, support SMTP.
 
 ```dart
 import 'package:serverpod_auth_idp_server/core.dart';
@@ -12276,6 +12403,9 @@ void run(List<String> args) async {
         sendRegistrationVerificationCode: _sendRegistrationCode,
         // Callback to send the password reset verification code to the user.
         sendPasswordResetVerificationCode: _sendPasswordResetCode,
+        // Optional callback to send the one-time sign-in code to the user.
+        // Defaults to sendRegistrationVerificationCode if not set.
+        sendOtpLoginVerificationCode: _sendOtpLoginCode,
       ),
     ],
   );
@@ -12306,12 +12436,25 @@ void _sendPasswordResetCode(
   // the user. For testing, we will log the verification code.
   session.log('[EmailIDP] Password reset code ($email): $verificationCode');
 }
+
+void _sendOtpLoginCode(
+  Session session, {
+  required String email,
+  required UuidValue otpLoginRequestId,
+  required String verificationCode,
+  required Transaction? transaction,
+}) {
+  // NOTE: Here you call your mail service to send the sign-in code to the
+  // user. For testing, we will log the code.
+  session.log('[EmailIDP] Login code ($email): $verificationCode');
+}
 ```
 
 #### Basic configuration options
 
 - `sendRegistrationVerificationCode`: A callback that will be called to send the registration verification code to the user. Here you should call the email sending service to send the verification code to the user.
 - `sendPasswordResetVerificationCode`: A callback that will be called to send the password reset verification code to the user. Here you should call the email sending service to send the verification code to the user.
+- `sendOtpLoginVerificationCode`: An optional callback that will be called to send the one-time sign-in code. If it is not set, the code is sent with `sendRegistrationVerificationCode`. Set it to send a different email for signing in than for registering. A user signing in with a new email also receives this email, since the code is sent before the account is created.
 
 Both configurations hash passwords and verification codes with a secret pepper, which `EmailIdpConfigFromPasswords` reads from the `emailSecretHashPepper` key in `config/passwords.yaml` or the `SERVERPOD_PASSWORD_emailSecretHashPepper` environment variable. Newly generated projects already have a value for every run mode. To pass the pepper directly instead, use `EmailIdpConfig` with its `secretHashPepper` parameter.
 
@@ -12321,13 +12464,16 @@ For more details on configuration options, such as customizing password requirem
 
 If you have configured the `SignInWidget` as described in the [setup section](https://docs.serverpod.dev/concepts/authentication/setup.md#present-the-authentication-ui), the Email identity provider will be automatically detected and displayed in the sign-in widget.
 
-You can also use the `EmailSignInWidget` to include the email authentication flow in your own custom UI.
+You can also use the `EmailOtpSignInWidget` to include email sign-in in your own custom UI.
 
 ```dart
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
-EmailSignInWidget(
+EmailOtpSignInWidget(
   client: client,
+  // Also let users sign in with a password and reset a forgotten one.
+  // Defaults to false.
+  allowPasswordSignIn: true,
   onAuthenticated: () {
     // Do something when the user is authenticated.
     //
@@ -12345,12 +12491,32 @@ EmailSignInWidget(
 
 The widget automatically handles:
 
-- Login with email and password.
-- Registration with terms acceptance and email verification.
-- Password reset flow with email verification.
+- Sending and verifying the one-time code.
+- Sign-in to an existing account, or account creation for a new email, with optional terms acceptance.
+- Password sign-in and password reset, if `allowPasswordSignIn` is `true`.
 - Navigation between screens.
 
 For details on how to display the email authentication UI in your Flutter app, see the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md).
+
+## Switch from password-only sign-in
+
+Projects created before Serverpod 4.1 extend `EmailIdpBaseEndpoint`, which supports password sign-in only. For these projects, the `SignInWidget` shows the `EmailSignInWidget`, where users register with an email and a password. To switch to the `EmailOtpIdpBaseEndpoint`:
+
+1. In your email endpoint file, change the base class to `EmailOtpIdpBaseEndpoint`:
+
+   ```dart
+   class EmailIdpEndpoint extends EmailOtpIdpBaseEndpoint {}
+   ```
+
+2. Start the server with `serverpod start` to regenerate the client code, then create and apply the migration (in the `serverpod start` terminal, press **M**).
+
+3. If you pass your own `EmailSignInWidget` to the `SignInWidget` as `emailSignInWidget`, replace it with an `EmailOtpSignInWidget` passed as `emailOtpSignInWidget`.
+
+Existing accounts keep working, and users can sign in with a code sent to the email they registered with. To let them keep signing in with their password, set `allowPasswordSignIn: true` on the widget, as shown in [client-side configuration](#client-side-configuration).
+
+:::warning
+If you use [your own email provider](#use-your-own-email-provider) and don't set `sendOtpLoginVerificationCode`, sign-in codes are sent with `sendRegistrationVerificationCode`, and a warning is logged the first time this happens. That callback then receives the ID of the sign-in request as its `accountRequestId`, so any links built from it, such as a link to complete the registration, won't work. Set `sendOtpLoginVerificationCode` if your registration emails contain more than the code.
+:::
 
 ---
 
@@ -12362,7 +12528,7 @@ This page covers configuration options for the email identity provider beyond th
 
 ## Configuration options
 
-New projects use `ServerpodCloudEmailIdpConfig`. It reads the [pepper](#peppering) from the `emailSecretHashPepper` password, but it does not take the other options on this page. To set them, switch to `EmailIdpConfigFromPasswords` and pass your own `sendRegistrationVerificationCode` and `sendPasswordResetVerificationCode` callbacks. See [Use your own email provider](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#use-your-own-email-provider).
+New projects use `ServerpodCloudEmailIdpConfig`. It reads the [pepper](#peppering) from the `emailSecretHashPepper` password, but it does not take the other options on this page. To set them, switch to `EmailIdpConfigFromPasswords` and pass your own `sendRegistrationVerificationCode` and `sendPasswordResetVerificationCode` callbacks, and optionally `sendOtpLoginVerificationCode`. See [Use your own email provider](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#use-your-own-email-provider).
 
 Below is a non-exhaustive list of some of the most common configuration options. For more details on all options, check the `EmailIdpConfig` in-code documentation.
 
@@ -12406,25 +12572,35 @@ final emailIdpConfig = EmailIdpConfigFromPasswords(
 ```
 
 :::tip
-This is useful to ensure password policies on the server-side. It is a best practice to pair it with a configuration on the client-side to provide a better UX when creating a new password. The `EmailSignInWidget` and `EmailAuthController` have a `passwordRequirements` parameter that can be used to configure the password requirements.
+This is useful to ensure password policies on the server-side. It is a best practice to pair it with a configuration on the client-side to provide a better UX when creating a new password. The `EmailOtpSignInWidget` and `EmailOtpAuthController` have a `passwordRequirements` parameter that can be used to configure the password requirements.
 :::
 
-### Custom verification code generation
+### Allowing a password on account creation
 
-You can customize how verification codes are generated:
+By default, accounts created with a one-time code have no password. To let users set one while creating their account, enable `allowPasswordOnOtpRegistration`:
 
 ```dart
 final emailIdpConfig = EmailIdpConfigFromPasswords(
-  registrationVerificationCodeGenerator: () {
-    // Generate a 6-digit numeric code
-    final random = Random.secure();
-    return List.generate(6, (_) => random.nextInt(10)).join();
-  },
+  allowPasswordOnOtpRegistration: true,
+);
+```
+
+The account creation screen then shows an optional password field. To let users sign in with that password later, also set `allowPasswordSignIn: true` on the `EmailOtpSignInWidget`. See the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md#using-the-emailotpsigninwidget).
+
+### Custom verification code generation
+
+One-time sign-in codes are 6 digits by default, while password reset codes are 8 digits. You can customize how each kind of code is generated:
+
+```dart
+final emailIdpConfig = EmailIdpConfigFromPasswords(
+  // Use 8-digit codes for sign-in.
+  otpLoginVerificationCodeGenerator: () =>
+      defaultVerificationCodeGenerator(length: 8),
 );
 ```
 
 :::warning
-Remember to configure the `verificationCodeConfig` parameter on the `EmailSignInWidget` to match the length and allowed characters of the verification code you generate. Otherwise, users will never be able to enter the verification code correctly. See the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md) for more details.
+Remember to configure the `otpVerificationCodeConfig` parameter on the `EmailOtpSignInWidget` to match the length and allowed characters of the one-time code you generate. The app does not get the code format from the server, so if the two differ, users will never be able to enter the code correctly. See the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md#using-the-emailotpsigninwidget) for more details.
 :::
 
 #### Bypassing verification code in development
@@ -12438,9 +12614,9 @@ pod.initializeAuthServices(
   ],
   identityProviderBuilders: [
     EmailIdpConfigFromPasswords(
-      registrationVerificationCodeGenerator: pod.runMode == 'development'
-          ? () => '11111111' // Digits only, and the same length as production.
-          : defaultVerificationCodeGenerator,
+      otpLoginVerificationCodeGenerator: pod.runMode == 'development'
+          ? () => '111111' // Digits only, and the same length as production.
+          : defaultOtpVerificationCodeGenerator,
     ),
   ],
 );
@@ -12448,7 +12624,7 @@ pod.initializeAuthServices(
 
 ### Reacting to events
 
-Beyond the `sendRegistrationVerificationCode` and `sendPasswordResetVerificationCode` callbacks to send verification codes to the user, there are a few callbacks that can be used to react to events, such as `onAfterAccountCreated` and `onPasswordResetCompleted`. These can be useful for sending emails to the user to communicate the successful operation.
+Beyond the callbacks to send verification codes to the user, there are a few callbacks that can be used to react to events, such as `onAfterAccountCreated` and `onPasswordResetCompleted`. These can be useful for sending emails to the user to communicate the successful operation.
 
 ### Rate limiting
 
@@ -12456,12 +12632,19 @@ The email provider includes built-in rate limiting to prevent abuse, with some s
 
 - **Failed login attempts**: Limited to 5 attempts per 5 minutes
 - **Password reset attempts**: Limited to 3 attempts per hour
+- **One-time code requests**: Limited to 5 requests per email per 15 minutes, reset by a successful sign-in
 - **Verification code attempts**: Limited to 3 attempts per code lifetime of 15 minutes
 
 You can customize all rate limits in the `EmailIdpConfig`:
 
 ```dart
 final emailIdpConfig = EmailIdpConfigFromPasswords(
+  otpLoginVerificationCodeLifetime: Duration(minutes: 15),
+  otpLoginVerificationCodeAllowedAttempts: 3,
+  maxOtpLoginAttempts: RateLimit(
+    maxAttempts: 5,
+    timeframe: Duration(minutes: 15),
+  ),
   registrationVerificationCodeLifetime: Duration(minutes: 15),
   registrationVerificationCodeAllowedAttempts: 3,
   passwordResetVerificationCodeLifetime: Duration(minutes: 15),
@@ -12477,24 +12660,42 @@ final emailIdpConfig = EmailIdpConfigFromPasswords(
 );
 ```
 
+## Password-only sign-in
+
+Projects that use the `EmailSignInWidget` for password-only sign-in, as described in [Switch from password-only sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#switch-from-password-only-sign-in), verify new accounts with a registration code. Registration codes are 8 digits by default, and are customized with `registrationVerificationCodeGenerator`:
+
+```dart
+final emailIdpConfig = EmailIdpConfigFromPasswords(
+  registrationVerificationCodeGenerator: () {
+    // Generate a 6-digit numeric code
+    final random = Random.secure();
+    return List.generate(6, (_) => random.nextInt(10)).join();
+  },
+);
+```
+
+:::warning
+Remember to configure the `verificationCodeConfig` parameter on the `EmailSignInWidget` to match the length and allowed characters of the verification code you generate. Otherwise, users will never be able to enter the verification code correctly. See the [customizing the UI section](https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui.md#using-the-emailsigninwidget) for more details.
+:::
+
 ---
 
 # Customize the email sign-in UI
 
 https://docs.serverpod.dev/concepts/authentication/providers/email/customizing-the-ui
 
-When using the email identity provider, you can customize the UI to your liking. You can use the `EmailSignInWidget` to display the email authentication flow in your own custom UI, or you can use the `EmailAuthController` to build a completely custom authentication interface.
+When using the email identity provider, you can customize the UI to your liking. You can use the `EmailOtpSignInWidget` to display email sign-in in your own custom UI, or you can use the `EmailOtpAuthController` to build a completely custom authentication interface. Both handle sign-in with a one-time code and, optionally, with a password.
 
 :::info
-The `SignInWidget` uses the `EmailSignInWidget` internally to display the email authentication flow. You can also supply a custom `EmailSignInWidget` to the `SignInWidget` to override the default behavior.
+The `SignInWidget` uses the `EmailOtpSignInWidget` internally to display email sign-in. You can also supply a custom `EmailOtpSignInWidget` to the `SignInWidget` to override the default behavior.
 
 ```dart
 SignInWidget(
   client: client,
-  emailSignInWidget: EmailSignInWidget(
+  emailOtpSignInWidget: EmailOtpSignInWidget(
     client: client,
-    // Open on the login screen instead of the default registration screen
-    startScreen: EmailFlowScreen.login,
+    // Also let users sign in with their password
+    allowPasswordSignIn: true,
     // A custom widget replaces the built-in handling, so pass your own callbacks.
     onAuthenticated: () { /* ... */ },
     onError: (error) { /* ... */ },
@@ -12504,7 +12705,268 @@ SignInWidget(
 
 :::
 
-## Using the `EmailSignInWidget`
+## Using the `EmailOtpSignInWidget`
+
+The `EmailOtpSignInWidget` handles the complete email sign-in flow: requesting and verifying the one-time code, signing in to an existing account, and creating an account for a new email. It can also offer password sign-in and password reset.
+
+You can customize the widget's behavior using its constructor parameters:
+
+```dart
+EmailOtpSignInWidget(
+  client: client,
+  // Offer password sign-in and password reset on the start screen.
+  // Defaults to false.
+  allowPasswordSignIn: true,
+  // Customize the one-time code input. Must match the server's code format.
+  // The default matches the default server code generation: 6 digits.
+  otpVerificationCodeConfig: VerificationCodeConfig(
+    length: 6,
+    keyboardType: TextInputType.number,
+    allowedCharactersPattern: RegExp(r'[0-9]'),
+  ),
+  // Customize the password reset code input, used with allowPasswordSignIn.
+  // The default matches the server's 8-digit password reset codes.
+  verificationCodeConfig: VerificationCodeConfig(
+    resendCountdownDuration: Duration(minutes: 1),
+  ),
+  // Custom email validation function. Throw InvalidEmailException so the
+  // widget shows the message. Other exceptions block sign-in silently.
+  emailValidation: (email) {
+    if (!email.contains('@example.com')) {
+      throw const InvalidEmailException('Only @example.com emails allowed');
+    }
+  },
+  // Requirements for the password set on password reset, or on account
+  // creation if the server allows it.
+  passwordRequirements: [
+    PasswordRequirement.minLength(12),
+  ],
+  onTermsAndConditionsPressed: () {
+    // Open terms and conditions
+  },
+  onPrivacyPolicyPressed: () {
+    // Open privacy policy
+  },
+  onAuthenticated: () {
+    // Do something when the user is authenticated.
+    //
+    // NOTE: You should not navigate to the home screen here, otherwise
+    // the user will have to sign in again every time they open the app.
+  },
+  onError: (error) {
+    // Handle errors
+  },
+)
+```
+
+If you change the code format on the server, update `otpVerificationCodeConfig` to match. See [custom verification code generation](https://docs.serverpod.dev/concepts/authentication/providers/email/configuration.md#custom-verification-code-generation).
+
+By default, the widget accepts email aliases, such as `name+alias@example.com`. To reject them, pass `emailValidation: (email) => EmailFlowController.validateEmail(email, allowEmailAliases: false)`.
+
+:::info
+The terms and conditions and privacy policy checkbox on the account creation screen is optional and disabled by default. The checkbox is shown as soon as you provide either `onTermsAndConditionsPressed` or `onPrivacyPolicyPressed`.
+:::
+
+For a new email, the account creation screen also offers an optional password if the server enables [`allowPasswordOnOtpRegistration`](https://docs.serverpod.dev/concepts/authentication/providers/email/configuration.md#allowing-a-password-on-account-creation).
+
+Optionally, you can provide an externally managed `EmailOtpAuthController` instance to the widget. A controller and a `client` are mutually exclusive, and `onAuthenticated` and `onError` belong on the controller in that case. The controller carries `allowPasswordSignIn`, `emailValidation`, and `passwordRequirements`, while the code configurations and the terms callbacks stay on the widget.
+
+```dart
+EmailOtpSignInWidget(
+  controller: controller,
+)
+```
+
+### Customizing the default widget's appearance
+
+Since the `EmailOtpSignInWidget` uses the Material Design system, it will react to your app's Material theme. You can also wrap it in a `Theme` widget to apply a custom theme.
+
+```dart
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+
+Theme(
+  data: Theme.of(context).copyWith(
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+    // Use the AuthIdpTheme to customize the verification code input look
+    extensions: <ThemeExtension<dynamic>>[
+      AuthIdpTheme.defaultTheme(
+        errorPinTheme: PinTheme(...),
+      ),
+    ],
+  ),
+  child: EmailOtpSignInWidget(client: client),
+)
+```
+
+## Building a custom UI with the `EmailOtpAuthController`
+
+For more control over the UI, you can use the `EmailOtpAuthController` class, which provides all the authentication logic without any UI components. This allows you to build a completely custom authentication interface.
+
+```dart
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+
+final controller = EmailOtpAuthController(
+  client: client,
+  allowPasswordSignIn: true,
+  onAuthenticated: () {
+    // Do something when the user is authenticated.
+    //
+    // NOTE: You should not navigate to the home screen here, otherwise
+    // the user will have to sign in again every time they open the app.
+  },
+  onError: (error) {
+    // Handle errors
+  },
+);
+```
+
+### State management
+
+Your widget should render the appropriate screen based on the `currentScreen` property of the controller. You can also use the below state properties to build your UI:
+
+```dart
+// Check current screen
+final currentScreen = controller.currentScreen;
+
+// Check if loading
+final isLoading = controller.isLoading;
+
+// Check if authenticated
+final isAuthenticated = controller.isAuthenticated;
+
+// Get error message
+final errorMessage = controller.errorMessage;
+
+// Listen to state changes
+controller.addListener(() {
+  setState(() {
+    // Rebuild UI when controller state changes
+  });
+});
+```
+
+The email sign-in flow uses the following screens:
+
+- `EmailOtpFlowScreen.start` - Enter email to request a code, or sign in with a password
+- `EmailOtpFlowScreen.verify` - Enter the one-time code
+- `EmailOtpFlowScreen.completeRegistration` - Create an account for a new email
+- `EmailOtpFlowScreen.requestPasswordReset` - Request password reset
+- `EmailOtpFlowScreen.verifyPasswordReset` - Verify password reset code
+- `EmailOtpFlowScreen.completePasswordReset` - Set new password
+
+### Navigating between screens
+
+The controller handles navigation between screens automatically when calling the methods associated with each screen, but you can also navigate manually:
+
+```dart
+// Navigate to a specific screen
+controller.navigateTo(EmailOtpFlowScreen.requestPasswordReset);
+
+// Navigate back
+if (controller.canNavigateBack) {
+  controller.navigateBack();
+}
+```
+
+:::info
+The `EmailOtpAuthController` already exposes internal text controllers for the email, password, and verification code inputs. You can use these to build your own custom UI. All controllers are shared between the sign-in, account creation, and password reset flows for good UX. The `EmailOtpAuthController` will handle the cleanup of the text controllers upon navigation as needed.
+:::
+
+### Sign in with a one-time code
+
+The sign-in flow consists of up to three steps:
+
+1. **Request a code** - Send a one-time code to the email:
+
+```dart
+controller.emailController.text = 'user@example.com';
+await controller.startOtpLogin();
+// Controller navigates to the verify screen
+```
+
+2. **Verify the code** - Sign in, or continue to account creation:
+
+```dart
+controller.verificationCodeController.text = '123456';
+await controller.verifyOtpCode();
+// If an account exists, the user is now authenticated.
+// Otherwise, the controller navigates to the completeRegistration screen.
+```
+
+3. **Create the account** - Only for a new email, once the user has accepted the terms:
+
+```dart
+// Optional, only if the server allows a password on account creation.
+if (controller.otpAllowPassword) {
+  controller.toggleRegistrationPassword();
+  controller.passwordController.text = 'securePassword123';
+}
+await controller.finishOtpRegistration();
+// User is now authenticated
+```
+
+If the code is accepted but completing the sign-in fails, for example because of a network error, call `verifyOtpCode()` again. It retries the sign-in without checking the code a second time. If the server rejects the retry, the controller's `error` is an `OtpLoginRejectedException`, `onError` receives a message asking for a new code, and the user needs to request one with `resendVerificationCode()`.
+
+### Sign in with a password
+
+With `allowPasswordSignIn` set to `true`, call `togglePasswordSignIn()` to show the password field on the start screen, then `login()` to sign in.
+
+```dart
+controller.togglePasswordSignIn();
+controller.emailController.text = 'user@example.com';
+controller.passwordController.text = 'password123';
+await controller.login();
+```
+
+### Password reset flow
+
+The password reset flow consists of three steps:
+
+1. **Request Password Reset**:
+
+```dart
+controller.emailController.text = 'user@example.com';
+await controller.startPasswordReset();
+// Controller navigates to verification screen
+```
+
+2. **Verify Reset Code**:
+
+```dart
+controller.verificationCodeController.text = '12345678';
+await controller.verifyPasswordResetCode();
+// Controller navigates to new password screen
+```
+
+3. **Complete Password Reset**:
+
+```dart
+controller.passwordController.text = 'newSecurePassword123';
+await controller.finishPasswordReset();
+// User is authenticated with new password
+```
+
+### Resending verification codes
+
+To resend a verification code:
+
+```dart
+await controller.resendVerificationCode();
+```
+
+This will resend the code based on the current screen (sign-in or password reset).
+
+## Password-only sign-in
+
+Projects that extend `EmailIdpBaseEndpoint`, such as those created before Serverpod 4.1, use the `EmailSignInWidget` and the `EmailAuthController` instead. They support sign-in with a password only, and users register with an email and a password. To move to the `EmailOtpSignInWidget`, see [Switch from password-only sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#switch-from-password-only-sign-in).
+
+To override the default widget, pass your own `EmailSignInWidget` to the `SignInWidget` as `emailSignInWidget`.
+
+### Using the `EmailSignInWidget`
+
+:::note
+The `EmailSignInWidget` is the old way to add email sign-in. Use the [`EmailOtpSignInWidget`](#using-the-emailotpsigninwidget) instead, which supports both one-time code and password sign-in.
+:::
 
 The `EmailSignInWidget` handles the complete email authentication flow including login, registration, email verification, and password reset.
 
@@ -12569,30 +13031,9 @@ EmailSignInWidget(
 The terms and conditions and privacy policy checkbox on the registration screen are optional and disabled by default. The checkbox is shown as soon as you provide either `onTermsAndConditionsPressed` or `onPrivacyPolicyPressed`.
 :::
 
-### Customizing the default widget's appearance
+### Building a custom UI with the `EmailAuthController`
 
-Since the `EmailSignInWidget` uses the Material Design system, it will react to your app's Material theme. You can also wrap it in a `Theme` widget to apply a custom theme.
-
-```dart
-import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
-
-Theme(
-  data: Theme.of(context).copyWith(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-    // Use the AuthIdpTheme to customize the verification code input look
-    extensions: <ThemeExtension<dynamic>>[
-      AuthIdpTheme.defaultTheme(
-        errorPinTheme: PinTheme(...),
-      ),
-    ],
-  ),
-  child: EmailSignInWidget(client: client),
-)
-```
-
-## Building a custom UI with the `EmailAuthController`
-
-For more control over the UI, you can use the `EmailAuthController` class, which provides all the authentication logic without any UI components. This allows you to build a completely custom authentication interface.
+The `EmailAuthController` provides the same [state properties](#state-management), [navigation](#navigating-between-screens), [password reset](#password-reset-flow), and [code resending](#resending-verification-codes) as the `EmailOtpAuthController`, with its own screens and methods for login and registration.
 
 ```dart
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
@@ -12612,34 +13053,7 @@ final controller = EmailAuthController(
 );
 ```
 
-### EmailAuthController state management
-
-Your widget should render the appropriate screen based on the `currentScreen` property of the controller. You can also use the below state properties to build your UI:
-
-```dart
-// Check current screen
-final currentScreen = controller.currentScreen;
-
-// Check if loading
-final isLoading = controller.isLoading;
-
-// Check if authenticated
-final isAuthenticated = controller.isAuthenticated;
-
-// Get error message
-final errorMessage = controller.errorMessage;
-
-// Listen to state changes
-controller.addListener(() {
-  setState(() {
-    // Rebuild UI when controller state changes
-  });
-});
-```
-
-## The email authentication flow
-
-The email authentication flow uses the following screens:
+The controller uses the following screens:
 
 - `EmailFlowScreen.login` - Login with email and password
 - `EmailFlowScreen.startRegistration` - Start registration with email
@@ -12648,28 +13062,6 @@ The email authentication flow uses the following screens:
 - `EmailFlowScreen.requestPasswordReset` - Request password reset
 - `EmailFlowScreen.verifyPasswordReset` - Verify password reset code
 - `EmailFlowScreen.completePasswordReset` - Set new password
-
-### Navigating between screens
-
-The controller handles navigation between screens automatically when calling the methods associated with each screen, but you can also navigate manually:
-
-```dart
-// Navigate to a specific screen
-controller.navigateTo(EmailFlowScreen.startRegistration);
-
-// Navigate back
-if (controller.canNavigateBack) {
-  controller.navigateBack();
-}
-```
-
-### EmailAuthController methods
-
-The controller provides methods for each step of the authentication flow:
-
-:::info
-The `EmailAuthController` already exposes internal text controllers for the email, password and verification code inputs. You can use these to build your own custom UI. All controllers are shared between login, registration and password reset flows for good UX. The `EmailAuthController` will handle the cleanup of the text controllers upon navigation as needed.
-:::
 
 #### Login
 
@@ -12709,44 +13101,6 @@ controller.passwordController.text = 'securePassword123';
 await controller.finishRegistration();
 // User is now authenticated
 ```
-
-#### Password reset flow
-
-The password reset flow also consists of three steps:
-
-1. **Request Password Reset**:
-
-```dart
-controller.emailController.text = 'user@example.com';
-await controller.startPasswordReset();
-// Controller navigates to verification screen
-```
-
-2. **Verify Reset Code**:
-
-```dart
-controller.verificationCodeController.text = '12345678';
-await controller.verifyPasswordResetCode();
-// Controller navigates to new password screen
-```
-
-3. **Complete Password Reset**:
-
-```dart
-controller.passwordController.text = 'newSecurePassword123';
-await controller.finishPasswordReset();
-// User is authenticated with new password
-```
-
-### Resending verification codes
-
-To resend a verification code:
-
-```dart
-await controller.resendVerificationCode();
-```
-
-This will resend the code based on the current screen (registration or password reset).
 
 ---
 
@@ -12843,7 +13197,7 @@ This is useful for checking the status of a registration request or verifying if
 
 ## Cleanup operations
 
-Over time, expired account requests, password reset requests, and failed login attempts can accumulate in the database, leading to database bloat and potential performance issues. It's important to periodically clean these up to prevent database bloat. Such requests are not automatically cleaned up since they can be useful for auditing purposes, so it is up to each application to decide when to clean them up.
+Over time, expired account requests, password reset requests, one-time code requests, and failed login attempts can accumulate in the database, leading to database bloat and potential performance issues. It's important to periodically clean these up to prevent database bloat. Such requests are not automatically cleaned up since they can be useful for auditing purposes, so it is up to each application to decide when to clean them up.
 
 ### Cleaning up expired account requests
 
@@ -12874,6 +13228,27 @@ await admin.deleteExpiredPasswordResetRequests(session);
 await admin.deletePasswordResetRequestsAttemptsForEmail(
   session,
   email: 'user@example.com',
+);
+```
+
+### Cleaning up one-time code requests
+
+Each one-time sign-in code creates a request, which expires after the code lifetime, and an entry in the log used for rate limiting. Both should be cleaned up:
+
+```dart
+// Delete all expired one-time code requests
+await admin.deleteExpiredOtpLoginRequests(session);
+
+// Delete the logged requests outside the rate limit window
+await admin.deleteOtpLoginAttempts(session);
+
+// Delete all logged requests for a specific email
+// Useful when you want to allow a user to request a new code
+// even though they have hit the rate limit
+await admin.deleteOtpLoginAttempts(
+  session,
+  email: 'user@example.com',
+  olderThan: Duration.zero,
 );
 ```
 
@@ -20796,9 +21171,9 @@ The `SignInWidget` builds a default widget for each identity provider it detects
 ```dart
 final signInWidget = SignInWidget(
   client: client,
-  emailSignInWidget: EmailSignInWidget(
+  emailOtpSignInWidget: EmailOtpSignInWidget(
     client: client,
-    startScreen: EmailFlowScreen.login,
+    allowPasswordSignIn: true,
     // NOTE: When you opt-out of the internal widget, you need to provide your
     // own `onAuthenticated` and `onError` callbacks.
     onAuthenticated: _onAuthenticated,
@@ -20828,6 +21203,8 @@ void _onError(Object error) {
 }
 ```
 
+Projects that still use password-only email sign-in pass an `EmailSignInWidget` as `emailSignInWidget` instead. See [Switch from password-only sign-in](https://docs.serverpod.dev/concepts/authentication/providers/email/setup.md#switch-from-password-only-sign-in).
+
 ### Styling the buttons
 
 Inside `SignInWidget`, every provider button shares one neutral, theme-aware appearance. To change it, pass a `SignInButtonStyle` as `buttonStyle`:
@@ -20853,7 +21230,9 @@ For all options of each provider widget, see the provider's customizations page,
 All text shown by the authentication widgets is in English by default. To replace it, wrap `SignInWidget`, or any individual provider widget, in a `SignInLocalizationProvider` and pass the text objects for the parts you want to translate:
 
 - `BasicSignInTexts` for the shared messages and dividers.
-- `EmailSignInTexts` for the email flow: sign-in, registration, account verification, password reset, and the terms and privacy labels.
+- `EmailWithOtpSignInTexts` for the email sign-in screens: requesting and verifying the code, and creating an account.
+- `EmailSignInTexts` for the email field, password reset, and the terms and privacy labels, and for the screens of password-only sign-in.
+- `VerificationCodeTexts` for the button that resends a code.
 - `PasswordRequirementTexts` for the labels of the built-in password requirement widgets.
 - One text object per provider for the sign-in buttons: `AppleSignInTexts`, `GoogleSignInTexts`, `GitHubSignInTexts`, `MicrosoftSignInTexts`, `FacebookSignInTexts`, and `AnonymousSignInTexts`.
 
@@ -20902,6 +21281,27 @@ const emailTexts = EmailSignInTexts(
   privacyPolicy: 'Privacy Policy',
 );
 
+const emailWithOtpTexts = EmailWithOtpSignInTexts(
+  startTitle: 'Sign In with email',
+  sendCode: 'Send code',
+  signInWithPassword: 'Sign in with password',
+  signInWithCode: 'Sign in with a code',
+  verifyTitle: 'Check your email',
+  verificationMessage:
+      'A verification email has been sent. Please check your email and '
+      'enter the verification code below.',
+  verifyAction: 'Continue',
+  createAccountTitle: 'Create your account',
+  addPassword: 'Add a password (optional)',
+  removePassword: 'Continue without a password',
+  passwordLabel: 'Password',
+  createAccount: 'Create account',
+);
+
+const verificationCodeTexts = VerificationCodeTexts(
+  resendCode: "Didn't receive? Send a new code",
+);
+
 const passwordTexts = PasswordRequirementTexts(
   minLengthTemplate: 'At least {length} characters',
   maxLengthTemplate: 'At most {length} characters',
@@ -20914,6 +21314,8 @@ const passwordTexts = PasswordRequirementTexts(
 SignInLocalizationProvider(
   basic: basicTexts,
   email: emailTexts,
+  emailWithOtp: emailWithOtpTexts,
+  verificationCodeTexts: verificationCodeTexts,
   passwordRequirementTexts: passwordTexts,
   apple: const AppleSignInTexts(signInButton: 'Sign in with Apple'),
   google: const GoogleSignInTexts(signInButton: 'Sign in with Google'),
@@ -25335,8 +25737,6 @@ futureCall:
   scanInterval: 5000      # default, in milliseconds
 ```
 
-The `futureCall.enabled` and `futureCall.executionEnabled` options need Serverpod 4.0.3 or later. Earlier versions set execution with the top-level `futureCallExecutionEnabled` key, which later versions still read when `futureCall.executionEnabled` is not set.
-
 ## Disable future calls
 
 The `futureCall.enabled` option turns future calls off completely. It is `true` by default. When set to `false`, calls can neither be scheduled nor executed. Use it when your project does not use future calls.
@@ -26614,12 +27014,12 @@ Everything a test writes to the database is rolled back when the test ends, so e
 
 The generated file exports these, so you can name them in a test without importing anything else.
 
-| Exception                              | Thrown when                                                                                                                                                                                                     |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ServerpodUnauthenticatedException`    | An endpoint call was made without authentication and the endpoint requires it.                                                                                                                                  |
-| `ServerpodInsufficientAccessException` | The authentication used did not carry the scopes the endpoint requires.                                                                                                                                         |
-| `ConnectionClosedException`            | A stream connection closed with an error, for example because authentication was revoked.                                                                                                                       |
-| `InvalidConfigurationException`        | The endpoint ran database calls or transactions in parallel, which the automatic rollback cannot wrap. See [`rollbackDatabase`](https://docs.serverpod.dev/concepts/testing/configuration.md#rollbackdatabase). |
+| Exception                              | Thrown when                                                                                                                                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ServerpodUnauthenticatedException`    | An endpoint call was made without authentication and the endpoint requires it.                                                                                                                                                     |
+| `ServerpodInsufficientAccessException` | The authentication used did not carry the scopes the endpoint requires.                                                                                                                                                            |
+| `ConnectionClosedException`            | A stream connection closed with an error, for example because authentication was revoked.                                                                                                                                          |
+| `InvalidConfigurationException`        | Database calls or transactions ran in parallel, or a query was watched, neither of which the automatic rollback can wrap. See [`rollbackDatabase`](https://docs.serverpod.dev/concepts/testing/configuration.md#rollbackdatabase). |
 
 The test server also throws when it fails to start or takes longer than the start timeout. That error type is not exported, so you cannot catch it by name, but the message says which of the two happened.
 
@@ -26713,7 +27113,7 @@ withServerpod(
 );
 ```
 
-Serverpod then neither creates nor drops that database, and [`rollbackDatabase`](#rollbackdatabase) still decides whether the group's writes are rolled back. Groups that share the database can't run in parallel, so run their test files one at a time with `dart test --concurrency=1`. The option needs Serverpod 4.0.3 or later.
+Serverpod then neither creates nor drops that database, and [`rollbackDatabase`](#rollbackdatabase) still decides whether the group's writes are rolled back. Groups that share the database can't run in parallel, so run their test files one at a time with `dart test --concurrency=1`.
 
 ## Database rollback {#rollbackdatabase}
 
@@ -26725,7 +27125,7 @@ By default each test runs inside a transaction that is rolled back when that tes
 | `RollbackDatabase.afterAll`  | Once the whole `withServerpod` group finishes.                          |
 | `RollbackDatabase.disabled`  | Never. Data stays until the group finishes and its database is dropped. |
 
-Three situations call for changing it.
+Four situations call for changing it.
 
 **Tests that build on each other.** When one test depends on what the previous one left behind, `afterAll` keeps state across the group and still rolls everything back at the end. Tests that share state are usually worth avoiding, but this helps when the setup is expensive.
 
@@ -26741,6 +27141,8 @@ Future<void> concurrentTransactionCalls(Session session) async {
   ]);
 }
 ```
+
+**Watching queries.** The [`watch`](https://docs.serverpod.dev/concepts/data-and-the-database/database/crud.md#watching-rows) and [`unsafeWatch`](https://docs.serverpod.dev/concepts/data-and-the-database/database/raw-access.md#unsafewatch) streams only see committed data, so they cannot observe writes inside the rollback transaction. Both throw `InvalidConfigurationException` unless you pass `RollbackDatabase.disabled`.
 
 With rollback disabled, later tests in the same group see what earlier tests committed. To start each test from a clean state, clean up in `tearDown`:
 
@@ -27230,18 +27632,20 @@ Global options:
     --experimental-features    Enable experimental features. Experimental features might be removed at any time.
 
 Available commands:
-  clean                     Delete the cached server build so the next `serverpod start` recompiles from scratch.
+  clean                     Delete the cached server build and generation staleness stamp.
   cloud                     Manage Serverpod Cloud projects through the Serverpod Cloud.
   completion                Command line completion commands
   create                    Creates a new Serverpod project, specify project name (must be lowercase with no special characters).
   create-migration          Creates a migration from the last migration to the current state of the database.
   create-repair-migration   Repairs the database by comparing the target state to what is in the live database instead of comparing to the latest migration.
   database                  Manage the embedded PostgreSQL database used by a Serverpod project.
+  doctor                    Check that Flutter, Dart, Git, and the Serverpod CLI are installed, compatible, and selected by PATH.
   generate                  Generate code from yaml files for server and clients.
   language-server           Launches a serverpod language server communicating with JSON-RPC-2 intended to be used with a client integrated in an IDE.
   mcp-server                Start an MCP bridge to the `serverpod start` runner of one server project.
   quickstart                Creates a new Serverpod project with basic options.
   run                       Run a script defined in the "serverpod/scripts" section of pubspec.yaml.
+  runner                    Manage the development stack for this project.
   start                     Start the full development stack with hot reload: generates code, runs the server, and launches the companion Flutter apps in an interactive terminal UI.
   upgrade                   Upgrade the Serverpod CLI to the latest version.
   version                   Prints the active version of the Serverpod CLI.
@@ -27266,16 +27670,18 @@ These environment variables affect the `serverpod` command:
 
 https://docs.serverpod.dev/concepts/cli/commands/clean
 
-The `serverpod clean` command deletes the cached server build of a server project, so the next `serverpod start` compiles the server from scratch. Run it when `serverpod start` keeps reporting compilation errors you already fixed. The command needs Serverpod 4.0.4 or later.
+The `serverpod clean` command deletes the cached server build of a server project, so the next `serverpod start` compiles the server from scratch and the next `serverpod generate` regenerates all code. Run it when `serverpod start` keeps reporting compilation errors you already fixed, or when `serverpod generate` leaves bad output.
 
-Stop `serverpod start` before you run the command, then start it again to rebuild.
+Stop the stack with `serverpod runner stop` before you run the command, then start it again to rebuild.
 
 ## Usage
 
 ```console
-Delete the cached server build so the next `serverpod start` recompiles from scratch.
+Delete the cached server build and generation staleness stamp.
 
-Only needed when `serverpod start` keeps reporting compilation errors that have already been fixed, even after restarting it.
+The next `serverpod start` recompiles from scratch, and the next `serverpod generate` regenerates code.
+
+Only needed when `serverpod start` keeps reporting compilation errors that have already been fixed, or `serverpod generate` leaves bad output.
 
 Usage: serverpod clean [arguments]
 -h, --help         Print this usage information.
@@ -27481,7 +27887,7 @@ Usage: serverpod database <subcommand> [arguments]
 -h, --help    Print this usage information.
 
 Available subcommands:
-  start   Start the configured embedded PostgreSQL database over TCP.
+  start   Start the configured embedded PostgreSQL database and print how to connect to it.
 
 Run "serverpod help" to see global options.
 ```
@@ -27491,14 +27897,38 @@ Run "serverpod help" to see global options.
 #### `start`
 
 ```console
-Start the configured embedded PostgreSQL database over TCP.
+Start the configured embedded PostgreSQL database and print how to connect to it.
 
 Usage: serverpod database start [arguments]
 -h, --help                 Print this usage information.
 -s, --server-dir=<path>    Server project directory. Defaults to auto-detection.
 -m, --mode                 Serverpod run mode whose database config should be used.
                            (defaults to "development")
--p, --port=<integer>       TCP port override. Defaults to the configured database port.
+-p, --port=<integer>       TCP port override. Defaults to the configured database port. Requires a database password for the run mode.
+
+Run "serverpod help" to see global options.
+```
+
+---
+
+# serverpod doctor
+
+https://docs.serverpod.dev/concepts/cli/commands/doctor
+
+The `serverpod doctor` command checks that Flutter, Dart, Git, and the Serverpod CLI are installed in compatible versions and selected by your `PATH`, and that pub.dev is reachable. For each check that fails, it prints what to do about it.
+
+The command exits with an error when any check fails. Pass `--json` to get the results as JSON, for example in a script.
+
+## Usage
+
+```console
+Check that Flutter, Dart, Git, and the Serverpod CLI are installed, compatible, and selected by PATH.
+
+Exits with an error when any check does not pass.
+
+Usage: serverpod doctor [arguments]
+-h, --help    Print this usage information.
+    --json    Print the results as JSON instead of text.
 
 Run "serverpod help" to see global options.
 ```
@@ -27560,7 +27990,7 @@ https://docs.serverpod.dev/concepts/cli/commands/mcp-server
 
 The server directory is auto-detected from the current working directory. Pass `--server-dir` explicitly in monorepos that contain more than one server project.
 
-The bridge drives a running session, so start one with `serverpod start` before asking an agent to use these tools. The bridge itself can stay connected while the session stops and starts.
+The bridge drives a running session, so start one with `serverpod start`, or with `serverpod runner start` to run it in the background, before asking an agent to use these tools. The bridge itself can stay connected while the session stops and starts.
 
 ## Set up your editor
 
@@ -27624,7 +28054,7 @@ Run "serverpod help" to see global options.
 
 ## Tools
 
-The bridge exposes the following tools. Each one acts on the running `serverpod start` session, so they report an error when no session is running.
+The bridge exposes the following tools. Each one acts on the running `serverpod start` session, so they report an error when no session is running. The exception is `tail_runner_logs`, which the bridge answers from the runner's log file whether or not a session is running.
 
 ### `apply_migrations`
 
@@ -27653,7 +28083,7 @@ Create a repair migration that brings the live database in line with the target 
 
 ### `get_flutter_app_dtd`
 
-Return the Dart Tooling Daemon (DTD) URI for Flutter apps started from `serverpod start`. The JSON object is keyed by app id, the same ids used as keys under `serverpod: flutter_apps:` in the server pubspec. Apps that have not been launched are absent from the map; apps that have not published their DTD yet map to null; apps that have published their DTD map to their DTD URI.
+Return the Dart Tooling Daemon (DTD) URI for Flutter apps started by the runner. The JSON object is keyed by app id, the same ids used as keys under `serverpod: flutter_apps:` in the server pubspec. Apps that have not been launched are absent from the map; apps that have not published their DTD yet map to null; apps that have published their DTD map to their DTD URI.
 
 Takes no parameters.
 
@@ -27679,12 +28109,20 @@ Start a Flutter app configured under `serverpod: flutter_apps:` in the server pu
 
 ### `tail_flutter_logs`
 
-Return recent raw stdout/stderr lines for a Flutter app started from `serverpod start`, newest last.
+Return recent raw stdout/stderr lines for a Flutter app started by the runner, newest last.
 
 | Parameter | Type      | Required | Description                                                                                                                                                                                                                                                                                                                  |
 | --------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `appId`   | `string`  | No       | Which Flutter app to target. The id is the map key on the server pubspec under `serverpod: flutter_apps:`. Ids are case-sensitive; pass the key exactly as written. Optional when only one app is configured. When multiple apps are configured and no `appId` is provided, the tool returns an error listing available ids. |
 | `limit`   | `integer` | No       | Max lines to return (default 200, max 10000).                                                                                                                                                                                                                                                                                |
+
+### `tail_runner_logs`
+
+Return the last lines of the runner log file, which records everything the runner printed: code generation, compilation, Docker, the server's raw stdout/stderr and Flutter output. Newest last, with a `--- serverpod runner <pid> started ---` line at the start of each run. Unlike the other tools, this works while the server is still starting and after it stopped or crashed, so call it to find out why a tool reports the server is not running.
+
+| Parameter | Type      | Required | Description                                   |
+| --------- | --------- | -------- | --------------------------------------------- |
+| `limit`   | `integer` | No       | Max lines to return (default 200, max 10000). |
 
 ### `tail_server_logs`
 
@@ -27763,6 +28201,91 @@ Run "serverpod help" to see global options.
 
 ---
 
+# serverpod runner
+
+https://docs.serverpod.dev/concepts/cli/commands/runner
+
+The `serverpod runner` command manages the development stack of a server project: the background process that runs the server, database, and Flutter apps for [`serverpod start`](https://docs.serverpod.dev/concepts/cli/commands/start.md). Use it to start the stack without the interactive terminal, attach to it later, print its addresses, or stop it. See [Run the stack in the background](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#run-the-stack-in-the-background).
+
+## Usage
+
+```console
+Manage the development stack for this project.
+
+Usage: serverpod runner <subcommand> [arguments]
+-h, --help    Print this usage information.
+
+Available subcommands:
+  attach   Attach to the development stack already running for this project.
+  start    Start the development stack for this project and return, leaving it running in the background.
+  status   Print the development stack's state and addresses for this project.
+  stop     Stop the development stack running for this project.
+
+Run "serverpod help" to see global options.
+```
+
+### Sub commands
+
+#### `start`
+
+```console
+Start the development stack for this project and return, leaving it running in the background.
+
+Usage: serverpod runner start [-- <server-args>]
+-h, --help            Print this usage information.
+-w, --[no-]watch      Watch files and use the Frontend Server.
+                      (defaults to on)
+-d, --directory       The server directory.
+                      (defaults to "")
+-t, --target          The server entrypoint, relative to the server directory.
+                      (defaults to "bin/main.dart")
+    --[no-]docker     Start Docker Compose services if a compose file exists.
+    --[no-]flutter    Auto-launch companion Flutter apps on the first UI attach.
+                      (defaults to on)
+
+Run "serverpod help" to see global options.
+```
+
+#### `attach`
+
+```console
+Attach to the development stack already running for this project.
+
+Usage: serverpod runner attach
+-h, --help         Print this usage information.
+-d, --directory    The server directory (defaults to auto-detect from current directory).
+    --[no-]tui     Show the interactive terminal UI.
+                   (defaults to on)
+
+Run "serverpod help" to see global options.
+```
+
+#### `status`
+
+```console
+Print the development stack's state and addresses for this project.
+
+Usage: serverpod runner status
+-h, --help         Print this usage information.
+-d, --directory    The server directory (defaults to auto-detect from current directory).
+
+Run "serverpod help" to see global options.
+```
+
+#### `stop`
+
+```console
+Stop the development stack running for this project.
+
+Usage: serverpod runner stop
+-h, --help         Print this usage information.
+-d, --directory    The server directory (defaults to auto-detect from current directory).
+
+Run "serverpod help" to see global options.
+```
+
+---
+
 # serverpod start
 
 https://docs.serverpod.dev/concepts/cli/commands/start
@@ -27773,7 +28296,7 @@ The `serverpod start` command runs your project in development mode. It generate
 serverpod start
 ```
 
-Run it from anywhere inside your project folder.
+Run it from anywhere inside your project folder. To run another server entry point, see [Choose the server entry point](https://docs.serverpod.dev/concepts/server-fundamentals/running-your-server.md#choose-the-server-entry-point).
 
 ## Usage
 
@@ -27782,14 +28305,18 @@ Start the full development stack with hot reload: generates code, runs the serve
 
 Usage: serverpod start [-- <server-args>]
 -h, --help            Print this usage information.
--w, --[no-]watch      Watch files and use the Frontend Server for fast incremental compilation. With --no-watch, the server is started via `dart run`.
+-w, --[no-]watch      Watch files and use the Frontend Server.
                       (defaults to on)
--d, --directory       The server directory (defaults to auto-detect from current directory).
+-d, --directory       The server directory.
                       (defaults to "")
-    --[no-]docker     Start Docker Compose services if a Docker Compose file exists. Defaults to on if the project has a Docker Compose file and the database is configured to PostgreSQL on localhost without a dataPath. Otherwise, defaults to off. Pass --docker or --no-docker to override the default behavior.
-    --[no-]tui        Show interactive terminal UI.
+-t, --target          The server entrypoint, relative to the server directory.
+                      (defaults to "bin/main.dart")
+    --[no-]docker     Start Docker Compose services if a compose file exists.
+    --[no-]attach     Attach a UI once the stack is up. With --no-attach the runner is brought up, its address is printed, and the command returns.
                       (defaults to on)
-    --[no-]flutter    Auto-launch the companion Flutter apps as configured on the server pubspec.yaml with `auto_launch: true`. Use --no-flutter to disable auto-launch. Apps can still be started on demand from the TUI.
+    --[no-]tui        Show the interactive terminal UI when attaching. Ignored with --no-attach, since nothing renders.
+                      (defaults to on)
+    --[no-]flutter    Auto-launch companion Flutter apps on the first UI attach.
                       (defaults to on)
 
 Run "serverpod help" to see global options.
@@ -29153,7 +29680,7 @@ class PasswordImportingEmailIdpEndpoint extends EmailIdpBaseEndpoint {
 }
 ```
 
-If your project already has an endpoint that extends `EmailIdpBaseEndpoint`, such as `lib/src/auth/email_idp_endpoint.dart` from the project template, delete it. With two such endpoints, the Flutter email sign-in UI throws `ServerpodClientMultipleEndpointsFound`.
+If your project already has an endpoint that extends `EmailIdpBaseEndpoint` or `EmailOtpIdpBaseEndpoint`, such as `lib/src/auth/email_idp_endpoint.dart` from the project template, delete it. With two such endpoints, the Flutter email sign-in UI throws `ServerpodClientMultipleEndpointsFound`.
 
 Add the required entries to `<project>_server/config/passwords.yaml` under the `development:` section (use distinct values per environment):
 

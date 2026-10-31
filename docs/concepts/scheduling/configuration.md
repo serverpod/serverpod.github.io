@@ -21,8 +21,6 @@ futureCall:
   scanInterval: 5000      # default, in milliseconds
 ```
 
-The `futureCall.enabled` and `futureCall.executionEnabled` options need Serverpod 4.0.3 or later. Earlier versions set execution with the top-level `futureCallExecutionEnabled` key, which later versions still read when `futureCall.executionEnabled` is not set.
-
 ## Disable future calls
 
 The `futureCall.enabled` option turns future calls off completely. It is `true` by default. When set to `false`, calls can neither be scheduled nor executed. Use it when your project does not use future calls.
