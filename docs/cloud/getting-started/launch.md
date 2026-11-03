@@ -49,6 +49,8 @@ When the server has started, you can access it at:
    Insights: https://my-app.insights.serverpod.space/
 ```
 
+If the deployment fails, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
 ## Open your app
 
 In your browser, open the Web URL the command printed:
