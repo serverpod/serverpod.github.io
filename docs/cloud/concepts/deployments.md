@@ -159,3 +159,4 @@ For a step-by-step walkthrough, see [Recover from a failed deploy](https://docs.
 - [Private dependencies](https://docs.serverpod.dev/cloud/reference/private-dependencies.md) for private package access during the build.
 - [Ship non-Dart files with your server](https://docs.serverpod.dev/cloud/guides/ship-non-dart-files.md) for shipping static assets like configuration and templates.
 - [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md) for shipping every push.
+- [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) for how an idle project stops its server and starts it again on the next request.

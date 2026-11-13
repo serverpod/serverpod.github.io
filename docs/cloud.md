@@ -12,7 +12,7 @@ serverpod cloud launch
 
 ## What Serverpod Cloud manages
 
-- **Runtime and scaling.** Your app runs on a production runtime that scales as traffic grows.
+- **Runtime and scaling.** Your app runs on a production runtime that scales as traffic grows. It can also [scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) instead of running while nobody uses it.
 - **Networking and TLS.** Encrypted endpoints, certificates, and load balancing work without configuration.
 - **[Managed Postgres](https://docs.serverpod.dev/cloud/concepts/database.md)** (optional). Cloud can provision a production-grade Postgres database with automatic migrations and backups.
 - **[File storage](https://docs.serverpod.dev/cloud/concepts/storage.md).** Cloud provisions a private and a public storage with every project, ready for the files your app uploads at runtime.
