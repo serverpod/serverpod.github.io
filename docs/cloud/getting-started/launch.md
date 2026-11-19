@@ -9,7 +9,7 @@ Get your Serverpod app live on Cloud in a few minutes.
 You need:
 
 - The Serverpod Cloud CLI set up and authenticated. See [Set up the Cloud CLI](https://docs.serverpod.dev/cloud/getting-started/installation.md).
-- A Serverpod project on your machine. See [Creating a new project](https://docs.serverpod.dev/quickstart.md#create-the-project) in the Serverpod installation guide.
+- A Serverpod project on your machine. See [Create your project](https://docs.serverpod.dev/quickstart.md#create-your-project).
 
 ## Launch your project
 
