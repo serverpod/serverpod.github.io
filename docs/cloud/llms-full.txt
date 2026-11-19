@@ -171,6 +171,12 @@ Deploy your project to Cloud:
 serverpod cloud deploy
 ```
 
+The command also takes these flags:
+
+- `-v` (`--verbose`): Shows detailed output.
+- `--dart-version`: Overrides the Dart SDK used at build time.
+- `--concurrency=<N>`: Sets how many files are zipped in parallel during packaging (default `5`).
+
 The CLI packages your project, uploads it, and waits for the new version to go live. Once the deployment is live, your project is reachable at its default URLs:
 
 - Web: `https://<project-id>.serverpod.space/`
@@ -179,11 +185,9 @@ The CLI packages your project, uploads it, and waits for the new version to go l
 
 To use your own URL instead, see [Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md).
 
-Other flags:
-
-- `-v` (`--verbose`): detailed output.
-- `--dart-version`: override the Dart SDK used at build time.
-- `--concurrency=<N>`: how many files are zipped in parallel during packaging (default `5`).
+:::note
+Your web content is served through a [CDN](https://docs.serverpod.dev/cloud/concepts/cdn.md). Each successful deploy clears its cached copies, so the new version is served without waiting for the old copies to expire.
+:::
 
 To regenerate code or run other tasks before each deploy, configure a pre-deploy hook. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md).
 
@@ -314,6 +318,7 @@ For a step-by-step walkthrough, see [Recover from a failed deploy](https://docs.
 - [Private dependencies](https://docs.serverpod.dev/cloud/reference/private-dependencies.md) for private package access during the build.
 - [Ship non-Dart files with your server](https://docs.serverpod.dev/cloud/guides/ship-non-dart-files.md) for shipping static assets like configuration and templates.
 - [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md) for shipping every push.
+- [Content delivery and caching](https://docs.serverpod.dev/cloud/concepts/cdn.md) for how the CDN caches your web content and clears it on every deploy.
 - [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) for how an idle project stops its server and starts it again on the next request.
 
 ---
