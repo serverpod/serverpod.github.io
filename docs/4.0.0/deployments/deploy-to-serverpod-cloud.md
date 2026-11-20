@@ -6,7 +6,7 @@ https://docs.serverpod.dev/4.0.0/deployments/deploy-to-serverpod-cloud
 
 :::info
 
-Your first project includes a one-month free trial, with no credit card required.
+Your first project includes a one-month [free trial](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#free-trial), with no credit card required.
 
 :::
 
@@ -22,7 +22,7 @@ Cloud manages the production infrastructure for you:
 You deploy with the Serverpod CLI:
 
 1. Run `serverpod cloud launch`. It installs the Cloud CLI if needed. If you aren't signed in, it opens your browser so you can sign in.
-2. For a new project, the Cloud Console opens so you can create it. The database setting is pre-filled from your server's config.
+2. For a new project, the Cloud console opens so you can create it. The database setting is pre-filled from your server's config.
 3. When prompted, select the custom passwords from `config/passwords.yaml` to copy to Cloud. The command then deploys your server.
 4. Set any other secrets (API keys, OAuth credentials) with `serverpod cloud password set`. Then run `serverpod cloud deploy` so the server picks them up.
 
