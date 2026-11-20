@@ -123,7 +123,7 @@ To fix:
 
 2. Look for `Unhandled exception:` and inspect the stack trace.
 
-If the error is `Bad state: FutureCalls is not initialized.`, your server is trying to schedule a future call, which isn't supported on the Starter plan. To use future calls, [upgrade to the Growth or Enterprise plan](https://serverpod.dev/cloud) and redeploy.
+If the error is `Bad state: FutureCalls is not initialized.`, your server is trying to schedule a future call, which isn't supported on the Starter plan. To use future calls, [move the project to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) and redeploy.
 
 ## Redeploy and verify
 

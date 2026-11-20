@@ -8,7 +8,7 @@
 
 https://docs.serverpod.dev/cloud
 
-Serverpod Cloud is a managed hosting platform for Serverpod apps with predictable pricing. You deploy your app with the Serverpod Cloud CLI or via CI/CD, and use the web console for account setup, billing, and project dashboards.
+Serverpod Cloud is a managed hosting platform for Serverpod apps with predictable pricing. You deploy your app with the Serverpod Cloud CLI or via CI/CD, and use the web console for account setup, [billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#set-up-billing), and project dashboards.
 
 With [the Cloud CLI set up](https://docs.serverpod.dev/cloud/getting-started/installation.md), launch your first project with one command. No Dockerfile, no container config, no infrastructure setup:
 
@@ -105,7 +105,7 @@ serverpod cloud launch
 It creates a Cloud project and ships its first version in these steps:
 
 1. **Choose the project.** If your account has no projects, the command asks *"Open the browser and create a new Serverpod Cloud project?"* Press Enter to accept. If you already have projects, it lists them, with a last option to create a new project in the browser.
-2. **Create the project in the Console.** If you chose to create a new project, the Console's **New project** page opens. The project ID is pre-filled from your pubspec name (for example, `my-app`), and the database is switched on if your server config has a `database` section. Change either if you need to. Pick a plan (see [Cloud plans](https://serverpod.dev/cloud)), click **Launch Project**, and return to the terminal. The project ID becomes part of your default URL (`<project-id>.serverpod.space`).
+2. **Create the project in the Console.** If you chose to create a new project, the Console's **New project** page opens. The project ID is pre-filled from your pubspec name (for example, `my-app`), and the database is switched on if your server config has a `database` section. Change either if you need to. Pick a plan (see [Plans and billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md)), click **Launch Project**, and return to the terminal. The project ID becomes part of your default URL (`<project-id>.serverpod.space`).
 3. **Pre-deploy hooks.** The command adds `serverpod generate` as a pre-deploy hook, plus `serverpod run flutter_build` if your server's `pubspec.yaml` defines that script. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for details.
 4. **Custom passwords.** If `config/passwords.yaml` has custom passwords, the command asks which ones to copy to Cloud. Passwords from the `production` and `shared` sections are preselected. Set the rest later with `serverpod cloud password set`.
 
@@ -858,7 +858,7 @@ https://docs.serverpod.dev/cloud/concepts/database-backups
 A bad migration or an accidental bulk delete can lose data you needed. Serverpod Cloud can take point-in-time snapshots of your managed database, on demand or on a recurring schedule, and restore the whole database to any snapshot in one step. Backups run on the platform, so there is nothing for you to host or maintain. You manage them with the Serverpod Cloud CLI.
 
 :::info
-Backups are a **Growth** plan feature. On Growth you can create snapshots, schedule backups, and restore. Listing snapshots, deleting snapshots, and viewing or disabling the schedule are available on every plan, so a project on a smaller plan can still see and clean up backups it already has.
+Backups are a [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md) feature. On Growth you can create snapshots, schedule backups, and restore. Listing snapshots, deleting snapshots, and viewing or disabling the schedule are available on every plan, so a Starter project can still see and clean up backups it already has.
 :::
 
 ## When to use each kind of backup
@@ -960,13 +960,13 @@ Cloud asks for confirmation, then deletes the snapshot permanently. Scheduled sn
 
 ## Pricing
 
-Backup storage is billed separately from your regular database storage, as its own metered charge rather than counting against your database usage. It is priced the same as database storage, billed by usage and prorated for partial months, and applies only on the Growth plan. A schedule usually costs less than keeping the same number of manual snapshots. Each manual snapshot is a full copy, while a scheduled series stores one full copy plus the changes between snapshots. For current plan pricing, see [Serverpod Cloud plans](https://serverpod.dev/cloud).
+Backup storage is billed separately from your regular database storage, as its own metered charge rather than counting against your database usage. It is priced the same as database storage, billed by usage and prorated for partial months, and applies only on the Growth plan. A schedule usually costs less than keeping the same number of manual snapshots. Each manual snapshot is a full copy, while a scheduled series stores one full copy plus the changes between snapshots. For current plan pricing, see [Serverpod Cloud pricing](https://serverpod.dev/pricing).
 
 ## Limits
 
 - **Up to 100 manual snapshots per project.** Scheduled snapshots do not count towards this limit. When you reach it, creating another manual snapshot returns a clear error. Delete snapshots you no longer need to make room.
 - **Retention defaults.** A manual snapshot created without `--expire-in` is kept until you delete it. A scheduled snapshot created without `--retention` is kept for 35 days, then deleted automatically. No schedule can keep snapshots longer than that.
-- **Downgrading with stored backups.** A project that still has backups stored cannot move from the Growth plan to a smaller plan. Delete the backups first, then change the plan.
+- **Moving to Starter with stored backups.** A project with stored backups can't move to Starter. Delete the backups first, then [change the plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan).
 
 ## Related
 
@@ -1111,30 +1111,56 @@ For the full walkthrough, see [Deploy from CI with GitHub Actions](https://docs.
 
 https://docs.serverpod.dev/cloud/concepts/cdn
 
-Serverpod Cloud runs a CDN, a content delivery network, in front of every app's web server. Whatever your app marks as cacheable is served from an edge server near each visitor, whether it is a Flutter web build, a Jaspr site, or plain static files. Visitors get fast loads wherever they are, and your server does less work. Caching stays off until your app opts in, and every successful deploy clears the CDN's copies so a new build reaches visitors right away.
+Serverpod Cloud runs a CDN, a content delivery network, in front of every app's web server. Whatever your app marks as cacheable is served from an edge server near each visitor, whether it is a Flutter web build, a Jaspr site, or plain static files. Visitors get fast loads wherever they are, and your server does less work. Flutter web builds are cached by default. Other content is cached once your app opts in. Every successful deploy clears the CDN's copies, so a new build reaches visitors right away.
 
 ## How caching works
 
 Your app's `Cache-Control` header decides, per response, where a file may be cached and for how long. There are three layers:
 
 - **The visitor's browser:** Keeps its own copy of a file for up to the `max-age` you set. No deploy can clear it, so keep this lifetime short.
-- **The CDN at the edge:** Stores cacheable files for up to `s-maxage`, or `max-age` when `s-maxage` is not set. Every successful deploy clears it, and it refills on its own: the first request for a file at each edge location fetches it from your server and stores it back. There is no manual purge command. To clear the edge on demand, deploy again.
-- **Your server:** Serves everything else: responses marked `no-cache`, `private`, or `no-store`, responses with no cache header, responses that set a cookie, and all calls from your Flutter app to your endpoints. Every request for these reaches your server. For `no-cache`, the CDN may keep a copy, but it checks with your server before serving it.
+- **The CDN at the edge:** Stores cacheable files for up to `s-maxage`, or `max-age` when `s-maxage` is not set. Every successful deploy clears it, and the edge then refills as visitors arrive. The first request for a file at each edge location goes to your server, and later requests get the stored copy. There is no manual purge command. To clear the edge on demand, deploy again.
+- **Your server:** Serves responses marked `no-cache`, `private`, or `no-store`, responses with no cache header, responses that set a cookie, and all calls from your Flutter app to your endpoints. Every request for these reaches your server. For `no-cache`, the CDN may keep a copy, but it checks with your server before serving it.
 
 What the common header patterns do at each layer:
 
-| `Cache-Control`                                    | CDN at the edge                                         | Visitor's browser                                    |
-| -------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
-| `no-cache, private` (`FlutterRoute` default)       | Never stores it                                         | Stores it, but checks with your server on every load |
-| None (`StaticRoute` and `SpaRoute` default)        | Never stores it                                         | Decides on its own, using browser heuristics         |
-| `public, max-age=60, s-maxage=86400` (recommended) | Serves it for up to a day, cleared on every deploy      | Uses it for up to a minute                           |
-| `no-cache, public, s-maxage=86400`                 | Stores it, but checks with your server on every request | Stores it, but checks with your server on every load |
+| `Cache-Control`                                                        | CDN at the edge                                         | Visitor's browser                                    |
+| ---------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
+| `public, max-age=0, s-maxage=86400` (Cloud default for `FlutterRoute`) | Serves it for up to a day, cleared on every deploy      | Stores it, but checks for a newer copy on every load |
+| `no-cache, private` (framework default for `FlutterRoute`)             | Never stores it                                         | Stores it, but checks with your server on every load |
+| None (`StaticRoute` and `SpaRoute` default)                            | Never stores it                                         | Decides on its own, using browser heuristics         |
+| `public, max-age=60, s-maxage=86400` (recommended)                     | Serves it for up to a day, cleared on every deploy      | Uses it for up to a minute                           |
+| `no-cache, public, s-maxage=86400`                                     | Stores it, but checks with your server on every request | Stores it, but checks with your server on every load |
 
-Those checks are cheap: for an unchanged file, your server answers with a small 304 Not Modified response instead of the file itself. The last pattern keeps content fresh on every request and saves bandwidth, but your server still handles every request, so it does not reduce load the way `max-age` does. Whichever route you use, the CDN stores nothing under the defaults, so opting in works the same way for every stack.
+When a file hasn't changed, your server answers those checks with a small 304 Not Modified response instead of the file itself, so they cost little. The last pattern keeps content fresh on every request and saves bandwidth, but your server still handles every request, so it does not reduce load the way `max-age` does.
 
-## Enable caching for your app
+## Configure caching for Flutter web builds
 
-To make content cacheable, set a `cacheControlFactory` on the route that serves it: the `FlutterRoute` for a Flutter web app, the `SpaRoute` for another framework's single-page app, or a `StaticRoute.directory` for plain files. The factory returns the `Cache-Control` header for each file the route serves. Routes you write yourself work the same way: the CDN only reads the header on a response, however your code produces it. The recommended header is `public, max-age=60, s-maxage=86400`, shown here on a `FlutterRoute`:
+Every Serverpod Cloud project has the environment variable `SERVERPOD_WEB_SERVER_FLUTTER_CACHE_CONTROL` set to `public, max-age=0, s-maxage=86400`. A `FlutterRoute` that doesn't set its own `cacheControlFactory` sends this header. The project template sets up the route this way. As a result:
+
+- The CDN serves your Flutter build for up to a day and clears it on every deploy.
+- Browsers check for a newer copy on every load, so visitors get a new build as soon as you deploy.
+
+The `FlutterRoute` always serves its `index.html` fallback with `no-cache, private`, whatever header you set with the variable or in code, so visitors pick up a new build's entry page right away.
+
+Most apps can leave the default as it is. `SERVERPOD_WEB_SERVER_FLUTTER_CACHE_CONTROL` is a regular [environment variable](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md#manage-environment-variables), so you can change it or remove it. You can also change it in the console, under **Environment variables** in the project's **Env & Passwords** tab.
+
+To change the header, set the variable to another value:
+
+```bash
+serverpod cloud variable set SERVERPOD_WEB_SERVER_FLUTTER_CACHE_CONTROL "public, max-age=60, s-maxage=86400"
+```
+
+To turn off edge caching for your Flutter build, remove the variable. The route then sends `no-cache, private`:
+
+```bash
+serverpod cloud variable unset SERVERPOD_WEB_SERVER_FLUTTER_CACHE_CONTROL
+```
+
+Then deploy again. Your server reads the variable when it starts, and the deploy clears the copies the CDN stored under the old header. A `cacheControlFactory` in your code takes precedence over the variable.
+
+## Set your own cache headers
+
+To cache other content, or to set the Flutter header in code, set a `cacheControlFactory` on the route that serves it, whether that's the `SpaRoute` for another framework's single-page app, a `StaticRoute.directory` for plain files, or the `FlutterRoute` for a Flutter web app. The factory returns the `Cache-Control` header for each file the route serves. The CDN reads only the header on each response, so routes you write yourself work the same way, however your code produces the header. The recommended header is `public, max-age=60, s-maxage=86400`, shown here on a `FlutterRoute`:
 
 ```dart
 pod.webServer.addRoute(
@@ -1155,13 +1181,13 @@ Each directive plays a part:
 - The `max-age=60` directive sets the browser lifetime to one minute, short enough that a visitor picks up a new deploy almost immediately.
 - The `s-maxage=86400` directive sets the CDN lifetime to one day. The deploy purge keeps the edge fresh, so this longer lifetime is mainly a safety net. If a purge ever fails, your deploy still succeeds, and the cached copies expire on their own within a day.
 
-There is one exception. The `FlutterRoute` always serves the `index.html` fallback with `no-cache, private`, whatever factory you set, so visitors pick up a new build's entry page right away.
-
 For a simpler setup, the `StaticRoute.public` and `StaticRoute.publicImmutable` factories return common header shapes without a custom closure. Any of the three routes accepts them, including the `FlutterRoute` above. They do not set a separate CDN lifetime, so the browser and the CDN share one `max-age`:
 
 ```dart
 cacheControlFactory: StaticRoute.public(maxAge: const Duration(minutes: 1)),
 ```
+
+To opt in without code, set the project variable `SERVERPOD_WEB_SERVER_SPA_CACHE_CONTROL` for a `SpaRoute`, or `SERVERPOD_WEB_SERVER_STATIC_CACHE_CONTROL` for a `StaticRoute`. They work like the Flutter variable, but Serverpod Cloud doesn't set them for you.
 
 :::warning
 Flutter's build uses fixed file names with no content hashes, so a long browser `max-age` can leave a visitor on an old build after you deploy. Keep the browser lifetime short and let the deploy purge handle the edge.
@@ -1180,7 +1206,7 @@ curl -s -o /dev/null -D - https://my-app.serverpod.space/main.dart.js
 The `-o /dev/null` discards the body and `-D -` prints the response headers. A cached file answers like this:
 
 ```text
-cache-control: public, max-age=60, s-maxage=86400
+cache-control: public, max-age=0, s-maxage=86400
 date: Mon, 20 Jul 2026 08:03:47 GMT
 age: 26
 ```
@@ -1189,7 +1215,7 @@ How to read the responses:
 
 - **No `age` on the first request:** The edge had no copy yet and fetched the file from your server.
 - **An `age` that goes up with each request while `date` stays the same:** The edge is serving its stored copy, and those requests never reach your server.
-- **No `age` at all:** The response does not opt in to caching (either default), or the request was a HEAD request. The CDN does not cache HEAD requests, so use GET, not `curl -I`.
+- **No `age` at all:** The response does not opt in to caching (for example, under the `SpaRoute` or `StaticRoute` default), or the request was a HEAD request. The CDN does not cache HEAD requests, so use GET, not `curl -I`.
 - **An `age` that resets shortly after a deploy:** The purge cleared the edge, and the new build is being cached.
 
 ## Cost and limits
@@ -1338,7 +1364,7 @@ The **Storage** tab in the Cloud console shows the same list, and you can add an
 
 ## Add a storage
 
-A storage you add yourself keeps files apart from the defaults, such as exports you purge on a schedule. The Starter plan includes two storages and your project already uses both, so adding more needs the **Growth** plan.
+A storage you add yourself keeps files apart from the defaults, such as exports you purge on a schedule. The Starter plan includes two storages and your project already uses both, so adding more needs the [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md).
 
 Add one:
 
@@ -1382,9 +1408,9 @@ In the console, select a storage in the **Storage** tab to browse, upload, downl
 - **Storages per project.** The Starter plan includes two and Growth allows up to ten.
 - **Metered usage.** Serverpod Cloud meters three things and bills them by usage: the data you store, the data read out of your storages, and the operations performed on them.
 - **Going over a cap.** Caps come with the plan, and there is no setting that raises them. When a project goes over one, your server can no longer read or write any storage in the project, and public URLs stop serving. Listing, downloading and deleting keep working from the CLI and the console, so you can clear space.
-- **Getting access back.** Access returns once usage is back under the cap, the month rolls over for a monthly cap, or the project moves to a plan that covers the usage. The check runs about once an hour, so it can take up to an hour. Deleting files helps when stored data is what you went over.
+- **Getting access back.** Access returns once usage is back under the cap, the month rolls over for a monthly cap, or the project [moves to a plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) that covers the usage. The check runs about once an hour, so it can take up to an hour. Deleting files helps when stored data is what you went over.
 
-See [Serverpod Cloud plans](https://serverpod.dev/cloud) for the caps and prices on your plan.
+See [Serverpod Cloud pricing](https://serverpod.dev/pricing) for the caps and prices on your plan.
 
 ## Related
 
@@ -1408,7 +1434,7 @@ Whether a project scales to zero depends on its plan:
 | Starter | On             | [Move the project to Growth](#turn-off-scale-to-zero) to turn it off |
 | Growth  | Off by default | [Set **Min podlets** to 0](#turn-on-scale-to-zero) to turn it on     |
 
-To see whether your project scales to zero, open its **Settings** in the [Serverpod Cloud console](https://console.serverpod.dev). The **Compute** section of the **Plan** card shows the range of podlets the project can run, such as **0-1 PODLETS**. Podlets are the running copies of your server. If the range starts at 0, the project scales to zero.
+To see whether your project scales to zero, open its **Settings** in the [Serverpod Cloud console](https://console.serverpod.dev). The **Compute** card in the **Plan** section shows the range of podlets the project can run, such as **0-1 PODLETS**. Podlets are the running copies of your server. If the range starts at 0, the project scales to zero.
 
 From the terminal, run `serverpod cloud project show` in your project's directory. The `Compute` row ends with the same range, such as `0-1 podlets`.
 
@@ -1504,7 +1530,7 @@ The console confirms with "Your plan is updated". The change can take up to a mi
 
 ### Turn off scale to zero
 
-Starter projects always scale to zero, and the console shows **Upgrade plan** instead of **Edit plan**. To keep your server running, move the project to Growth, which keeps one podlet running by default.
+Starter projects always scale to zero, and the console shows **Upgrade plan** instead of **Edit plan**. To keep your server running, [move the project to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan), which keeps one podlet running by default.
 
 On other plans, set **Min podlets** to 1 or more in the console:
 
@@ -1520,7 +1546,7 @@ The console confirms with "Your plan is updated". The change can take up to a mi
 - [Database](https://docs.serverpod.dev/cloud/concepts/database.md): the managed database, which runs separately from your podlets.
 - [Scheduling overview](https://docs.serverpod.dev/concepts/scheduling/overview.md): future calls, which need a running server.
 - [CLI reference: `status` command](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md): the `status live` command and its options.
-- [Serverpod Cloud plans](https://serverpod.dev/cloud): what each plan includes and costs.
+- [Plans and billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md): what each plan includes, how to change a project's plan, and how billing works.
 
 ---
 
@@ -1783,6 +1809,146 @@ Each platform needs the icon in several sizes. A package such as [flutter\_launc
 
 - [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md): how to deploy the server your app talks to.
 - [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md): the project configuration file the `app` commands read.
+
+---
+
+# Plans and billing
+
+https://docs.serverpod.dev/cloud/concepts/plans-and-billing
+
+Your project's plan decides which features it can use, such as custom domains and database backups, and how far its server and database can grow. You pick a plan when you create a project, and you can change it later. Every project you own is billed to the card and billing details on your Serverpod Cloud account.
+
+## Choose a plan
+
+Serverpod Cloud has two standard plans, Starter and Growth. Starter fits an app before launch or a side project. Growth fits production apps, and adds features Starter doesn't include, such as custom domains, database backups, future calls, and team members. The [pricing page](https://serverpod.dev/pricing) lists what each plan includes and costs.
+
+For needs beyond Growth, Serverpod also offers an Enterprise plan, which you arrange with the Serverpod team. The pricing page lists what it includes.
+
+To see which plan your project is on, open its **Settings** in the [Serverpod Cloud console](https://console.serverpod.dev). The **Plan** section shows the plan's name. From the terminal, run `serverpod cloud project show` in your project's directory and look at the `Plan` row.
+
+## Free trial
+
+Your first Starter project includes a one-month free trial. You don't need a card or billing details until the trial ends.
+
+Any other project, including every Growth project, needs a card and billing details when you create it. The **New project** page asks for whichever is missing.
+
+To see when the trial ends, open the project's **Settings**. The **Plan** section shows the end date. Serverpod Cloud also emails you a reminder before it ends.
+
+What happens when the trial ends depends on your account:
+
+- **Billing is set up:** The project keeps running, and its monthly plan fee starts.
+- **Billing isn't set up:** The project is [suspended](#why-is-my-project-suspended) right away.
+
+To keep the project running, [set up billing](#set-up-billing) before the trial ends. Until you do, the console shows a **Set up billing** banner at the top.
+
+## Set up billing
+
+Your account needs a card to pay for your projects and billing details for your invoices. Your billing details are your billing address, plus your company name if you're billed as a business. Without them, an invoice can't be issued, and the project is [suspended](#why-is-my-project-suspended).
+
+You need both to:
+
+- Keep a project running after its [free trial](#free-trial)
+- [Change a project's plan](#change-your-projects-plan)
+- Create a project without a free trial
+
+Projects you were invited to are billed to their owner, so they don't need your card or billing details.
+
+To set up billing:
+
+1. In the [Serverpod Cloud console](https://console.serverpod.dev), select the person icon in the top bar, then **Billing**. The **Set up billing** buttons open the same page.
+
+   ![The person icon at the right of the Serverpod Cloud console's top bar, with the account menu open below it, listing Billing, Account settings, Security, Theme, and Log out.](https://docs.serverpod.dev/img/cloud-console/account-menu-billing.png)
+
+2. Add your card under **Payment methods**.
+
+3. Fill in your billing address under **Billing info**. If you're billed as a business, select **Are you a business?** and add your company name. **VAT information** is optional.
+
+4. Under **Billing emails**, add anyone else who should get billing messages, such as trial reminders and failed payments.
+
+5. Select **Save**. Your billing info and billing emails are saved only when you do.
+
+Once your account has a card and billing details, the **Set up billing** banner and buttons go away.
+
+## Change your project's plan
+
+You can move a project between Starter and Growth in either direction. The move changes which features the project can use and which monthly fee it pays.
+
+### Before you start
+
+Make sure:
+
+- **You own the project:** Only the project's owner can change its plan. For anyone else, the **Upgrade plan** or **Edit plan** button is dimmed, and hovering it explains who can change the plan.
+- **Billing is in order:** Your account has [billing details](#set-up-billing) and no overdue payment.
+
+**Moving to Growth:** If the project is on its free trial, the move ends the trial.
+
+**Moving to Starter:** First remove what Starter doesn't include:
+
+- **Backups:** Turn off the backup schedule with `serverpod cloud db schedule unset`, then [delete every snapshot](https://docs.serverpod.dev/cloud/concepts/database-backups.md#delete-a-snapshot), including scheduled ones.
+- **Custom domains:** [Detach them](https://docs.serverpod.dev/cloud/concepts/custom-domains.md#detach-a-custom-domain).
+- **Team members:** Remove each one with `serverpod cloud project user revoke` followed by their email.
+- **Storages:** [Delete storages](https://docs.serverpod.dev/cloud/concepts/storage.md#delete-a-storage) until two remain. Deleting a storage removes its files for good, so copy out anything you need first.
+
+### Change the plan
+
+1. In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings**. On Starter, select **Upgrade plan** in the **Plan** section. On Growth, select **Edit plan**.
+2. Under **Project plan**, choose the plan.
+3. Review **Compute** and **Database**, because choosing a plan resets both to that plan's defaults, which are one small podlet (a running copy of your server) and the small database size. On Starter, the podlet scales to zero. On Growth, it keeps running.
+4. Select **Save**. If your account has no card, the button reads **Add card and upgrade**, and the console asks for the card first.
+
+The change can take up to a minute to apply. The **Plan** section then shows the new plan's name. If the project has been deployed, your server restarts with the new plan's settings.
+
+If the console says "We couldn't confirm your plan change", refresh the page. If the **Plan** section still shows the old plan, check each point under [Before you start](#before-you-start). If you're moving to Starter, also check the **Moving to Starter** list.
+
+## View your invoices
+
+Your invoices are kept in your billing portal, a separate page that opens in a new tab. To open it, go to the [Billing page](https://console.serverpod.dev/account/billing) of the Serverpod Cloud console and select **View invoices**.
+
+## Stop charges
+
+A project's charges stop when you delete it, because deleting ends its plan right away. Moving the project to Starter doesn't stop them, since Starter has a monthly fee too. Fees are billed after the period they cover, so a last invoice still arrives for the time before the deletion.
+
+Deleting a project removes its server, database, and stored files. It can't be undone, and the project ID can't be used again.
+
+To delete a project, including a suspended one, open its **Settings** in the console and select **Delete project**. From the terminal, run `project delete` with the project ID:
+
+```bash
+serverpod cloud project delete my-app
+```
+
+## Troubleshooting
+
+### What happens if a payment fails?
+
+Serverpod Cloud charges your card for each invoice. When a payment fails, what happens next depends on the invoice:
+
+- **The first invoice on a project's plan:** The project is suspended right away. This includes the first invoice after you change the project's plan, or after you switch your account between business and individual on **Billing**.
+- **Later invoices:** You have 10 days to pay, counted from the day the payment first fails. Your billing emails get a message with the date the project will be suspended.
+
+While a payment is overdue, the console shows **Payment overdue** at the top of every page. You can't create projects, add resources such as storages, or change a project's plan until it's paid. To pay, select **Manage billing** in that banner, then pay the overdue invoice in your billing portal.
+
+### Why is my project suspended?
+
+A suspended project's server stops, and you can't deploy to it until it's reactivated. When a project is suspended for payment or billing setup, your billing emails get a message, and they get another when it's reactivated.
+
+The project's page shows **Project suspended** with the reason and a button, and the project list marks it **Suspended**. From the terminal, `serverpod cloud project show` prints the reason in its `Status` row.
+
+What to do depends on the button on the project's page:
+
+| Button                     | Why the project is suspended                                                                                             | To reactivate it                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| **Pay invoices**           | A payment is overdue                                                                                                     | Select **Pay invoices** and pay the overdue invoices in your billing portal |
+| **Complete billing setup** | Your account was missing a card or billing details when the free trial ended, or billing details when an invoice was due | [Set up billing](#set-up-billing)                                           |
+| **Manage plan**            | The project's plan ended                                                                                                 | Select **Manage plan**, then choose a plan on the project's **Settings**    |
+| **Contact support**        | Serverpod Cloud support suspended it                                                                                     | Contact support from the **Need help?** menu in the console's top bar       |
+
+After you pay, complete billing setup, or choose a plan, the project is reactivated, and its server starts again with its last deployment.
+
+## Related
+
+- [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md): why Starter projects scale to zero when idle, and how to turn it on or off on Growth.
+- [Database backups](https://docs.serverpod.dev/cloud/concepts/database-backups.md): the backups that Growth includes.
+- [Storage](https://docs.serverpod.dev/cloud/concepts/storage.md): the storages each plan includes and their limits.
 
 ---
 
@@ -2257,7 +2423,7 @@ To fix:
 
 2. Look for `Unhandled exception:` and inspect the stack trace.
 
-If the error is `Bad state: FutureCalls is not initialized.`, your server is trying to schedule a future call, which isn't supported on the Starter plan. To use future calls, [upgrade to the Growth or Enterprise plan](https://serverpod.dev/cloud) and redeploy.
+If the error is `Bad state: FutureCalls is not initialized.`, your server is trying to schedule a future call, which isn't supported on the Starter plan. To use future calls, [move the project to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) and redeploy.
 
 ## Redeploy and verify
 

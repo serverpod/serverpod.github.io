@@ -2,7 +2,7 @@
 
 https://docs.serverpod.dev/cloud
 
-Serverpod Cloud is a managed hosting platform for Serverpod apps with predictable pricing. You deploy your app with the Serverpod Cloud CLI or via CI/CD, and use the web console for account setup, billing, and project dashboards.
+Serverpod Cloud is a managed hosting platform for Serverpod apps with predictable pricing. You deploy your app with the Serverpod Cloud CLI or via CI/CD, and use the web console for account setup, [billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#set-up-billing), and project dashboards.
 
 With [the Cloud CLI set up](https://docs.serverpod.dev/cloud/getting-started/installation.md), launch your first project with one command. No Dockerfile, no container config, no infrastructure setup:
 
