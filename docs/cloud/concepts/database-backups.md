@@ -2,7 +2,7 @@
 
 https://docs.serverpod.dev/cloud/concepts/database-backups
 
-A bad migration or an accidental bulk delete can lose data you needed. Serverpod Cloud can take point-in-time snapshots of your managed database, on demand or on a recurring schedule, and restore the whole database to any snapshot in one step. Backups run on the platform, so there is nothing for you to host or maintain. You manage them with the Serverpod Cloud CLI.
+A bad migration or an accidental bulk delete can lose data you needed. Serverpod Cloud can take snapshots of your managed database, on demand or on a recurring schedule, and restore the whole database to any snapshot in one step. Backups run on the platform, so there is nothing for you to host or maintain. You manage them with the Serverpod Cloud CLI.
 
 :::info
 Backups are a [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md) feature. On Growth you can create snapshots, schedule backups, and restore. Listing snapshots, deleting snapshots, and viewing or disabling the schedule are available on every plan, so a Starter project can still see and clean up backups it already has.

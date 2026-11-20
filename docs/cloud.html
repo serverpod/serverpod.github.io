@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.24c1aedc.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8cf9d7c9.js" defer="defer"></script>
 <script src="/assets/js/main.bf618c86.js" defer="defer"></script>
 </head>
 <body>
@@ -40,11 +40,13 @@
 <ul>
 <li class=""><strong>Runtime and scaling.</strong> Your app runs on a production runtime that scales as traffic grows. It can also <a class="" href="/cloud/concepts/scale-to-zero">scale to zero</a> instead of running while nobody uses it.</li>
 <li class=""><strong>Networking and TLS.</strong> Encrypted endpoints, certificates, and load balancing work without configuration.</li>
-<li class=""><strong><a class="" href="/cloud/concepts/database">Managed Postgres</a></strong> (optional). Cloud can provision a production-grade Postgres database with automatic migrations and backups.</li>
+<li class=""><strong><a class="" href="/cloud/concepts/database">Managed Postgres</a></strong> (optional). Cloud can provision a production-grade Postgres database. Each deploy applies your migrations. If your plan includes backups, you can take <a class="" href="/cloud/concepts/database-backups">snapshots</a> on demand or on a schedule.</li>
 <li class=""><strong><a class="" href="/cloud/concepts/storage">File storage</a>.</strong> Cloud provisions a private and a public storage with every project, ready for the files your app uploads at runtime.</li>
+<li class=""><strong>Hosting region.</strong> Every project runs in Frankfurt, Germany, in the EU. That includes its server, database, and file storage.</li>
 <li class=""><strong><a class="" href="/cloud/concepts/passwords-secrets-env-vars">Secrets and environment variables</a>.</strong> Manage sensitive values through the Cloud CLI. Values are encrypted where applicable.</li>
 <li class=""><strong><a class="" href="/cloud/concepts/custom-domains">Custom domains</a>.</strong> Attach your own domain. TLS certificates are provisioned and renewed. Cloud hosts both your backend and a preconfigured website for your Flutter web app.</li>
 <li class=""><strong><a class="" href="/cloud/concepts/logs">Logs and inspection</a>.</strong> View logs in the CLI or in Serverpod Insights, the desktop log viewer (requires a database).</li>
+<li class=""><strong><a class="" href="/cloud/concepts/app-publishing">App publishing</a>.</strong> Build, sign, and upload your Flutter app to TestFlight and Google Play from the Cloud CLI.</li>
 <li class=""><strong>Pub/sub and caching.</strong> Supported through the Serverpod framework with a third-party Redis service you connect yourself. See <a class="" href="/cloud/guides/redis">Use Redis for PubSub and caching</a> for the typical setup.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="where-to-go-next">Where to go next<a href="#where-to-go-next" class="hash-link" aria-label="Direct link to Where to go next" title="Direct link to Where to go next" translate="no">​</a></h2>
