@@ -283,7 +283,7 @@ The agent will start building your app. It will manage your database and perform
 
 Deploy your app to [Serverpod Cloud](https://docs.serverpod.dev/cloud.md), the hosting platform run by the Serverpod team, to make it publicly accessible. Your first project includes a one-month [free trial](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#free-trial) with no credit card required.
 
-1. Create an account in the [Serverpod Cloud console](https://console.serverpod.dev/).
+1. Create an account in the [Serverpod Cloud Console](https://console.serverpod.dev/).
 
 2. Open a second terminal. From the project folder, run:
 
@@ -295,7 +295,7 @@ Deploy your app to [Serverpod Cloud](https://docs.serverpod.dev/cloud.md), the h
 
 4. When the terminal asks *Open the browser and create a new Serverpod Cloud project?*, press **Enter**. Your browser opens the project creation page.
 
-5. The console suggests a **Project ID**, which becomes your public URL. Change it if the console says the name is taken, keep the **Starter** plan, and click **Launch Project**.
+5. The Console suggests a **Project ID**, which becomes your public URL. Change it if the Console says the name is taken, keep the **Starter** plan, and click **Launch Project**.
 
 6. Return to your terminal while the CLI packages and deploys your app.
 
@@ -304,7 +304,7 @@ When rollout finishes, your web app is live at `https://<project-id>.serverpod.s
 ## Next steps
 
 - [Learn how Serverpod works](https://docs.serverpod.dev/how-it-works.md): See how your agent builds with Serverpod, and how endpoints, data models, and the database fit together.
-- [Monitor your app](https://docs.serverpod.dev/cloud.md): Use the Logs, Sessions, and Metrics tabs in the [Serverpod Cloud console](https://console.serverpod.dev/).
+- [Monitor your app](https://docs.serverpod.dev/cloud.md): Use the Logs, Sessions, and Metrics tabs in the [Serverpod Cloud Console](https://console.serverpod.dev/).
 - Have feedback or questions? Tell us on [Discord](https://serverpod.dev/discord) or open an issue on [GitHub](https://github.com/serverpod/serverpod). Pull requests are welcome.
 
 Happy building with Serverpod 4!
@@ -983,7 +983,7 @@ The command walks you through these steps:
 
 1. If the Serverpod Cloud CLI isn't installed yet, `serverpod cloud` installs it first.
 2. If you aren't signed in, your browser opens so you can sign in.
-3. For a new project, the Cloud console opens so you can create it. Keep the database enabled there, because the recipe app stores its recipes in it. Cloud provisions a managed Postgres database, separate from the embedded one `serverpod start` runs locally.
+3. For a new project, the Cloud Console opens so you can create it. Keep the database enabled there, because the recipe app stores its recipes in it. Cloud provisions a managed Postgres database, separate from the embedded one `serverpod start` runs locally.
 4. You choose which custom passwords from `config/passwords.yaml` to copy to Cloud. That file stays on your machine and is never deployed. Select `geminiApiKey` so the deployed server can call Gemini. It isn't selected by default, because it sits in the `development` section.
 5. The command deploys your server along with the web build of your app.
 
@@ -28616,7 +28616,7 @@ Cloud manages the production infrastructure for you:
 You deploy with the Serverpod CLI:
 
 1. Run `serverpod cloud launch`. It installs the Cloud CLI if needed. If you aren't signed in, it opens your browser so you can sign in.
-2. For a new project, the Cloud console opens so you can create it. The database setting is pre-filled from your server's config.
+2. For a new project, the Cloud Console opens so you can create it. The database setting is pre-filled from your server's config.
 3. When prompted, select the custom passwords from `config/passwords.yaml` to copy to Cloud. The command then deploys your server.
 4. Set any other secrets (API keys, OAuth credentials) with `serverpod cloud password set`. Then run `serverpod cloud deploy` so the server picks them up.
 
