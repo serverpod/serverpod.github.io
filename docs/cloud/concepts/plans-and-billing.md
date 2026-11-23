@@ -79,10 +79,10 @@ Make sure:
 
 1. In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings**. On Starter, select **Upgrade plan** in the **Plan** section. On Growth, select **Edit plan**.
 2. Under **Project plan**, choose the plan.
-3. Review **Compute** and **Database**, because choosing a plan resets both to that plan's defaults, which are one small podlet (a running copy of your server) and the small database size. On Starter, the podlet scales to zero. On Growth, it keeps running.
+3. Review **Compute** and **Database**, because choosing a plan resets both to that plan's defaults, which are one small [podlet](https://docs.serverpod.dev/cloud/concepts/compute.md) (a running copy of your server) and the small database size. On Starter, the podlet scales to zero. On Growth, it keeps running.
 4. Select **Save**. If your account has no card, the button reads **Add card and upgrade**, and the console asks for the card first.
 
-The change can take up to a minute to apply. The **Plan** section then shows the new plan's name. If the project has been deployed, your server restarts with the new plan's settings.
+The change usually applies within a minute or two. The **Plan** section then shows the new plan's name. If the project has been deployed, your server restarts with the new plan's settings.
 
 If the console says "We couldn't confirm your plan change", refresh the page. If the **Plan** section still shows the old plan, check each point under [Before you start](#before-you-start). If you're moving to Starter, also check the **Moving to Starter** list.
 
@@ -132,6 +132,7 @@ After you pay, complete billing setup, or choose a plan, the project is reactiva
 
 ## Related
 
+- [Compute](https://docs.serverpod.dev/cloud/concepts/compute.md): podlet sizes and the autoscaling range on Growth.
 - [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md): why Starter projects scale to zero when idle, and how to turn it on or off on Growth.
 - [Database backups](https://docs.serverpod.dev/cloud/concepts/database-backups.md): the backups that Growth includes.
 - [Storage](https://docs.serverpod.dev/cloud/concepts/storage.md): the storages each plan includes and their limits.
