@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.95e3c8e7.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.0a57e29e.js" defer="defer"></script>
 <script src="/assets/js/main.aabf87f9.js" defer="defer"></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <li class=""><strong>P</strong> creates a repair migration to reconcile a database that has drifted from your migrations, and applies it. This shortcut is not shown in the bottom bar; press <strong>H</strong> to see it listed.</li>
 <li class=""><strong>A</strong> applies pending migrations. Use it to retry after a failed apply.</li>
 </ul>
-<p>Hold <strong>Shift</strong> with <strong>M</strong> or <strong>P</strong> to force the migration past Serverpod&#x27;s warning that information may be destroyed, so force deliberately. <strong>Shift+M</strong> still creates nothing when your models have no changes. For an empty migration, run <a class="" href="/next/concepts/cli/commands/create-migration"><code>serverpod create-migration --empty</code></a>. <strong>Shift+P</strong> creates a repair migration even when the database has not drifted. For how migrations work, see <a class="" href="/next/concepts/data-and-the-database/database/migrations">Migrations</a>.</p>
+<p>Hold <strong>Shift</strong> with <strong>M</strong> or <strong>P</strong> to force the migration past Serverpod&#x27;s data-loss warning. A forced migration is applied immediately and <strong>can permanently delete data</strong>, so use it carefully. <strong>Shift+M</strong> still creates nothing when your models have no changes. For an empty migration, run <a class="" href="/next/concepts/cli/commands/create-migration"><code>serverpod create-migration --empty</code></a>. <strong>Shift+P</strong> creates a repair migration even when the database has not drifted. For how migrations work, see <a class="" href="/next/concepts/data-and-the-database/database/migrations">Migrations</a>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="choose-a-run-mode">Choose a run mode<a href="#choose-a-run-mode" class="hash-link" aria-label="Direct link to Choose a run mode" title="Direct link to Choose a run mode" translate="no">​</a></h2>
 <p>By default, <code>serverpod start</code> runs in the <code>development</code> run mode. To start in another mode, forward a <code>--mode</code> argument to the server after <code>--</code>:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod start -- </span><span class="token parameter variable" style="color:#36acaa">--mode</span><span class="token plain"> staging</span><br></div></code></pre></div></div>
