@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.88a87450.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.8c7f9b88.js" defer="defer"></script>
 <script src="/assets/js/main.aabf87f9.js" defer="defer"></script>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <p>The link command writes or updates three files in your local project directory:</p>
 <ol>
 <li class=""><strong><code>scloud.yaml</code></strong>: contains the project ID that ties your codebase to the Cloud project. Created in your server package directory (or the one specified with <code>--project-dir</code>).</li>
-<li class=""><strong><code>.scloudignore</code></strong>: created from a template if it doesn&#x27;t exist; defines which files should be excluded when uploading to Cloud (syntax mirrors <code>.gitignore</code>).</li>
+<li class=""><strong><code>.scloudignore</code></strong>: created from a template if it doesn&#x27;t exist, in your server package directory and, for a workspace, in the workspace root. It defines which files are excluded when uploading to Cloud (syntax mirrors <code>.gitignore</code>).</li>
 <li class=""><strong><code>.gitignore</code></strong>: if your project is a workspace, the <code>.scloud/</code> directory is added to keep deployment artifacts out of version control.</li>
 </ol>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="usage">Usage<a href="#usage" class="hash-link" aria-label="Direct link to Usage" title="Direct link to Usage" translate="no">​</a></h2>
