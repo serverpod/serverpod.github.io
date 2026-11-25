@@ -267,21 +267,13 @@ Save the package to a local zip (useful for CI inspection or air-gapped environm
 serverpod cloud deploy --output deployment.zip --wet-run
 ```
 
-## What a deploy uploads
+## Configure what's included
 
-By default, a deploy uploads your server project and any packages from its [Dart workspace](https://dart.dev/tools/pub/workspaces) that it depends on, along with the workspace's root `pubspec.yaml` and `pubspec.lock`. It leaves out hidden files and folders, whose names start with `.`, and anything your `.gitignore` files exclude. Because `.gitignore` also controls what Git ignores, you can use a `.scloudignore` file to change only what a deploy uploads.
+A `.scloudignore` file in your project root controls which files are packaged. The syntax mirrors `.gitignore`.
 
-### Configure what's included
+By default, every file ignored by `.gitignore` is also excluded from the deployment. To include files that `.gitignore` excludes, prefix the pattern with `!` in your `.scloudignore`:
 
-The `.scloudignore` file complements or overrides rules in the `.gitignore` file for deployment. Its syntax mirrors `.gitignore` and can be used to both exclude and include files.
-
-When you launch or link a project, the CLI creates a default `.scloudignore` in your server project's folder if the folder doesn't have one. In a Dart workspace, it also creates one in the workspace root. In your server project, the default file leaves out your passwords and config files, which Serverpod Cloud manages for you.
-
-To upload a file that a `.gitignore` excludes, add a `!` pattern for it to a `.scloudignore` in the same folder as that `.gitignore`, or in a folder below it. For files in your server project, that's usually the server project's `.scloudignore`.
-
-Here's an example `.scloudignore` for your server project:
-
-```text title="my_project_server/.scloudignore"
+```text title=".scloudignore"
 # Exclude a specific file
 /specific_file.txt
 
@@ -295,17 +287,17 @@ Here's an example `.scloudignore` for your server project:
 !lib/src/generated/
 ```
 
-Verify your ignore patterns:
-
-```bash
-serverpod cloud deploy --wet-run --show-files
-```
-
-The Serverpod Cloud CLI may generate intermediate files under `.scloud/` directories. In a Dart workspace, the CLI adds this pattern to the workspace root's `.gitignore` for you. In any other project, add it yourself so the files stay out of version control:
+The Serverpod Cloud CLI may generate intermediate files under `.scloud/` directories. In a workspace project, the CLI adds this pattern to the workspace root's `.gitignore` for you. In any other project, add it yourself so the files stay out of version control:
 
 ```text title=".gitignore"
 # scloud deployment generated files should not be committed to git
 **/.scloud/
+```
+
+Verify your ignore patterns:
+
+```bash
+serverpod cloud deploy --wet-run --show-files
 ```
 
 ## Troubleshooting
@@ -2157,7 +2149,7 @@ After a successful deploy, your server will use Upstash for Redis-backed caching
 
 https://docs.serverpod.dev/cloud/guides/ship-non-dart-files
 
-Bundle non-Dart files (configuration, templates, CSV data, binary blobs) with your server code on Cloud. Place them in an `assets/` folder in your server project and read them with `./assets/<path>` at runtime.
+Bundle non-Dart files (configuration, templates, CSV data, binary blobs) with your server code on Cloud. Place them in an `assets/` folder at the project root and read them with `./assets/<path>` at runtime.
 
 ## Before you start
 
@@ -2188,7 +2180,7 @@ Then deploy:
 serverpod cloud deploy
 ```
 
-Cloud zips your server project and includes every file that isn't excluded from the deploy package (see [Control what gets uploaded](#control-what-gets-uploaded) below). The `assets/` name is the Serverpod naming convention for this folder. You can call it anything, but the rest of this guide assumes `assets/`.
+Cloud zips your project directory and includes every file that isn't excluded from the deploy package (see [Control what gets uploaded](#control-what-gets-uploaded) below). The `assets/` name is the Serverpod naming convention for this folder. You can call it anything, but the rest of this guide assumes `assets/`.
 
 To preview which files Cloud will upload before deploying:
 
@@ -2209,7 +2201,7 @@ Future<String> readSettings() async {
 }
 ```
 
-The path is relative to the directory the server runs from, not to the source file. Use `./assets/<path>` everywhere. Absolute paths break across local and deployed environments.
+The path is relative to the directory the server runs from, not to the source file. Use `./assets/<path>` everywhere; absolute paths break across local and deployed environments.
 
 For binary data (images, PDFs, archives), use `readAsBytes()` instead of `readAsString()`.
 
@@ -2261,18 +2253,22 @@ For more complex parsing, the [`csv` package](https://pub.dev/packages/csv) hand
 
 Two files affect what's in the deployment:
 
-- **`.gitignore`:** Anything excluded here is also excluded from the deploy.
-- **`.scloudignore`:** Cloud-specific exclusions, with the same syntax as `.gitignore`. To upload files that `.gitignore` excludes, add them with a `!` prefix to the `.scloudignore` in your server project.
+- **`.gitignore`.** Anything excluded here is also excluded from the deploy.
+- **`.scloudignore`.** Cloud-specific exclusions. Same syntax as `.gitignore`. Use the `!` prefix to opt files back in that `.gitignore` excluded.
 
 Hidden files (those starting with `.`) are excluded by default. If you need them shipped, opt back in via `.scloudignore`. See [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the full picture of the deployment package.
 
-Asset files count toward your deployment package size. Large folders slow uploads and the Cloud build step. For files larger than a few megabytes that don't need to live in version control, keep them in [file storage](https://docs.serverpod.dev/cloud/concepts/storage.md) and read them at runtime instead.
+:::tip
+
+Asset files count toward your deployment package size. Large folders slow uploads and the Cloud build step. For files larger than a few megabytes that don't need to live in version control, consider an external object store and reading them from the network instead.
+
+:::
 
 ## Troubleshooting
 
 **File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `serverpod cloud deploy --wet-run --show-files` before debugging at runtime.
 
-**Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**` in your server project's `.scloudignore`.
+**Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**`.
 
 ## Related
 
@@ -4919,7 +4915,7 @@ If the project doesn't need a database, pass `--no-enable-db` instead. Once crea
 The link command writes or updates three files in your local project directory:
 
 1. **`scloud.yaml`**: contains the project ID that ties your codebase to the Cloud project. Created in your server package directory (or the one specified with `--project-dir`).
-2. **`.scloudignore`**: created from a template if it doesn't exist, in your server package directory and, for a workspace, in the workspace root. It defines which files are excluded when uploading to Cloud (syntax mirrors `.gitignore`).
+2. **`.scloudignore`**: created from a template if it doesn't exist; defines which files should be excluded when uploading to Cloud (syntax mirrors `.gitignore`).
 3. **`.gitignore`**: if your project is a workspace, the `.scloud/` directory is added to keep deployment artifacts out of version control.
 
 ## Usage
