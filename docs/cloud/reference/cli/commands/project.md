@@ -10,7 +10,12 @@ To create a project from the command line:
 scloud project create my-project --enable-db
 ```
 
-If the project doesn't need a database, pass `--no-enable-db` instead. Once created, deploy with [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md).
+If the project doesn't need a database, pass `--no-enable-db` instead. In a script or CI, add `--yes` to answer the cost confirmation. Then link your codebase to the project and [deploy](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md):
+
+```bash
+scloud project link my-project
+scloud deploy
+```
 
 ## Link an existing project
 
@@ -19,7 +24,7 @@ If the project doesn't need a database, pass `--no-enable-db` instead. Once crea
 The link command writes or updates three files in your local project directory:
 
 1. **`scloud.yaml`**: contains the project ID that ties your codebase to the Cloud project. Created in your server package directory (or the one specified with `--project-dir`).
-2. **`.scloudignore`**: created from a template if it doesn't exist; defines which files should be excluded when uploading to Cloud (syntax mirrors `.gitignore`).
+2. **`.scloudignore`**: created from a template if it doesn't exist, in your server package directory and, for a workspace, in the workspace root. It defines which files are excluded when uploading to Cloud (syntax mirrors `.gitignore`).
 3. **`.gitignore`**: if your project is a workspace, the `.scloud/` directory is added to keep deployment artifacts out of version control.
 
 ## Usage

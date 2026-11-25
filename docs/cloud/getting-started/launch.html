@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.dc5e23dc.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.3ec9fa1f.js" defer="defer"></script>
 <script src="/assets/js/main.aabf87f9.js" defer="defer"></script>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <p>It creates a Cloud project and ships its first version in these steps:</p>
 <ol>
 <li class=""><strong>Choose the project.</strong> If your account has no projects, the command asks <em>&quot;Open the browser and create a new Serverpod Cloud project?&quot;</em> Press Enter to accept. If you already have projects, it lists them, with a last option to create a new project in the browser.</li>
-<li class=""><strong>Create the project in the Console.</strong> If you chose to create a new project, the Console&#x27;s <strong>New project</strong> page opens. The project ID is pre-filled from your pubspec name and becomes part of your default URL, such as <code>my-app.serverpod.space</code>. The database is switched on if your server config has a <code>database</code> section. Change either if you need to, then choose the project&#x27;s <a class="" href="/cloud/concepts/plans-and-billing">plan</a>. Click <strong>Launch Project</strong> and return to the terminal.</li>
+<li class=""><strong>Create the project in the console.</strong> If you chose to create a new project, the console&#x27;s <strong>New project</strong> page opens. The project ID is pre-filled from your pubspec name and becomes part of your default URL, such as <code>my-app.serverpod.space</code>. The database is switched on if your server config has a <code>database</code> section. Change either if you need to, then choose the project&#x27;s <a class="" href="/cloud/concepts/plans-and-billing">plan</a>. Select <strong>Launch Project</strong> and return to the terminal.</li>
 <li class=""><strong>Pre-deploy hooks.</strong> The command adds <code>serverpod generate</code> as a pre-deploy hook, plus <code>serverpod run flutter_build</code> if your server&#x27;s <code>pubspec.yaml</code> defines that script. See <a class="" href="/cloud/concepts/deployment-hooks">Deployment hooks</a> for details.</li>
 <li class=""><strong>Custom passwords.</strong> If <code>config/passwords.yaml</code> has custom passwords, the command asks which ones to copy to Cloud. Passwords from the <code>production</code> and <code>shared</code> sections are preselected. Set the rest later with <code>serverpod cloud password set</code>.</li>
 </ol>

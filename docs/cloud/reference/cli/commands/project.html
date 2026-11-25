@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.dc5e23dc.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.3ec9fa1f.js" defer="defer"></script>
 <script src="/assets/js/main.aabf87f9.js" defer="defer"></script>
 </head>
 <body>
@@ -36,13 +36,14 @@
 <p><code>scloud project</code> creates and manages projects on Serverpod Cloud. For an interactive walkthrough that also deploys for the first time, use <code>scloud launch</code>.</p>
 <p>To create a project from the command line:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">scloud project create my-project --enable-db</span><br></div></code></pre></div></div>
-<p>If the project doesn&#x27;t need a database, pass <code>--no-enable-db</code> instead. Once created, deploy with <a class="" href="/cloud/reference/cli/commands/deploy"><code>scloud deploy</code></a>.</p>
+<p>If the project doesn&#x27;t need a database, pass <code>--no-enable-db</code> instead. In a script or CI, add <code>--yes</code> to answer the cost confirmation. Then link your codebase to the project and <a class="" href="/cloud/reference/cli/commands/deploy">deploy</a>:</p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">scloud project </span><span class="token function" style="color:#d73a49">link</span><span class="token plain"> my-project</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">scloud deploy</span><br></div></code></pre></div></div>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="link-an-existing-project">Link an existing project<a href="#link-an-existing-project" class="hash-link" aria-label="Direct link to Link an existing project" title="Direct link to Link an existing project" translate="no">​</a></h2>
 <p><code>scloud project link &lt;project-id&gt;</code> connects a local Serverpod codebase to an existing Cloud project. Use it when you&#x27;ve created the project in the Cloud console or when joining a teammate&#x27;s project.</p>
 <p>The link command writes or updates three files in your local project directory:</p>
 <ol>
 <li class=""><strong><code>scloud.yaml</code></strong>: contains the project ID that ties your codebase to the Cloud project. Created in your server package directory (or the one specified with <code>--project-dir</code>).</li>
-<li class=""><strong><code>.scloudignore</code></strong>: created from a template if it doesn&#x27;t exist; defines which files should be excluded when uploading to Cloud (syntax mirrors <code>.gitignore</code>).</li>
+<li class=""><strong><code>.scloudignore</code></strong>: created from a template if it doesn&#x27;t exist, in your server package directory and, for a workspace, in the workspace root. It defines which files are excluded when uploading to Cloud (syntax mirrors <code>.gitignore</code>).</li>
 <li class=""><strong><code>.gitignore</code></strong>: if your project is a workspace, the <code>.scloud/</code> directory is added to keep deployment artifacts out of version control.</li>
 </ol>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="usage">Usage<a href="#usage" class="hash-link" aria-label="Direct link to Usage" title="Direct link to Usage" translate="no">​</a></h2>

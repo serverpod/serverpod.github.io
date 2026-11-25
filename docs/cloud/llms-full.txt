@@ -47,7 +47,7 @@ The Serverpod Cloud CLI is the command-line tool that deploys and manages your p
 Before you start, make sure you have:
 
 - **The Serverpod CLI, version 4.0 or later.** Follow the [Serverpod installation guide](https://docs.serverpod.dev/installation.md). To use the Cloud CLI without it, see [Install the Cloud CLI on its own](#install-the-cloud-cli-on-its-own).
-- **A Serverpod Cloud account.** [Sign up for Cloud](https://console.serverpod.cloud/auth/signup).
+- **A Serverpod Cloud account.** [Sign up for Cloud](https://console.serverpod.dev/auth/signup).
 
 ## Run the Cloud CLI through the Serverpod CLI
 
@@ -107,7 +107,7 @@ serverpod cloud launch
 It creates a Cloud project and ships its first version in these steps:
 
 1. **Choose the project.** If your account has no projects, the command asks *"Open the browser and create a new Serverpod Cloud project?"* Press Enter to accept. If you already have projects, it lists them, with a last option to create a new project in the browser.
-2. **Create the project in the Console.** If you chose to create a new project, the Console's **New project** page opens. The project ID is pre-filled from your pubspec name and becomes part of your default URL, such as `my-app.serverpod.space`. The database is switched on if your server config has a `database` section. Change either if you need to, then choose the project's [plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md). Click **Launch Project** and return to the terminal.
+2. **Create the project in the console.** If you chose to create a new project, the console's **New project** page opens. The project ID is pre-filled from your pubspec name and becomes part of your default URL, such as `my-app.serverpod.space`. The database is switched on if your server config has a `database` section. Change either if you need to, then choose the project's [plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md). Select **Launch Project** and return to the terminal.
 3. **Pre-deploy hooks.** The command adds `serverpod generate` as a pre-deploy hook, plus `serverpod run flutter_build` if your server's `pubspec.yaml` defines that script. See [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md) for details.
 4. **Custom passwords.** If `config/passwords.yaml` has custom passwords, the command asks which ones to copy to Cloud. Passwords from the `production` and `shared` sections are preselected. Set the rest later with `serverpod cloud password set`.
 
@@ -267,13 +267,21 @@ Save the package to a local zip (useful for CI inspection or air-gapped environm
 serverpod cloud deploy --output deployment.zip --wet-run
 ```
 
-## Configure what's included
+## What a deploy uploads
 
-A `.scloudignore` file in your project root controls which files are packaged. The syntax mirrors `.gitignore`.
+By default, a deploy uploads your server project and any packages from its [Dart workspace](https://dart.dev/tools/pub/workspaces) that it depends on, along with the workspace's root `pubspec.yaml` and `pubspec.lock`. It leaves out hidden files and folders, whose names start with `.`, and anything your `.gitignore` files exclude. Because `.gitignore` also controls what Git ignores, you can use a `.scloudignore` file to change only what a deploy uploads.
 
-By default, every file ignored by `.gitignore` is also excluded from the deployment. To include files that `.gitignore` excludes, prefix the pattern with `!` in your `.scloudignore`:
+### Configure what's included
 
-```text title=".scloudignore"
+The `.scloudignore` file complements or overrides rules in the `.gitignore` file for deployment. Its syntax mirrors `.gitignore` and can be used to both exclude and include files.
+
+When you launch or link a project, the CLI creates a default `.scloudignore` in your server project's folder if the folder doesn't have one. In a Dart workspace, it also creates one in the workspace root. In your server project, the default file leaves out your passwords and config files, which Serverpod Cloud manages for you.
+
+To upload a file that a `.gitignore` excludes, add a `!` pattern for it to a `.scloudignore` in the same folder as that `.gitignore`, or in a folder below it. For files in your server project, that's usually the server project's `.scloudignore`.
+
+Here's an example `.scloudignore` for your server project:
+
+```text title="my_project_server/.scloudignore"
 # Exclude a specific file
 /specific_file.txt
 
@@ -287,17 +295,17 @@ By default, every file ignored by `.gitignore` is also excluded from the deploym
 !lib/src/generated/
 ```
 
-The Serverpod Cloud CLI may generate intermediate files under `.scloud/` directories. In a workspace project, the CLI adds this pattern to the workspace root's `.gitignore` for you. In any other project, add it yourself so the files stay out of version control:
-
-```text title=".gitignore"
-# scloud deployment generated files should not be committed to git
-**/.scloud/
-```
-
 Verify your ignore patterns:
 
 ```bash
 serverpod cloud deploy --wet-run --show-files
+```
+
+The Serverpod Cloud CLI may generate intermediate files under `.scloud/` directories. In a Dart workspace, the CLI adds this pattern to the workspace root's `.gitignore` for you. In any other project, add it yourself so the files stay out of version control:
+
+```text title=".gitignore"
+# scloud deployment generated files should not be committed to git
+**/.scloud/
 ```
 
 ## Troubleshooting
@@ -769,7 +777,7 @@ The managed database runs on PostgreSQL 17 with TLS required, connection pooling
 
 The database is opt-in. You choose whether to enable it when you create the project, in one of two ways:
 
-- **With `serverpod cloud launch`.** It checks your server config for a `database` section and presets the database switch on the Console's **New project** page. You can change it there before you create the project.
+- **With `serverpod cloud launch`.** It checks your server config for a `database` section and presets the database switch on the console's **New project** page. You can change it there before you create the project.
 - **With `serverpod cloud project create`.** Pass `--enable-db`, or `--no-enable-db` if your project doesn't use a database. The flag is **required**: it has no default, so you must pass one.
 
 Once a project is created with the database enabled, the database is provisioned automatically and made available to your server on the next deploy.
@@ -1533,13 +1541,13 @@ Only the project's owner can change **Min podlets**. For anyone else, **Edit pla
 
 1. In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings** and select **Edit plan**.
 
-2. In the **Compute** section, under **Autoscaling range**, set **Min podlets** to 0. The text "scales to zero when idle" appears below **Min podlets**.
+2. In the **Compute** section, under **Autoscaling range**, set **Min podlets** to 0.
 
    ![The Compute section of the console's plan panel, with the Autoscaling range below Podlet size, Min podlets set to 0, and "scales to zero when idle" below it.](https://docs.serverpod.dev/img/cloud-console/settings-autoscaling-range.png)
 
 3. Select **Save**.
 
-The console confirms with "Your plan is updated". The change usually applies within a minute or two, and your server restarts once. The project then scales down to zero after about 5 minutes without requests.
+The change usually applies within a minute or two, and your server restarts once. The project then scales down to zero after about 5 minutes without requests.
 
 ### Turn off scale to zero
 
@@ -1551,7 +1559,7 @@ On other plans, set **Min podlets** to 1 or more in the console:
 2. In the **Compute** section, under **Autoscaling range**, set **Min podlets** to 1 or more.
 3. Select **Save**.
 
-The console confirms with "Your plan is updated". The change usually applies within a minute or two. Your server then starts, or restarts once if it was already running.
+The change usually applies within a minute or two. Your server then starts, or restarts once if it was already running.
 
 ## Related
 
@@ -1901,15 +1909,11 @@ To set up billing:
 
    ![The person icon at the right of the Serverpod Cloud console's top bar, with the account menu open below it, listing Billing, Account settings, Security, Theme, and Log out.](https://docs.serverpod.dev/img/cloud-console/account-menu-billing.png)
 
-2. Add your card under **Payment methods**.
+2. Add your card under **Payment methods** and your billing address under **Billing info**. If you're billed as a business, select **Are you a business?** and add your company name.
 
-3. Fill in your billing address under **Billing info**. If you're billed as a business, select **Are you a business?** and add your company name. **VAT information** is optional.
+3. Under **Billing emails**, add anyone else who should get billing messages, such as trial reminders and failed payments.
 
-4. Under **Billing emails**, add anyone else who should get billing messages, such as trial reminders and failed payments.
-
-5. Select **Save**. Your billing info and billing emails are saved only when you do.
-
-Once your account has a card and billing details, the **Set up billing** banner and buttons go away.
+4. Select **Save**. Your billing info and billing emails are saved only when you do.
 
 ## Change your project's plan
 
@@ -1936,7 +1940,7 @@ Make sure:
 1. In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings**. On Starter, select **Upgrade plan** in the **Plan** section. On Growth, select **Edit plan**.
 2. Under **Project plan**, choose the plan.
 3. Review **Compute** and **Database**, because choosing a plan resets both to that plan's defaults, which are one small [podlet](https://docs.serverpod.dev/cloud/concepts/compute.md) (a running copy of your server) and the small database size. On Starter, the podlet scales to zero. On Growth, it keeps running.
-4. Select **Save**. If your account has no card, the button reads **Add card and upgrade**, and the console asks for the card first.
+4. Select **Save**.
 
 The change usually applies within a minute or two. The **Plan** section then shows the new plan's name. If the project has been deployed, your server restarts with the new plan's settings.
 
@@ -2149,7 +2153,7 @@ After a successful deploy, your server will use Upstash for Redis-backed caching
 
 https://docs.serverpod.dev/cloud/guides/ship-non-dart-files
 
-Bundle non-Dart files (configuration, templates, CSV data, binary blobs) with your server code on Cloud. Place them in an `assets/` folder at the project root and read them with `./assets/<path>` at runtime.
+Bundle non-Dart files (configuration, templates, CSV data, binary blobs) with your server code on Cloud. Place them in an `assets/` folder in your server project and read them with `./assets/<path>` at runtime.
 
 ## Before you start
 
@@ -2180,7 +2184,7 @@ Then deploy:
 serverpod cloud deploy
 ```
 
-Cloud zips your project directory and includes every file that isn't excluded from the deploy package (see [Control what gets uploaded](#control-what-gets-uploaded) below). The `assets/` name is the Serverpod naming convention for this folder. You can call it anything, but the rest of this guide assumes `assets/`.
+Cloud zips your server project and includes every file that isn't excluded from the deploy package (see [Control what gets uploaded](#control-what-gets-uploaded) below). The `assets/` name is the Serverpod naming convention for this folder. You can call it anything, but the rest of this guide assumes `assets/`.
 
 To preview which files Cloud will upload before deploying:
 
@@ -2201,7 +2205,7 @@ Future<String> readSettings() async {
 }
 ```
 
-The path is relative to the directory the server runs from, not to the source file. Use `./assets/<path>` everywhere; absolute paths break across local and deployed environments.
+The path is relative to the directory the server runs from, not to the source file. Use `./assets/<path>` everywhere. Absolute paths break across local and deployed environments.
 
 For binary data (images, PDFs, archives), use `readAsBytes()` instead of `readAsString()`.
 
@@ -2253,22 +2257,18 @@ For more complex parsing, the [`csv` package](https://pub.dev/packages/csv) hand
 
 Two files affect what's in the deployment:
 
-- **`.gitignore`.** Anything excluded here is also excluded from the deploy.
-- **`.scloudignore`.** Cloud-specific exclusions. Same syntax as `.gitignore`. Use the `!` prefix to opt files back in that `.gitignore` excluded.
+- **`.gitignore`:** Anything excluded here is also excluded from the deploy.
+- **`.scloudignore`:** Cloud-specific exclusions, with the same syntax as `.gitignore`. To upload files that `.gitignore` excludes, add them with a `!` prefix to the `.scloudignore` in your server project.
 
 Hidden files (those starting with `.`) are excluded by default. If you need them shipped, opt back in via `.scloudignore`. See [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the full picture of the deployment package.
 
-:::tip
-
-Asset files count toward your deployment package size. Large folders slow uploads and the Cloud build step. For files larger than a few megabytes that don't need to live in version control, consider an external object store and reading them from the network instead.
-
-:::
+Asset files count toward your deployment package size. Large folders slow uploads and the Cloud build step. For files larger than a few megabytes that don't need to live in version control, keep them in [file storage](https://docs.serverpod.dev/cloud/concepts/storage.md) and read them at runtime instead.
 
 ## Troubleshooting
 
 **File not found at runtime.** The path is relative to the server's working directory, not to the source file. Use `./assets/<path>`. Verify the file is in the deployment with `serverpod cloud deploy --wet-run --show-files` before debugging at runtime.
 
-**Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**`.
+**Asset missing from the deployment.** Check `.gitignore` and `.scloudignore`. Patterns like `*.json` exclude every `.json` file unless you opt them back in with `!assets/**` in your server project's `.scloudignore`.
 
 ## Related
 
@@ -4603,9 +4603,15 @@ Run "scloud help" to see global options.
 
 https://docs.serverpod.dev/cloud/reference/cli/commands/launch
 
-`scloud launch` is the front door for new projects: it links your local server to a Serverpod Cloud project and deploys for the first time. You pick one of your projects, or create a new one in the Console with the project ID and database setting pre-filled from your project. The command then adds pre-deploy hooks, offers to copy custom passwords from `config/passwords.yaml`, and deploys.
+`scloud launch` links your local server to a Serverpod Cloud project and deploys it for the first time. You pick one of your projects in the terminal, or create a new one in the console with the project ID and database setting pre-filled from your project. The command then adds pre-deploy hooks, offers to copy custom passwords from `config/passwords.yaml`, and deploys.
 
-Once your project is linked, you typically switch to `scloud deploy` for subsequent updates. For non-interactive project creation (no prompts), use `scloud project create` and pass the settings as flags.
+Once your project is linked, you typically switch to `scloud deploy` for subsequent updates.
+
+:::note
+
+`scloud launch` creates new projects in the console. To create a project from a script or CI instead, use [`scloud project create`](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md).
+
+:::
 
 See [Deploy your first app](https://docs.serverpod.dev/cloud/getting-started/launch.md) for the full walkthrough.
 
@@ -4906,7 +4912,12 @@ To create a project from the command line:
 scloud project create my-project --enable-db
 ```
 
-If the project doesn't need a database, pass `--no-enable-db` instead. Once created, deploy with [`scloud deploy`](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md).
+If the project doesn't need a database, pass `--no-enable-db` instead. In a script or CI, add `--yes` to answer the cost confirmation. Then link your codebase to the project and [deploy](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md):
+
+```bash
+scloud project link my-project
+scloud deploy
+```
 
 ## Link an existing project
 
@@ -4915,7 +4926,7 @@ If the project doesn't need a database, pass `--no-enable-db` instead. Once crea
 The link command writes or updates three files in your local project directory:
 
 1. **`scloud.yaml`**: contains the project ID that ties your codebase to the Cloud project. Created in your server package directory (or the one specified with `--project-dir`).
-2. **`.scloudignore`**: created from a template if it doesn't exist; defines which files should be excluded when uploading to Cloud (syntax mirrors `.gitignore`).
+2. **`.scloudignore`**: created from a template if it doesn't exist, in your server package directory and, for a workspace, in the workspace root. It defines which files are excluded when uploading to Cloud (syntax mirrors `.gitignore`).
 3. **`.gitignore`**: if your project is a workspace, the `.scloud/` directory is added to keep deployment artifacts out of version control.
 
 ## Usage
