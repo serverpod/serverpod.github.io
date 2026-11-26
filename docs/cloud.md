@@ -19,7 +19,7 @@ serverpod cloud launch
 - **Hosting region.** Every project runs in Frankfurt, Germany, in the EU. That includes its server, database, and file storage.
 - **[Secrets and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md).** Manage sensitive values through the Cloud CLI. Values are encrypted where applicable.
 - **[Custom domains](https://docs.serverpod.dev/cloud/concepts/custom-domains.md).** Attach your own domain. TLS certificates are provisioned and renewed. Cloud hosts both your backend and a preconfigured website for your Flutter web app.
-- **[Logs and inspection](https://docs.serverpod.dev/cloud/concepts/logs.md).** View logs in the CLI or in Serverpod Insights, the desktop log viewer (requires a database).
+- **[Logs and inspection](https://docs.serverpod.dev/cloud/concepts/logs.md).** View your server's logs and sessions in the console, or fetch and filter them with the CLI.
 - **[App publishing](https://docs.serverpod.dev/cloud/concepts/app-publishing.md).** Build, sign, and upload your Flutter app to TestFlight and Google Play from the Cloud CLI.
 - **Pub/sub and caching.** Supported through the Serverpod framework with a third-party Redis service you connect yourself. See [Use Redis for PubSub and caching](https://docs.serverpod.dev/cloud/guides/redis.md) for the typical setup.
 
