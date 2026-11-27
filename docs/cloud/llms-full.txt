@@ -242,6 +242,20 @@ Stream the build log for a deployment that failed during the build stage:
 serverpod cloud build log
 ```
 
+## Restart your server
+
+Your server reads its passwords, secrets, and variables when it starts, so a changed value takes effect after the next deploy or restart. A restart runs the live build again with the latest values, without packaging or uploading your project.
+
+In the console, select **Restart** on the project's **Deployments** tab. From the terminal, run:
+
+```bash
+serverpod cloud deploy --redeploy
+```
+
+The restart shows up as its own entry on the **Deployments** tab and in [`serverpod cloud status deployment list`](#check-deployment-status), and your changes take effect once it finishes.
+
+A restart reuses the live build, so it needs a project that has been deployed, and it doesn't include code changes. For those, run a full `serverpod cloud deploy`. A restart also doesn't run your [deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md).
+
 ## Validate before deploying
 
 A wet run performs every step except the deployment itself, leaving the running app untouched:
@@ -470,7 +484,7 @@ See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/c
 
 ## Clean up old session logs
 
-Cloud projects don't clean up old session logs, so the log tables keep growing. The framework's cleanup defaults don't apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables and redeploy:
+Cloud projects don't clean up old session logs, so the log tables keep growing. The framework's cleanup defaults don't apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables:
 
 ```bash
 serverpod cloud variable set SERVERPOD_SESSION_LOG_CLEANUP_INTERVAL "24h"
@@ -479,6 +493,8 @@ serverpod cloud variable set SERVERPOD_SESSION_LOG_RETENTION_COUNT "100000"
 ```
 
 Adjust the values to fit your project. See [Purge old records](https://docs.serverpod.dev/concepts/operations/logging.md#purge-old-records) for what each setting does.
+
+Then [restart your server](https://docs.serverpod.dev/cloud/concepts/deployments.md#restart-your-server) so the new values take effect.
 
 For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/operations/logging.md) in the framework documentation.
 
@@ -516,6 +532,8 @@ Both `serverpod cloud password` and `serverpod cloud variable` follow the same s
 - **Value**: positional, `--value`, or `--from-file`
 - **`-p, --project`**: required only when the project isn't linked and no project context is set
 - **`set` is create-or-update**: running it again with the same name overwrites the value. The name stays in the tier it was created in
+
+A new or changed value takes effect the next time your server starts. To apply it without deploying code, [restart your server](https://docs.serverpod.dev/cloud/concepts/deployments.md#restart-your-server).
 
 ## Manage passwords
 
@@ -851,7 +869,7 @@ The `serverpod cloud db wipe` command deletes all tables, all data, and all appl
 serverpod cloud db wipe
 ```
 
-After a wipe, your server will error on its next request because the schema is gone. Redeploy with `serverpod cloud deploy` to reapply migrations and bring the database back into a working state.
+After a wipe, requests that use the database fail, because its tables are gone. Your server applies migrations when it starts, so [restart your server](https://docs.serverpod.dev/cloud/concepts/deployments.md#restart-your-server) to recreate the tables.
 
 Use this when you want to start clean during development. **Do not wipe a production database.**
 
@@ -2302,15 +2320,15 @@ serverpod cloud variable set SERVERPOD_REDIS_USER "default"
 
 :::
 
-## Redeploy
+## Restart your server
 
-Environment variables and passwords are applied when your server deploys. Redeploy so the new Redis config is used:
+Passwords and variables take effect when your server starts. Restart your server so it uses the new Redis config:
 
 ```bash
-serverpod cloud deploy
+serverpod cloud deploy --redeploy
 ```
 
-After a successful deploy, your server will use Upstash for Redis-backed caching and PubSub.
+If you haven't deployed the project yet, run `serverpod cloud deploy` instead. Once your server is running, it uses Upstash for Redis-backed caching and PubSub.
 
 ## Related
 

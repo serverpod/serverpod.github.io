@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.3a03abff.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.07cfddb0.js" defer="defer"></script>
 <script src="/assets/js/main.c2c710c1.js" defer="defer"></script>
 </head>
 <body>
@@ -75,7 +75,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="reset-the-database">Reset the database<a href="#reset-the-database" class="hash-link" aria-label="Direct link to Reset the database" title="Direct link to Reset the database" translate="no">​</a></h2>
 <p>The <code>serverpod cloud db wipe</code> command deletes all tables, all data, and all applied migrations from the managed database. It asks for confirmation by default.</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod cloud db wipe</span><br></div></code></pre></div></div>
-<p>After a wipe, your server will error on its next request because the schema is gone. Redeploy with <code>serverpod cloud deploy</code> to reapply migrations and bring the database back into a working state.</p>
+<p>After a wipe, requests that use the database fail, because its tables are gone. Your server applies migrations when it starts, so <a class="" href="/cloud/concepts/deployments#restart-your-server">restart your server</a> to recreate the tables.</p>
 <p>Use this when you want to start clean during development. <strong>Do not wipe a production database.</strong></p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="security">Security<a href="#security" class="hash-link" aria-label="Direct link to Security" title="Direct link to Security" translate="no">​</a></h2>
 <p>The managed database is built so you don&#x27;t have to think about credentials in your code or your repo:</p>

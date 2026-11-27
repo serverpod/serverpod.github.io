@@ -134,7 +134,7 @@ See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/c
 
 ## Clean up old session logs
 
-Cloud projects don't clean up old session logs, so the log tables keep growing. The framework's cleanup defaults don't apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables and redeploy:
+Cloud projects don't clean up old session logs, so the log tables keep growing. The framework's cleanup defaults don't apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables:
 
 ```bash
 serverpod cloud variable set SERVERPOD_SESSION_LOG_CLEANUP_INTERVAL "24h"
@@ -143,6 +143,8 @@ serverpod cloud variable set SERVERPOD_SESSION_LOG_RETENTION_COUNT "100000"
 ```
 
 Adjust the values to fit your project. See [Purge old records](https://docs.serverpod.dev/concepts/operations/logging.md#purge-old-records) for what each setting does.
+
+Then [restart your server](https://docs.serverpod.dev/cloud/concepts/deployments.md#restart-your-server) so the new values take effect.
 
 For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/operations/logging.md) in the framework documentation.
 

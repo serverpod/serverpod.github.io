@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.3a03abff.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.07cfddb0.js" defer="defer"></script>
 <script src="/assets/js/main.c2c710c1.js" defer="defer"></script>
 </head>
 <body>
@@ -90,9 +90,10 @@
 </ul>
 <p>See <a class="" href="/cloud/concepts/passwords-secrets-env-vars">Passwords, secrets, and environment variables</a> for variable management.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="clean-up-old-session-logs">Clean up old session logs<a href="#clean-up-old-session-logs" class="hash-link" aria-label="Direct link to Clean up old session logs" title="Direct link to Clean up old session logs" translate="no">​</a></h2>
-<p>Cloud projects don&#x27;t clean up old session logs, so the log tables keep growing. The framework&#x27;s cleanup defaults don&#x27;t apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables and redeploy:</p>
+<p>Cloud projects don&#x27;t clean up old session logs, so the log tables keep growing. The framework&#x27;s cleanup defaults don&#x27;t apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables:</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">serverpod cloud variable </span><span class="token builtin class-name">set</span><span class="token plain"> SERVERPOD_SESSION_LOG_CLEANUP_INTERVAL </span><span class="token string" style="color:#e3116c">&quot;24h&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">serverpod cloud variable </span><span class="token builtin class-name">set</span><span class="token plain"> SERVERPOD_SESSION_LOG_RETENTION_PERIOD </span><span class="token string" style="color:#e3116c">&quot;90d&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">serverpod cloud variable </span><span class="token builtin class-name">set</span><span class="token plain"> SERVERPOD_SESSION_LOG_RETENTION_COUNT </span><span class="token string" style="color:#e3116c">&quot;100000&quot;</span><br></div></code></pre></div></div>
 <p>Adjust the values to fit your project. See <a class="" href="/concepts/operations/logging#purge-old-records">Purge old records</a> for what each setting does.</p>
+<p>Then <a class="" href="/cloud/concepts/deployments#restart-your-server">restart your server</a> so the new values take effect.</p>
 <p>For what the server records, which tables it writes to, and how retention works, see <a class="" href="/concepts/operations/logging">Logging</a> in the framework documentation.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="troubleshooting">Troubleshooting<a href="#troubleshooting" class="hash-link" aria-label="Direct link to Troubleshooting" title="Direct link to Troubleshooting" translate="no">​</a></h2>
 <p><strong>Invalid timestamp format.</strong> Use ISO 8601 form (<code>YYYY-MM-DDTHH:MM:SSZ</code>) or a supported duration string (<code>5m</code>, <code>2h</code>, <code>1d</code>).</p>

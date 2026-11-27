@@ -84,6 +84,20 @@ Stream the build log for a deployment that failed during the build stage:
 serverpod cloud build log
 ```
 
+## Restart your server
+
+Your server reads its passwords, secrets, and variables when it starts, so a changed value takes effect after the next deploy or restart. A restart runs the live build again with the latest values, without packaging or uploading your project.
+
+In the console, select **Restart** on the project's **Deployments** tab. From the terminal, run:
+
+```bash
+serverpod cloud deploy --redeploy
+```
+
+The restart shows up as its own entry on the **Deployments** tab and in [`serverpod cloud status deployment list`](#check-deployment-status), and your changes take effect once it finishes.
+
+A restart reuses the live build, so it needs a project that has been deployed, and it doesn't include code changes. For those, run a full `serverpod cloud deploy`. A restart also doesn't run your [deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md).
+
 ## Validate before deploying
 
 A wet run performs every step except the deployment itself, leaving the running app untouched:
