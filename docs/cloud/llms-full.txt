@@ -348,167 +348,69 @@ For a step-by-step walkthrough, see [Recover from a failed deploy](https://docs.
 
 ---
 
-# Logs
+# Deployment hooks
 
-https://docs.serverpod.dev/cloud/concepts/logs
+https://docs.serverpod.dev/cloud/concepts/deployment-hooks
 
-When a request fails, a deploy errors out, or you're chasing a slow endpoint, logs are where you go to find out what happened. Serverpod Cloud collects logs from your running server and from each deployment's build. You read them in the console or with the Serverpod Cloud CLI.
+If you need something to run on every deploy, like code generation, deployment hooks run your own scripts as part of `serverpod cloud deploy`. Without them, those steps live in a separate command you remember to run yourself.
 
-The console's **Sessions** tab groups logs by request, so it's the right starting point for tracing a single call end to end. The CLI is faster for filtering by time and for piping output to other tools.
+## When to use hooks
 
-## View logs in the console
+Hooks come in two shapes:
 
-Select your project in the [Serverpod Cloud console](https://console.serverpod.dev), then the **Logs**, **Sessions**, or **Deployments** tab.
+- **`pre_deploy`** for anything that has to run *before* Cloud receives your project (regenerate Serverpod code, build a Flutter web client, compile non-Dart assets, run a test suite as a deploy gate).
+- **`post_deploy`** for anything that should fire *after* the upload completes (Slack notification, kick a downstream pipeline, mark a release in your tracker).
 
-- **Logs:** Everything your server prints, starting with the most recent records and then live as new ones arrive. Each record shows its time, its level, the podlet that printed it, and the session it belongs to, if any.
-- **Sessions:** Every call to your server, with how long it took and what it queried. Select a session to see its messages and errors. If query logging and stack-trace capture are on for the project, you also see the database queries the session ran and the stack traces for any caught exceptions. Both add overhead, so they're off by default.
-- **Deployments:** Select a deployment to see its build log, the output from building it. It shows package installation, compilation, warnings, and errors, so it's the first place to look when a deploy fails.
+If your deploy doesn't depend on either, don't add hooks. Deploys work without them.
 
-Sessions are stored in your project's database, so the **Sessions** tab needs a project with a database. Before the first deploy, the tab shows sample sessions. If your latest deployment is from before February 2026, redeploy once to see sessions.
+## Configure hooks
 
-## View logs from the terminal
+Hooks live in `scloud.yaml` under `project.scripts`. Each hook accepts either a single command (string) or a list of commands (array). See the [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md#scripts) for the field types and validation rules.
 
-The Serverpod Cloud CLI reads the same build and runtime logs as the console.
+Single command:
 
-### Fetch build logs
-
-Fetch the latest build log:
-
-```bash
-serverpod cloud build log
+```yaml
+project:
+  projectId: my-project
+  scripts:
+    pre_deploy: serverpod generate
+    post_deploy: echo "Deployment complete"
 ```
 
-To inspect a specific deployment, pass its sequence number (where `0` is the latest) or its UUID from `serverpod cloud status deployment list`:
+Multiple commands run sequentially:
 
-```bash
-serverpod cloud build log 3
-serverpod cloud build log 550e8400-e29b-41d4-a716-446655440000
+```yaml
+project:
+  projectId: my-project
+  scripts:
+    pre_deploy:
+      - serverpod generate
+      - serverpod run flutter_build
+    post_deploy:
+      - curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK -d '{"text":"Deployed"}'
 ```
 
-For longer build logs, redirect to a file or filter inline:
+## How scripts run
 
-```bash
-serverpod cloud build log > build-log.txt
-serverpod cloud build log | grep ERROR
-```
+Each command runs in your project directory (the one containing `scloud.yaml`) through the system shell (`bash -c` on macOS and Linux, `cmd /c` on Windows). Scripts inherit the environment variables of the shell that invoked `serverpod cloud deploy`, so CI-set secrets and your local `PATH` are available. Commands in an array run sequentially. Output streams to your terminal in real time as each one executes.
 
-For a step-by-step walkthrough of diagnosing and recovering from a failed deploy, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+A non-zero exit code halts further commands in that hook.
 
-### Fetch runtime logs
+:::warning
 
-Runtime logs are the live output of your deployed server. Each entry contains:
+The `pre_deploy` and `post_deploy` hooks fail asymmetrically:
 
-- **Timestamp**: local time by default, UTC with `--utc`
-- **Level**: `INFO`, `ERROR`, and so on
-- **Content**: the log message body
+- A failing `pre_deploy` script aborts the deploy *before* Cloud receives your code.
+- A `post_deploy` script runs *after* the upload, before Cloud finishes building and rolling out the new version. If it fails, the `serverpod cloud deploy` command exits with an error, but Cloud keeps deploying. Check the result with `serverpod cloud status deployment show`.
 
-Fetch the most recent records:
+So put anything that must succeed before your code ships in `pre_deploy`.
 
-```bash
-serverpod cloud log
-```
-
-By default this returns 50 records. Use `--limit` to fetch more (or fewer):
-
-```bash
-serverpod cloud log --limit 100
-```
-
-Pass `--utc` for UTC timestamps (useful when collaborating across time zones):
-
-```bash
-serverpod cloud log --utc
-```
-
-Pipe to standard shell tools for further filtering, or redirect to a file for sharing:
-
-```bash
-serverpod cloud log | grep ERROR
-serverpod cloud log > project_logs.txt
-```
-
-### Filter logs by time
-
-The `--since` and `--until` options accept either duration strings or ISO 8601 timestamps.
-
-Duration strings cover recent windows:
-
-```bash
-serverpod cloud log 120s              # last 120 seconds
-serverpod cloud log 5m                # last 5 minutes
-serverpod cloud log 12h               # last 12 hours
-serverpod cloud log 7d                # last 7 days
-serverpod cloud log --since 1h --until 10m
-```
-
-ISO 8601 strings allow specific times:
-
-```bash
-serverpod cloud log --since "2026-06-15T14:00:00Z"
-serverpod cloud log --since "2026-06-15T14:00:00Z" --until "2026-06-15T16:00:00Z"
-```
-
-Lower-precision ISO forms are also accepted:
-
-```bash
-serverpod cloud log --since "2026-06-15T14:00"     # without seconds
-serverpod cloud log --since "2026-06-15T14"        # without minutes and seconds
-serverpod cloud log --since "2026-06-15"           # just the date (starts at 00:00:00)
-```
-
-Duration and ISO forms can be mixed:
-
-```bash
-serverpod cloud log --since "2026-06-15T14:00:00Z" --until 30m
-serverpod cloud log --since 1h --until "2026-06-15T16:00:00Z"
-```
-
-### Stream logs
-
-Follow new log records as they arrive:
-
-```bash
-serverpod cloud log --tail
-```
-
-Press `Ctrl+C` to stop. `--tail` cannot be combined with `--since` or `--until`.
-
-## Configure session logging
-
-Cloud sets two environment variables that control session logging:
-
-- `SERVERPOD_SESSION_CONSOLE_LOG_ENABLED` is set to `true` when the project is created. Session logs are printed to the runtime console and appear in `serverpod cloud log` output. It is a regular project variable, so you can change it with `serverpod cloud variable set`.
-- `SERVERPOD_SESSION_PERSISTENT_LOG_ENABLED` is set to `true` when the project has a database. Session logs are written to the database and appear in the console's **Sessions** tab. Cloud manages this variable.
-
-See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for variable management.
-
-## Clean up old session logs
-
-Cloud projects don't clean up old session logs, so the log tables keep growing. The framework's cleanup defaults don't apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables:
-
-```bash
-serverpod cloud variable set SERVERPOD_SESSION_LOG_CLEANUP_INTERVAL "24h"
-serverpod cloud variable set SERVERPOD_SESSION_LOG_RETENTION_PERIOD "90d"
-serverpod cloud variable set SERVERPOD_SESSION_LOG_RETENTION_COUNT "100000"
-```
-
-Adjust the values to fit your project. See [Purge old records](https://docs.serverpod.dev/concepts/operations/logging.md#purge-old-records) for what each setting does.
-
-Then [restart your server](https://docs.serverpod.dev/cloud/concepts/deployments.md#restart-your-server) so the new values take effect.
-
-For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/operations/logging.md) in the framework documentation.
-
-## Troubleshooting
-
-**Invalid timestamp format.** Use ISO 8601 form (`YYYY-MM-DDTHH:MM:SSZ`) or a supported duration string (`5m`, `2h`, `1d`).
-
-**No logs appearing.** Check that the time range is correct, that the app is running and generating output, and (for `--tail`) that you haven't also passed `--since` or `--until`.
+:::
 
 ## Related
 
-- [CLI reference: `log` command](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md)
-- [CLI reference: `build` command](https://docs.serverpod.dev/cloud/reference/cli/commands/build.md)
-- [CLI reference: `status` command](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle around hooks.
+- [CLI reference: `deploy` command](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) for all deploy flags.
 
 ---
 
@@ -667,124 +569,6 @@ The same naming and size rules apply across all three tiers:
 ## Related
 
 - CLI reference: [`password`](https://docs.serverpod.dev/cloud/reference/cli/commands/password.md), [`variable`](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md)
-
----
-
-# Custom domains
-
-https://docs.serverpod.dev/cloud/concepts/custom-domains
-
-When you're ready to ship your project to real users, you might want it reachable at `yourapp.com` rather than the `*.serverpod.space` defaults. Custom domains attach a domain you own to your project's web, API, or Insights surface, with automatic TLS and DNS-based verification.
-
-Every Serverpod Cloud project gets default domains automatically. A project named `my-app` is reachable at:
-
-| Service  | Default domain                             |
-| -------- | ------------------------------------------ |
-| Web      | `https://my-app.serverpod.space/`          |
-| API      | `https://my-app.api.serverpod.space/`      |
-| Insights | `https://my-app.insights.serverpod.space/` |
-
-## Attach a custom domain
-
-Custom domains need the [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md).
-
-A custom domain points at one of the three surfaces:
-
-- **`web`:** A Flutter web app or other content served by Serverpod's web server.
-- **`api`:** Serverpod endpoints your Flutter app or other clients call.
-- **`insights`:** The Serverpod Insights app, typically on a separate subdomain like `insights.example.com`.
-
-Attach the domain to your project, specifying the target surface:
-
-```bash
-serverpod cloud domain attach example.com --target web
-```
-
-After attaching, the CLI prints DNS records to add at your registrar. For an apex domain like `example.com`, which has no subdomain, it lists an ANAME and a TXT record. On the `web` target, it also lists a CNAME for `www.example.com`:
-
-```text
-Custom domain attached successfully!
-
-Complete the setup by adding the following records to your DNS configuration:
-
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ Record type | Domain name     | Value                                              │
-│ ------------+-----------------+--------------------------------------------------- │
-│ ANAME       | example.com     | my-app.serverpod.space                             │
-│ TXT         | example.com     | scloud-verify=cbe1f5cc-f176-4183-8142-e0585ad15999 │
-│ CNAME       | www.example.com | my-app.serverpod.space                             │
-│                                                                                    │
-└────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-Each row corresponds to one record to add at your registrar:
-
-- **ANAME (or ALIAS):** Points the domain at the Serverpod Cloud surface.
-- **TXT:** Carries a verification token that Serverpod Cloud uses to confirm ownership.
-- **CNAME for `www` (`web` target only):** Makes `www.example.com` redirect to `example.com`. Serverpod Cloud also provisions a TLS certificate for `www.example.com`.
-
-Plain CNAMEs aren't valid at the zone apex, which is why ANAME or ALIAS is required there. [Cloudflare](https://www.cloudflare.com/), [Route 53](https://aws.amazon.com/route53/), and [DNSimple](https://dnsimple.com/) all support ANAME or ALIAS records.
-
-For a subdomain like `api.example.com`, a single CNAME record is enough:
-
-```text
-Custom domain attached successfully!
-
-Complete the setup by adding the following records to your DNS configuration:
-
-┌────────────────────────────────────────────────────────────┐
-│ Record type | Domain name     | Value                      │
-│ ------------+-----------------+--------------------------- │
-│ CNAME       | api.example.com | my-app.api.serverpod.space │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
-```
-
-## Verify the domain
-
-DNS changes typically propagate within a few minutes but can take up to 24 hours. Once propagation completes, Serverpod Cloud verifies the domain automatically.
-
-To force a verification attempt without waiting:
-
-```bash
-serverpod cloud domain verify example.com
-```
-
-A successful verification triggers TLS certificate provisioning, which usually completes within the hour. Certificates are renewed automatically.
-
-Once the domain is active, point your app's `Client` at the new URL:
-
-```dart
-final client = Client('https://api.example.com');
-```
-
-## List custom domains
-
-Show the domains attached to a project, with their target surface and verification status:
-
-```bash
-serverpod cloud domain list
-```
-
-## Detach a custom domain
-
-Remove a custom domain from a project. The CLI asks you to confirm before it removes the domain:
-
-```bash
-serverpod cloud domain detach example.com
-```
-
-## Troubleshooting
-
-**Verification fails.** DNS records may be missing or still propagating. Confirm the records are in place at your registrar, then wait up to 24 hours and retry with `serverpod cloud domain verify <domain>`.
-
-**Can't attach the domain.** If the CLI reports `Custom domains are not available for this project's plan.`, the project is on Starter. [Move it to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) first. If it reports `The domain name is already in use.`, the domain is already attached to this project. Run `serverpod cloud domain list` to see it.
-
-**TLS certificate errors.** TLS provisioning is still in progress. It usually completes within an hour of successful verification.
-
-## Related
-
-- [CLI reference: `domain` command](https://docs.serverpod.dev/cloud/reference/cli/commands/domain.md)
 
 ---
 
@@ -1020,136 +804,238 @@ Backup storage is billed separately from your regular database storage, as its o
 
 ---
 
-# Personal access tokens
+# Storage
 
-https://docs.serverpod.dev/cloud/concepts/personal-access-tokens
+https://docs.serverpod.dev/cloud/concepts/storage
 
-When you need to run the Serverpod Cloud CLI in a CI pipeline, a script, or a headless environment where the browser-based `serverpod cloud auth login` flow isn't possible, you authenticate with a personal access token instead. Tokens are long-lived credentials you generate once, store as a secret, and pass to the CLI as a flag or environment variable.
+Avatars, invoice PDFs, and generated exports do not belong in your database. Serverpod Cloud keeps them as files instead. Every new project starts with two storages, `private` and `public`, matching the two the Serverpod framework configures by default, and you can add more.
 
-For everyday development on your machine, `serverpod cloud auth login` is simpler. It stores credentials locally, so you don't need to handle tokens.
+## Choose access for a storage
 
-## Create a token
+A storage is either private or public. Any storage id can be either, and the two you start with happen to be named after their access.
 
-In the console, open the **Security** tab in your [account settings](https://docs.serverpod.dev/cloud/concepts/account-and-access.md#account-settings) and select **Create token**. You can give the token a name and set when it expires.
+Files in a private storage are not reachable by URL by default. Your server reads and writes them, and you can reach them yourself from the CLI and the console. Use it for anything belonging to a single user or anything you would not publish. To let an app download one, your server creates a signed link with `session.storage.temporaryDownloadUrl` that works for a limited time. Check that the user is allowed to access that file before you return the link.
 
-From the terminal, sign in first, then run:
+Files in a public storage are served to anyone who has the URL. Use it for content you would put on a website, such as profile images, product photos, and downloadable assets.
+
+Access is fixed when a storage is created and cannot be changed afterwards. Choose private when you are unsure. You can create a public storage later and move the files you want to expose into it by downloading them and uploading them again.
+
+## Use storage from your server
+
+New projects already connect both default storages in `server.dart`. The `serverpod_cloud_storage` package that `serverpod create` adds provides them:
+
+```dart title="server.dart"
+pod.addCloudStorage(
+  await ServerpodCloudProvider.private(
+    fallback: () => DatabaseCloudStorage('private'),
+  ),
+);
+pod.addCloudStorage(
+  await ServerpodCloudProvider.public(
+    fallback: () => DatabaseCloudStorage('public'),
+  ),
+);
+```
+
+The `fallback` runs when your server is not on Serverpod Cloud, for example on your own machine. Files are then stored in the database instead.
+
+Your server reaches a storage through `session.storage`, naming it with a storage id. That id is the same name you see in the CLI and the console.
+
+To use a storage you created yourself, connect it in `server.dart` the same way, with `custom` and its storage id. This needs `serverpod_cloud_storage` 4.0.2 or later:
+
+```dart title="server.dart"
+pod.addCloudStorage(
+  await ServerpodCloudProvider.custom(
+    storageId: 'exports',
+    fallback: () => DatabaseCloudStorage('exports'),
+  ),
+);
+```
+
+See [File uploads](https://docs.serverpod.dev/concepts/endpoints-and-apis/file-uploads.md) for the `session.storage` API, the Flutter upload flow, and how storage providers are configured.
+
+## List your storages
+
+List the storages in your project:
 
 ```bash
-serverpod cloud auth create-token
+serverpod cloud storage list
 ```
 
-Example output:
+The **Storage** tab in the Cloud console shows the same list, and you can add and delete storages there too.
 
-```text
-✅ Successfully created an API token.
+## Add a storage
 
-Use the --token option or the SERVERPOD_CLOUD_TOKEN environment variable to
-authenticate with this token in serverpod cloud commands.
+A storage you add yourself keeps files apart from the defaults, such as exports you purge on a schedule. The Starter plan includes two storages and your project already uses both, so adding more needs the [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md).
 
-The token is only visible once:
-c2FzAZxXRnzFeN2xTo6xVInh3k3bNanACBRM7ux5AYOLQDgzK82PZvdRn0N_f2WqLPCZ
-```
-
-:::warning
-
-The console and the CLI show the token only once. Store it somewhere secure (a secret in your CI system, a password manager). It can't be retrieved again.
-
-:::
-
-### Token expiration
-
-By default, tokens expire after 30 days of non-use. Adjust this when creating the token:
+Add one:
 
 ```bash
-# Expire after 7 days of non-use
-serverpod cloud auth create-token --idle-ttl 7d
-
-# Never expire from non-use (still valid until revoked or until --expire-at)
-serverpod cloud auth create-token --no-idle-ttl
-
-# Expire at a fixed ISO 8601 time
-serverpod cloud auth create-token --expire-at 2026-12-31T23:59:59Z
+serverpod cloud storage create exports
 ```
 
-Durations accept `s`, `m`, `h`, and `d` units.
+A storage id uses lowercase letters, digits, and dashes, starts and ends with a letter or a digit, and is at most 63 characters. New storages are private unless you pass `--access public`.
 
-## List authentication sessions
+To use it from your server, connect it with `ServerpodCloudProvider.custom`. See [Use storage from your server](#use-storage-from-your-server).
 
-To see your active sessions and tokens with their IDs, creation, last-used, and expiry times:
+## Delete a storage
+
+Deleting a storage removes every file in it, and the files cannot be recovered. Anything still using that storage id fails afterwards.
+
+Delete one you no longer need:
 
 ```bash
-serverpod cloud auth list
+serverpod cloud storage delete exports
 ```
 
-Use the Token Id column to identify a token before revoking it.
+The command asks you to confirm before it deletes anything.
 
-## Revoke a token
+## Work with files
 
-Revoke a specific token by its ID from `serverpod cloud auth list`:
+Use these commands to check what your users uploaded, to put an asset in place before anyone needs it, or to clear out test data. The first argument is the storage id:
 
 ```bash
-serverpod cloud auth logout --token-id <token-id>
+serverpod cloud storage file list public avatars
+serverpod cloud storage file upload public ./avatar.png avatars/u1.png
+serverpod cloud storage file download public avatars/u1.png
+serverpod cloud storage file delete public avatars/u1.png
 ```
 
-Log out the current session instead:
+See [CLI reference: `storage` command](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md) for the `storage` commands and their options.
 
-```bash
-serverpod cloud auth logout
-```
+In the console, select a storage in the **Storage** tab to browse, upload, download and delete its files. A storage holds a flat list of files, and the console reads `/` in a path as a folder separator, so a file stored at `avatars/2026/user-42.png` appears under `avatars`, then `2026`. The path you write is the only structure you get, so decide on a path scheme before you store many files.
 
-Revoke every session and token at once:
+## Limits
 
-```bash
-serverpod cloud auth logout --all
-```
+- **Storages per project.** The Starter plan includes two and Growth allows up to ten.
+- **Metered usage.** Serverpod Cloud meters three things and bills them by usage: the data you store, the data read out of your storages, and the operations performed on them.
+- **Going over a cap.** Caps come with the plan, and there is no setting that raises them. When a project goes over one, your server can no longer read or write any storage in the project, and public URLs stop serving. Listing, downloading and deleting keep working from the CLI and the console, so you can clear space.
+- **Getting access back.** Access returns once usage is back under the cap, the month rolls over for a monthly cap, or the project [moves to a plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) that covers the usage. The check runs about once an hour, so it can take up to an hour. Deleting files helps when stored data is what you went over.
 
-A revoked token can no longer authenticate. To sign out a device from the console, see [Manage your sessions](https://docs.serverpod.dev/cloud/concepts/account-and-access.md#manage-your-sessions).
-
-## Use a token with the Cloud CLI
-
-The CLI accepts a token two ways. For CI pipelines and shell sessions, prefer the `SERVERPOD_CLOUD_TOKEN` environment variable. The `--token` flag is a per-command override.
-
-### Environment variable
-
-Set the variable once so every subsequent `serverpod cloud` command in that shell uses the token:
-
-```bash
-export SERVERPOD_CLOUD_TOKEN="your-token-here"
-serverpod cloud deploy
-serverpod cloud log
-```
-
-Best for CI pipelines and shell sessions where you set the secret once and run multiple commands.
-
-### Command-line flag
-
-Pass the token directly to any command:
-
-```bash
-serverpod cloud --token="your-token-here" deploy
-serverpod cloud --token="your-token-here" log
-```
-
-The flag applies only to that command. Useful when the token lives in a script variable or a short-lived secret.
-
-If both `--token` and `SERVERPOD_CLOUD_TOKEN` are set, `--token` takes precedence.
-
-## Use a token in GitHub Actions
-
-Store the token as a repository secret, then pass it to the official action:
-
-```yaml
-- uses: serverpod/serverpod_cloud_deploy@v1
-  with:
-    token: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
-```
-
-For the full walkthrough, see [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md).
+See [Serverpod Cloud pricing](https://serverpod.dev/pricing) for the caps and prices on your plan.
 
 ## Related
 
-- [CLI reference: `auth` command](https://docs.serverpod.dev/cloud/reference/cli/commands/auth.md) for `auth login`, `create-token`, `list`, and `logout`.
-- [CLI environment variables](https://docs.serverpod.dev/cloud/reference/cli/env_vars.md) for all Cloud CLI environment variables.
+- [File uploads](https://docs.serverpod.dev/concepts/endpoints-and-apis/file-uploads.md): the `session.storage` API, the Flutter upload flow, and storage provider setup.
+- [CLI reference: `storage` command](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md): the `storage` commands and their options.
+
+---
+
+# Custom domains
+
+https://docs.serverpod.dev/cloud/concepts/custom-domains
+
+When you're ready to ship your project to real users, you might want it reachable at `yourapp.com` rather than the `*.serverpod.space` defaults. Custom domains attach a domain you own to your project's web, API, or Insights surface, with automatic TLS and DNS-based verification.
+
+Every Serverpod Cloud project gets default domains automatically. A project named `my-app` is reachable at:
+
+| Service  | Default domain                             |
+| -------- | ------------------------------------------ |
+| Web      | `https://my-app.serverpod.space/`          |
+| API      | `https://my-app.api.serverpod.space/`      |
+| Insights | `https://my-app.insights.serverpod.space/` |
+
+## Attach a custom domain
+
+Custom domains need the [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md).
+
+A custom domain points at one of the three surfaces:
+
+- **`web`:** A Flutter web app or other content served by Serverpod's web server.
+- **`api`:** Serverpod endpoints your Flutter app or other clients call.
+- **`insights`:** The Serverpod Insights app, typically on a separate subdomain like `insights.example.com`.
+
+Attach the domain to your project, specifying the target surface:
+
+```bash
+serverpod cloud domain attach example.com --target web
+```
+
+After attaching, the CLI prints DNS records to add at your registrar. For an apex domain like `example.com`, which has no subdomain, it lists an ANAME and a TXT record. On the `web` target, it also lists a CNAME for `www.example.com`:
+
+```text
+Custom domain attached successfully!
+
+Complete the setup by adding the following records to your DNS configuration:
+
+┌────────────────────────────────────────────────────────────────────────────────────┐
+│ Record type | Domain name     | Value                                              │
+│ ------------+-----------------+--------------------------------------------------- │
+│ ANAME       | example.com     | my-app.serverpod.space                             │
+│ TXT         | example.com     | scloud-verify=cbe1f5cc-f176-4183-8142-e0585ad15999 │
+│ CNAME       | www.example.com | my-app.serverpod.space                             │
+│                                                                                    │
+└────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Each row corresponds to one record to add at your registrar:
+
+- **ANAME (or ALIAS):** Points the domain at the Serverpod Cloud surface.
+- **TXT:** Carries a verification token that Serverpod Cloud uses to confirm ownership.
+- **CNAME for `www` (`web` target only):** Makes `www.example.com` redirect to `example.com`. Serverpod Cloud also provisions a TLS certificate for `www.example.com`.
+
+Plain CNAMEs aren't valid at the zone apex, which is why ANAME or ALIAS is required there. [Cloudflare](https://www.cloudflare.com/), [Route 53](https://aws.amazon.com/route53/), and [DNSimple](https://dnsimple.com/) all support ANAME or ALIAS records.
+
+For a subdomain like `api.example.com`, a single CNAME record is enough:
+
+```text
+Custom domain attached successfully!
+
+Complete the setup by adding the following records to your DNS configuration:
+
+┌────────────────────────────────────────────────────────────┐
+│ Record type | Domain name     | Value                      │
+│ ------------+-----------------+--------------------------- │
+│ CNAME       | api.example.com | my-app.api.serverpod.space │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Verify the domain
+
+DNS changes typically propagate within a few minutes but can take up to 24 hours. Once propagation completes, Serverpod Cloud verifies the domain automatically.
+
+To force a verification attempt without waiting:
+
+```bash
+serverpod cloud domain verify example.com
+```
+
+A successful verification triggers TLS certificate provisioning, which usually completes within the hour. Certificates are renewed automatically.
+
+Once the domain is active, point your app's `Client` at the new URL:
+
+```dart
+final client = Client('https://api.example.com');
+```
+
+## List custom domains
+
+Show the domains attached to a project, with their target surface and verification status:
+
+```bash
+serverpod cloud domain list
+```
+
+## Detach a custom domain
+
+Remove a custom domain from a project. The CLI asks you to confirm before it removes the domain:
+
+```bash
+serverpod cloud domain detach example.com
+```
+
+## Troubleshooting
+
+**Verification fails.** DNS records may be missing or still propagating. Confirm the records are in place at your registrar, then wait up to 24 hours and retry with `serverpod cloud domain verify <domain>`.
+
+**Can't attach the domain.** If the CLI reports `Custom domains are not available for this project's plan.`, the project is on Starter. [Move it to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) first. If it reports `The domain name is already in use.`, the domain is already attached to this project. Run `serverpod cloud domain list` to see it.
+
+**TLS certificate errors.** TLS provisioning is still in progress. It usually completes within an hour of successful verification.
+
+## Related
+
+- [CLI reference: `domain` command](https://docs.serverpod.dev/cloud/reference/cli/commands/domain.md)
 
 ---
 
@@ -1282,186 +1168,77 @@ How to read the responses:
 
 ---
 
-# Deployment hooks
+# Compute
 
-https://docs.serverpod.dev/cloud/concepts/deployment-hooks
+https://docs.serverpod.dev/cloud/concepts/compute
 
-If you need something to run on every deploy, like code generation, deployment hooks run your own scripts as part of `serverpod cloud deploy`. Without them, those steps live in a separate command you remember to run yourself.
+Compute decides how much traffic your server can handle and how fast it responds under load. Your server runs as one or more podlets, which are running copies of your server. Serverpod Cloud adds podlets when load rises and removes them when it falls, within a range you set.
 
-## When to use hooks
+## How compute works
 
-Hooks come in two shapes:
+Two settings make up your project's compute:
 
-- **`pre_deploy`** for anything that has to run *before* Cloud receives your project (regenerate Serverpod code, build a Flutter web client, compile non-Dart assets, run a test suite as a deploy gate).
-- **`post_deploy`** for anything that should fire *after* the upload completes (Slack notification, kick a downstream pipeline, mark a release in your tracker).
+- **Podlet size:** How much memory and CPU each podlet has. All podlets in a project are the same size.
+- **Autoscaling range:** The fewest and the most podlets your project runs, set as **Min podlets** and **Max podlets**.
 
-If your deploy doesn't depend on either, don't add hooks. Deploys work without them.
+Each podlet size has this much memory, and larger sizes also get more CPU:
 
-## Configure hooks
+| Podlet size | Memory |
+| ----------- | ------ |
+| Small       | 256 MB |
+| Medium      | 512 MB |
+| Large       | 1 GB   |
+| XL          | 2 GB   |
+| XXL         | 4 GB   |
 
-Hooks live in `scloud.yaml` under `project.scripts`. Each hook accepts either a single command (string) or a list of commands (array). See the [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md#scripts) for the field types and validation rules.
+On Starter, compute is fixed at one small podlet that [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) when idle. On Growth, you choose the size and the range. The [pricing page](https://serverpod.dev/pricing) lists what each size costs.
 
-Single command:
+## When to change compute
 
-```yaml
-project:
-  projectId: my-project
-  scripts:
-    pre_deploy: serverpod generate
-    post_deploy: echo "Deployment complete"
-```
+The size and the range solve different problems:
 
-Multiple commands run sequentially:
+- **A larger size:** For a server that runs out of memory or responds slowly even when traffic is low, such as one that processes images or keeps large data sets in memory.
+- **A higher Max podlets:** For traffic that comes in peaks. Serverpod Cloud adds podlets during a peak and removes them afterward.
+- **A higher Min podlets:** For traffic that rises faster than new podlets can start. The podlets you keep running are ready when the rise begins.
+- **Min podlets of 0:** For projects with quiet periods. The project [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) when nobody uses it.
 
-```yaml
-project:
-  projectId: my-project
-  scripts:
-    pre_deploy:
-      - serverpod generate
-      - serverpod run flutter_build
-    post_deploy:
-      - curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK -d '{"text":"Deployed"}'
-```
-
-## How scripts run
-
-Each command runs in your project directory (the one containing `scloud.yaml`) through the system shell (`bash -c` on macOS and Linux, `cmd /c` on Windows). Scripts inherit the environment variables of the shell that invoked `serverpod cloud deploy`, so CI-set secrets and your local `PATH` are available. Commands in an array run sequentially. Output streams to your terminal in real time as each one executes.
-
-A non-zero exit code halts further commands in that hook.
-
-:::warning
-
-The `pre_deploy` and `post_deploy` hooks fail asymmetrically:
-
-- A failing `pre_deploy` script aborts the deploy *before* Cloud receives your code.
-- A `post_deploy` script runs *after* the upload, before Cloud finishes building and rolling out the new version. If it fails, the `serverpod cloud deploy` command exits with an error, but Cloud keeps deploying. Check the result with `serverpod cloud status deployment show`.
-
-So put anything that must succeed before your code ships in `pre_deploy`.
-
+:::note
+If you set **Max podlets** above 1, each podlet has its own memory. A value your server stores in a local cache stays on the podlet that stored it. To share cached values across podlets, use the [global cache](https://docs.serverpod.dev/concepts/endpoints-and-apis/caching.md#the-global-cache-and-redis) and connect your project to [Redis](https://docs.serverpod.dev/cloud/guides/redis.md). Without Redis, server events also reach only the podlet that posts them. The framework's [Scalability](https://docs.serverpod.dev/concepts/operations/scalability.md) page covers what else changes when your server runs as several copies.
 :::
 
-## Related
+## Check your project's compute
 
-- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md) for the deploy lifecycle around hooks.
-- [CLI reference: `deploy` command](https://docs.serverpod.dev/cloud/reference/cli/commands/deploy.md) for all deploy flags.
+To see your project's current compute, open its **Settings** in the [Serverpod Cloud console](https://console.serverpod.dev). The **Compute** card in the **Plan** section shows the podlet size, its memory, and the range of podlets the project can run, such as **0-1 PODLETS**.
 
----
+From the terminal, run `serverpod cloud project show` in your project's directory. The `Compute` row shows the podlet size, its memory, and the range, such as `0-1 podlets`.
 
-# Storage
+To see how much CPU and memory your podlets actually use, open [Metrics](https://docs.serverpod.dev/cloud/concepts/metrics.md).
 
-https://docs.serverpod.dev/cloud/concepts/storage
+## Change the podlet size and autoscaling range
 
-Avatars, invoice PDFs, and generated exports do not belong in your database. Serverpod Cloud keeps them as files instead. Every new project starts with two storages, `private` and `public`, matching the two the Serverpod framework configures by default, and you can add more.
+In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings** and select **Edit plan**. Set **Podlet size** and **Autoscaling range** in the **Compute** section, then select **Save**. The Cloud CLI can't change compute.
 
-## Choose access for a storage
+The change usually applies within a minute or two, and your server restarts once.
 
-A storage is either private or public. Any storage id can be either, and the two you start with happen to be named after their access.
+On Starter, the console shows **Upgrade plan** instead of **Edit plan**, because Starter's compute is fixed. To choose a size or a range, select **Upgrade plan** and [move the project to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan).
 
-Files in a private storage are not reachable by URL by default. Your server reads and writes them, and you can reach them yourself from the CLI and the console. Use it for anything belonging to a single user or anything you would not publish. To let an app download one, your server creates a signed link with `session.storage.temporaryDownloadUrl` that works for a limited time. Check that the user is allowed to access that file before you return the link.
+:::info
+Only the project's owner can change compute. For anyone else, **Edit plan** is dimmed, and hovering it shows who the owner is.
+:::
 
-Files in a public storage are served to anyone who has the URL. Use it for content you would put on a website, such as profile images, product photos, and downloadable assets.
+## Cost and limits
 
-Access is fixed when a storage is created and cannot be changed afterwards. Choose private when you are unsure. You can create a public storage later and move the files you want to expose into it by downloading them and uploading them again.
-
-## Use storage from your server
-
-New projects already connect both default storages in `server.dart`. The `serverpod_cloud_storage` package that `serverpod create` adds provides them:
-
-```dart title="server.dart"
-pod.addCloudStorage(
-  await ServerpodCloudProvider.private(
-    fallback: () => DatabaseCloudStorage('private'),
-  ),
-);
-pod.addCloudStorage(
-  await ServerpodCloudProvider.public(
-    fallback: () => DatabaseCloudStorage('public'),
-  ),
-);
-```
-
-The `fallback` runs when your server is not on Serverpod Cloud, for example on your own machine. Files are then stored in the database instead.
-
-Your server reaches a storage through `session.storage`, naming it with a storage id. That id is the same name you see in the CLI and the console.
-
-To use a storage you created yourself, connect it in `server.dart` the same way, with `custom` and its storage id. This needs `serverpod_cloud_storage` 4.0.2 or later:
-
-```dart title="server.dart"
-pod.addCloudStorage(
-  await ServerpodCloudProvider.custom(
-    storageId: 'exports',
-    fallback: () => DatabaseCloudStorage('exports'),
-  ),
-);
-```
-
-See [File uploads](https://docs.serverpod.dev/concepts/endpoints-and-apis/file-uploads.md) for the `session.storage` API, the Flutter upload flow, and how storage providers are configured.
-
-## List your storages
-
-List the storages in your project:
-
-```bash
-serverpod cloud storage list
-```
-
-The **Storage** tab in the Cloud console shows the same list, and you can add and delete storages there too.
-
-## Add a storage
-
-A storage you add yourself keeps files apart from the defaults, such as exports you purge on a schedule. The Starter plan includes two storages and your project already uses both, so adding more needs the [**Growth** plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md).
-
-Add one:
-
-```bash
-serverpod cloud storage create exports
-```
-
-A storage id uses lowercase letters, digits, and dashes, starts and ends with a letter or a digit, and is at most 63 characters. New storages are private unless you pass `--access public`.
-
-To use it from your server, connect it with `ServerpodCloudProvider.custom`. See [Use storage from your server](#use-storage-from-your-server).
-
-## Delete a storage
-
-Deleting a storage removes every file in it, and the files cannot be recovered. Anything still using that storage id fails afterwards.
-
-Delete one you no longer need:
-
-```bash
-serverpod cloud storage delete exports
-```
-
-The command asks you to confirm before it deletes anything.
-
-## Work with files
-
-Use these commands to check what your users uploaded, to put an asset in place before anyone needs it, or to clear out test data. The first argument is the storage id:
-
-```bash
-serverpod cloud storage file list public avatars
-serverpod cloud storage file upload public ./avatar.png avatars/u1.png
-serverpod cloud storage file download public avatars/u1.png
-serverpod cloud storage file delete public avatars/u1.png
-```
-
-See [CLI reference: `storage` command](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md) for the `storage` commands and their options.
-
-In the console, select a storage in the **Storage** tab to browse, upload, download and delete its files. A storage holds a flat list of files, and the console reads `/` in a path as a folder separator, so a file stored at `avatars/2026/user-42.png` appears under `avatars`, then `2026`. The path you write is the only structure you get, so decide on a path scheme before you store many files.
-
-## Limits
-
-- **Storages per project.** The Starter plan includes two and Growth allows up to ten.
-- **Metered usage.** Serverpod Cloud meters three things and bills them by usage: the data you store, the data read out of your storages, and the operations performed on them.
-- **Going over a cap.** Caps come with the plan, and there is no setting that raises them. When a project goes over one, your server can no longer read or write any storage in the project, and public URLs stop serving. Listing, downloading and deleting keep working from the CLI and the console, so you can clear space.
-- **Getting access back.** Access returns once usage is back under the cap, the month rolls over for a monthly cap, or the project [moves to a plan](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan) that covers the usage. The check runs about once an hour, so it can take up to an hour. Deleting files helps when stored data is what you went over.
-
-See [Serverpod Cloud pricing](https://serverpod.dev/pricing) for the caps and prices on your plan.
+- **Billing:** On Growth, you pay for each podlet for the minutes it runs. On Starter, the monthly fee covers usage up to a fixed cap. The [pricing page](https://serverpod.dev/pricing) lists the price of each size and what each plan includes.
+- **Podlets:** Starter runs one small podlet that [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md). On Growth, **Max podlets** goes up to 20.
+- **Serverpod version:** Use Serverpod 3.3.0 or later for more than one podlet. Earlier versions lack the health checks Cloud uses while it scales and deploys. See [Serverpod and Dart SDK versions](https://docs.serverpod.dev/cloud/reference/serverpod-and-dart-sdk-versions.md#serverpod-versions).
 
 ## Related
 
-- [File uploads](https://docs.serverpod.dev/concepts/endpoints-and-apis/file-uploads.md): the `session.storage` API, the Flutter upload flow, and storage provider setup.
-- [CLI reference: `storage` command](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md): the `storage` commands and their options.
+- [Plans and billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md): the plans, and how to move a project between them.
+- [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md): how a project with **Min podlets** set to 0 stops when idle and wakes on the next request.
+- [Use Redis for pub/sub and caching](https://docs.serverpod.dev/cloud/guides/redis.md): sharing a cache and server events across podlets.
+- [Scalability](https://docs.serverpod.dev/concepts/operations/scalability.md): what changes in your server code when it runs as several copies.
+- [CLI reference: `project` command](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md): the `project show` command and its options.
 
 ---
 
@@ -1594,6 +1371,228 @@ The change usually applies within a minute or two. Your server then starts, or r
 - [Scheduling overview](https://docs.serverpod.dev/concepts/scheduling/overview.md): future calls, which need a running server.
 - [CLI reference: `status` command](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md): the `status live` command and its options.
 - [Plans and billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md): what each plan includes, how to change a project's plan, and how billing works.
+
+---
+
+# Metrics
+
+https://docs.serverpod.dev/cloud/concepts/metrics
+
+Metrics shows whether your project keeps up with its traffic. You see how many [podlets](https://docs.serverpod.dev/cloud/concepts/compute.md) run, how much CPU and memory they use, how many requests fail, and how busy the database is, from the last hour to the last 30 days. To see what happened in a single request, use [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md) instead.
+
+To open Metrics, select your project in the [Serverpod Cloud console](https://console.serverpod.dev), then the **Metrics** tab.
+
+![The Metrics tab of a project in the Serverpod Cloud console over the last 24 hours. The Podlets section shows one running podlet and no deploys in the window. Below it, the Resources section shows CPU at 4.6%, 5% of its limit, and memory at 126 MB, 25% of 512 MB.](https://docs.serverpod.dev/img/cloud-console/metrics-tab.png)
+
+## What Metrics shows
+
+The Metrics tab has four sections:
+
+| Section   | What it shows                                                                         |
+| --------- | ------------------------------------------------------------------------------------- |
+| Podlets   | Each podlet's CPU or memory over the time range, and each deploy as a marker          |
+| Resources | CPU and memory, totalled across all podlets                                           |
+| Traffic   | Requests, responses by status code, and the share that fail with a server error (5xx) |
+| Database  | The database's CPU, memory, connections, and storage                                  |
+
+Each Resources chart shows usage against what your compute allows, such as **25% of 512 MB**. Across all podlets, that allowance grows with the number of podlets running. Select a podlet in the Podlets section to focus the charts on it and compare it with its own [podlet size](https://docs.serverpod.dev/cloud/concepts/compute.md). If usage stays close to the limit, see [When to change compute](https://docs.serverpod.dev/cloud/concepts/compute.md#when-to-change-compute).
+
+Hover a deploy marker to see its branch, its Serverpod version, and how long it took. Select the marker to open the deployment.
+
+## Choose a time range
+
+Choose **1h**, **24h**, **7d**, or **30d** to set how far back the charts go. Shorter ranges show more detail.
+
+While **Today** is selected, the charts refresh every 30 seconds. To look at an earlier day, use the arrows or the calendar next to **Today**. To enlarge a chart, select the expand icon in its corner.
+
+## Watch from the terminal
+
+To watch your project from the terminal, run this in your project's directory:
+
+```bash
+serverpod cloud top
+```
+
+The command shows a live overview of the last hour of podlets, traffic, and the database, along with the latest deployments and logs. It refreshes every 5 seconds, or at the pace you set with `--interval`, such as `--interval 30s`.
+
+The overview needs an interactive terminal. In CI or a script, use `serverpod cloud status live` and `serverpod cloud log` instead.
+
+## Limits
+
+- **Traffic:** It isn't tracked per podlet, so focusing on a podlet leaves the Traffic charts unchanged.
+- **Database metrics:** A database that was suspended for the whole time range reports nothing. A database's metrics start when Cloud turns on metrics export for it, so there's no earlier history. When there's no data, the Database section says why instead of showing charts.
+
+## Related
+
+- [Compute](https://docs.serverpod.dev/cloud/concepts/compute.md): podlet sizes and the autoscaling range.
+- [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md): why a project can have no running podlets.
+- [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md): what happened in a single request.
+- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md): the deploys the markers show.
+- [CLI reference: `top` command](https://docs.serverpod.dev/cloud/reference/cli/commands/top.md): every `top` option.
+
+---
+
+# Logs
+
+https://docs.serverpod.dev/cloud/concepts/logs
+
+When a request fails, a deploy errors out, or you're chasing a slow endpoint, logs are where you go to find out what happened. Serverpod Cloud collects logs from your running server and from each deployment's build. You read them in the console or with the Serverpod Cloud CLI.
+
+The console's **Sessions** tab groups logs by request, so it's the right starting point for tracing a single call end to end. The CLI is faster for filtering by time and for piping output to other tools.
+
+## View logs in the console
+
+Select your project in the [Serverpod Cloud console](https://console.serverpod.dev), then the **Logs**, **Sessions**, or **Deployments** tab.
+
+- **Logs:** Everything your server prints, starting with the most recent records and then live as new ones arrive. Each record shows its time, its level, the podlet that printed it, and the session it belongs to, if any.
+- **Sessions:** Every call to your server, with how long it took and what it queried. Select a session to see its messages and errors. If query logging and stack-trace capture are on for the project, you also see the database queries the session ran and the stack traces for any caught exceptions. Both add overhead, so they're off by default.
+- **Deployments:** Select a deployment to see its build log, the output from building it. It shows package installation, compilation, warnings, and errors, so it's the first place to look when a deploy fails.
+
+Sessions are stored in your project's database, so the **Sessions** tab needs a project with a database. Before the first deploy, the tab shows sample sessions. If your latest deployment is from before February 2026, redeploy once to see sessions.
+
+## View logs from the terminal
+
+The Serverpod Cloud CLI reads the same build and runtime logs as the console.
+
+### Fetch build logs
+
+Fetch the latest build log:
+
+```bash
+serverpod cloud build log
+```
+
+To inspect a specific deployment, pass its sequence number (where `0` is the latest) or its UUID from `serverpod cloud status deployment list`:
+
+```bash
+serverpod cloud build log 3
+serverpod cloud build log 550e8400-e29b-41d4-a716-446655440000
+```
+
+For longer build logs, redirect to a file or filter inline:
+
+```bash
+serverpod cloud build log > build-log.txt
+serverpod cloud build log | grep ERROR
+```
+
+For a step-by-step walkthrough of diagnosing and recovering from a failed deploy, see [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md).
+
+### Fetch runtime logs
+
+Runtime logs are the live output of your deployed server. Each entry contains:
+
+- **Timestamp**: local time by default, UTC with `--utc`
+- **Level**: `INFO`, `ERROR`, and so on
+- **Content**: the log message body
+
+Fetch the most recent records:
+
+```bash
+serverpod cloud log
+```
+
+By default this returns 50 records. Use `--limit` to fetch more (or fewer):
+
+```bash
+serverpod cloud log --limit 100
+```
+
+Pass `--utc` for UTC timestamps (useful when collaborating across time zones):
+
+```bash
+serverpod cloud log --utc
+```
+
+Pipe to standard shell tools for further filtering, or redirect to a file for sharing:
+
+```bash
+serverpod cloud log | grep ERROR
+serverpod cloud log > project_logs.txt
+```
+
+### Filter logs by time
+
+The `--since` and `--until` options accept either duration strings or ISO 8601 timestamps.
+
+Duration strings cover recent windows:
+
+```bash
+serverpod cloud log 120s              # last 120 seconds
+serverpod cloud log 5m                # last 5 minutes
+serverpod cloud log 12h               # last 12 hours
+serverpod cloud log 7d                # last 7 days
+serverpod cloud log --since 1h --until 10m
+```
+
+ISO 8601 strings allow specific times:
+
+```bash
+serverpod cloud log --since "2026-06-15T14:00:00Z"
+serverpod cloud log --since "2026-06-15T14:00:00Z" --until "2026-06-15T16:00:00Z"
+```
+
+Lower-precision ISO forms are also accepted:
+
+```bash
+serverpod cloud log --since "2026-06-15T14:00"     # without seconds
+serverpod cloud log --since "2026-06-15T14"        # without minutes and seconds
+serverpod cloud log --since "2026-06-15"           # just the date (starts at 00:00:00)
+```
+
+Duration and ISO forms can be mixed:
+
+```bash
+serverpod cloud log --since "2026-06-15T14:00:00Z" --until 30m
+serverpod cloud log --since 1h --until "2026-06-15T16:00:00Z"
+```
+
+### Stream logs
+
+Follow new log records as they arrive:
+
+```bash
+serverpod cloud log --tail
+```
+
+Press `Ctrl+C` to stop. `--tail` cannot be combined with `--since` or `--until`.
+
+## Configure session logging
+
+Cloud sets two environment variables that control session logging:
+
+- `SERVERPOD_SESSION_CONSOLE_LOG_ENABLED` is set to `true` when the project is created. Session logs are printed to the runtime console and appear in `serverpod cloud log` output. It is a regular project variable, so you can change it with `serverpod cloud variable set`.
+- `SERVERPOD_SESSION_PERSISTENT_LOG_ENABLED` is set to `true` when the project has a database. Session logs are written to the database and appear in the console's **Sessions** tab. Cloud manages this variable.
+
+See [Passwords, secrets, and environment variables](https://docs.serverpod.dev/cloud/concepts/passwords-secrets-env-vars.md) for variable management.
+
+## Clean up old session logs
+
+Cloud projects don't clean up old session logs, so the log tables keep growing. The framework's cleanup defaults don't apply, because Cloud sets session-log variables. To turn cleanup on, set all three cleanup variables:
+
+```bash
+serverpod cloud variable set SERVERPOD_SESSION_LOG_CLEANUP_INTERVAL "24h"
+serverpod cloud variable set SERVERPOD_SESSION_LOG_RETENTION_PERIOD "90d"
+serverpod cloud variable set SERVERPOD_SESSION_LOG_RETENTION_COUNT "100000"
+```
+
+Adjust the values to fit your project. See [Purge old records](https://docs.serverpod.dev/concepts/operations/logging.md#purge-old-records) for what each setting does.
+
+Then [restart your server](https://docs.serverpod.dev/cloud/concepts/deployments.md#restart-your-server) so the new values take effect.
+
+For what the server records, which tables it writes to, and how retention works, see [Logging](https://docs.serverpod.dev/concepts/operations/logging.md) in the framework documentation.
+
+## Troubleshooting
+
+**Invalid timestamp format.** Use ISO 8601 form (`YYYY-MM-DDTHH:MM:SSZ`) or a supported duration string (`5m`, `2h`, `1d`).
+
+**No logs appearing.** Check that the time range is correct, that the app is running and generating output, and (for `--tail`) that you haven't also passed `--since` or `--until`.
+
+## Related
+
+- [CLI reference: `log` command](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md)
+- [CLI reference: `build` command](https://docs.serverpod.dev/cloud/reference/cli/commands/build.md)
+- [CLI reference: `status` command](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
 
 ---
 
@@ -2036,138 +2035,6 @@ After you pay, complete billing setup, or choose a plan, the project is reactiva
 
 ---
 
-# Compute
-
-https://docs.serverpod.dev/cloud/concepts/compute
-
-Compute decides how much traffic your server can handle and how fast it responds under load. Your server runs as one or more podlets, which are running copies of your server. Serverpod Cloud adds podlets when load rises and removes them when it falls, within a range you set.
-
-## How compute works
-
-Two settings make up your project's compute:
-
-- **Podlet size:** How much memory and CPU each podlet has. All podlets in a project are the same size.
-- **Autoscaling range:** The fewest and the most podlets your project runs, set as **Min podlets** and **Max podlets**.
-
-Each podlet size has this much memory, and larger sizes also get more CPU:
-
-| Podlet size | Memory |
-| ----------- | ------ |
-| Small       | 256 MB |
-| Medium      | 512 MB |
-| Large       | 1 GB   |
-| XL          | 2 GB   |
-| XXL         | 4 GB   |
-
-On Starter, compute is fixed at one small podlet that [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) when idle. On Growth, you choose the size and the range. The [pricing page](https://serverpod.dev/pricing) lists what each size costs.
-
-## When to change compute
-
-The size and the range solve different problems:
-
-- **A larger size:** For a server that runs out of memory or responds slowly even when traffic is low, such as one that processes images or keeps large data sets in memory.
-- **A higher Max podlets:** For traffic that comes in peaks. Serverpod Cloud adds podlets during a peak and removes them afterward.
-- **A higher Min podlets:** For traffic that rises faster than new podlets can start. The podlets you keep running are ready when the rise begins.
-- **Min podlets of 0:** For projects with quiet periods. The project [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md) when nobody uses it.
-
-:::note
-If you set **Max podlets** above 1, each podlet has its own memory. A value your server stores in a local cache stays on the podlet that stored it. To share cached values across podlets, use the [global cache](https://docs.serverpod.dev/concepts/endpoints-and-apis/caching.md#the-global-cache-and-redis) and connect your project to [Redis](https://docs.serverpod.dev/cloud/guides/redis.md). Without Redis, server events also reach only the podlet that posts them. The framework's [Scalability](https://docs.serverpod.dev/concepts/operations/scalability.md) page covers what else changes when your server runs as several copies.
-:::
-
-## Check your project's compute
-
-To see your project's current compute, open its **Settings** in the [Serverpod Cloud console](https://console.serverpod.dev). The **Compute** card in the **Plan** section shows the podlet size, its memory, and the range of podlets the project can run, such as **0-1 PODLETS**.
-
-From the terminal, run `serverpod cloud project show` in your project's directory. The `Compute` row shows the podlet size, its memory, and the range, such as `0-1 podlets`.
-
-To see how much CPU and memory your podlets actually use, open [Metrics](https://docs.serverpod.dev/cloud/concepts/metrics.md).
-
-## Change the podlet size and autoscaling range
-
-In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings** and select **Edit plan**. Set **Podlet size** and **Autoscaling range** in the **Compute** section, then select **Save**. The Cloud CLI can't change compute.
-
-The change usually applies within a minute or two, and your server restarts once.
-
-On Starter, the console shows **Upgrade plan** instead of **Edit plan**, because Starter's compute is fixed. To choose a size or a range, select **Upgrade plan** and [move the project to Growth](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md#change-your-projects-plan).
-
-:::info
-Only the project's owner can change compute. For anyone else, **Edit plan** is dimmed, and hovering it shows who the owner is.
-:::
-
-## Cost and limits
-
-- **Billing:** On Growth, you pay for each podlet for the minutes it runs. On Starter, the monthly fee covers usage up to a fixed cap. The [pricing page](https://serverpod.dev/pricing) lists the price of each size and what each plan includes.
-- **Podlets:** Starter runs one small podlet that [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md). On Growth, **Max podlets** goes up to 20.
-- **Serverpod version:** Use Serverpod 3.3.0 or later for more than one podlet. Earlier versions lack the health checks Cloud uses while it scales and deploys. See [Serverpod and Dart SDK versions](https://docs.serverpod.dev/cloud/reference/serverpod-and-dart-sdk-versions.md#serverpod-versions).
-
-## Related
-
-- [Plans and billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md): the plans, and how to move a project between them.
-- [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md): how a project with **Min podlets** set to 0 stops when idle and wakes on the next request.
-- [Use Redis for pub/sub and caching](https://docs.serverpod.dev/cloud/guides/redis.md): sharing a cache and server events across podlets.
-- [Scalability](https://docs.serverpod.dev/concepts/operations/scalability.md): what changes in your server code when it runs as several copies.
-- [CLI reference: `project` command](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md): the `project show` command and its options.
-
----
-
-# Metrics
-
-https://docs.serverpod.dev/cloud/concepts/metrics
-
-Metrics shows whether your project keeps up with its traffic. You see how many [podlets](https://docs.serverpod.dev/cloud/concepts/compute.md) run, how much CPU and memory they use, how many requests fail, and how busy the database is, from the last hour to the last 30 days. To see what happened in a single request, use [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md) instead.
-
-To open Metrics, select your project in the [Serverpod Cloud console](https://console.serverpod.dev), then the **Metrics** tab.
-
-![The Metrics tab of a project in the Serverpod Cloud console over the last 24 hours. The Podlets section shows one running podlet and no deploys in the window. Below it, the Resources section shows CPU at 4.6%, 5% of its limit, and memory at 126 MB, 25% of 512 MB.](https://docs.serverpod.dev/img/cloud-console/metrics-tab.png)
-
-## What Metrics shows
-
-The Metrics tab has four sections:
-
-| Section   | What it shows                                                                         |
-| --------- | ------------------------------------------------------------------------------------- |
-| Podlets   | Each podlet's CPU or memory over the time range, and each deploy as a marker          |
-| Resources | CPU and memory, totalled across all podlets                                           |
-| Traffic   | Requests, responses by status code, and the share that fail with a server error (5xx) |
-| Database  | The database's CPU, memory, connections, and storage                                  |
-
-Each Resources chart shows usage against what your compute allows, such as **25% of 512 MB**. Across all podlets, that allowance grows with the number of podlets running. Select a podlet in the Podlets section to focus the charts on it and compare it with its own [podlet size](https://docs.serverpod.dev/cloud/concepts/compute.md). If usage stays close to the limit, see [When to change compute](https://docs.serverpod.dev/cloud/concepts/compute.md#when-to-change-compute).
-
-Hover a deploy marker to see its branch, its Serverpod version, and how long it took. Select the marker to open the deployment.
-
-## Choose a time range
-
-Choose **1h**, **24h**, **7d**, or **30d** to set how far back the charts go. Shorter ranges show more detail.
-
-While **Today** is selected, the charts refresh every 30 seconds. To look at an earlier day, use the arrows or the calendar next to **Today**. To enlarge a chart, select the expand icon in its corner.
-
-## Watch from the terminal
-
-To watch your project from the terminal, run this in your project's directory:
-
-```bash
-serverpod cloud top
-```
-
-The command shows a live overview of the last hour of podlets, traffic, and the database, along with the latest deployments and logs. It refreshes every 5 seconds, or at the pace you set with `--interval`, such as `--interval 30s`.
-
-The overview needs an interactive terminal. In CI or a script, use `serverpod cloud status live` and `serverpod cloud log` instead.
-
-## Limits
-
-- **Traffic:** It isn't tracked per podlet, so focusing on a podlet leaves the Traffic charts unchanged.
-- **Database metrics:** A database that was suspended for the whole time range reports nothing. A database's metrics start when Cloud turns on metrics export for it, so there's no earlier history. When there's no data, the Database section says why instead of showing charts.
-
-## Related
-
-- [Compute](https://docs.serverpod.dev/cloud/concepts/compute.md): podlet sizes and the autoscaling range.
-- [Scale to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md): why a project can have no running podlets.
-- [Logs](https://docs.serverpod.dev/cloud/concepts/logs.md): what happened in a single request.
-- [Deployments](https://docs.serverpod.dev/cloud/concepts/deployments.md): the deploys the markers show.
-- [CLI reference: `top` command](https://docs.serverpod.dev/cloud/reference/cli/commands/top.md): every `top` option.
-
----
-
 # Account and access
 
 https://docs.serverpod.dev/cloud/concepts/account-and-access
@@ -2258,6 +2125,139 @@ They lose access to the project right away. For someone still marked **Invited**
 - [Personal access tokens](https://docs.serverpod.dev/cloud/concepts/personal-access-tokens.md): signing in from CI and scripts.
 - [CLI reference: `project` command](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md): the `project user` commands.
 - [CLI reference: `auth` command](https://docs.serverpod.dev/cloud/reference/cli/commands/auth.md): the `auth list` and `auth logout` commands.
+
+---
+
+# Personal access tokens
+
+https://docs.serverpod.dev/cloud/concepts/personal-access-tokens
+
+When you need to run the Serverpod Cloud CLI in a CI pipeline, a script, or a headless environment where the browser-based `serverpod cloud auth login` flow isn't possible, you authenticate with a personal access token instead. Tokens are long-lived credentials you generate once, store as a secret, and pass to the CLI as a flag or environment variable.
+
+For everyday development on your machine, `serverpod cloud auth login` is simpler. It stores credentials locally, so you don't need to handle tokens.
+
+## Create a token
+
+In the console, open the **Security** tab in your [account settings](https://docs.serverpod.dev/cloud/concepts/account-and-access.md#account-settings) and select **Create token**. You can give the token a name and set when it expires.
+
+From the terminal, sign in first, then run:
+
+```bash
+serverpod cloud auth create-token
+```
+
+Example output:
+
+```text
+✅ Successfully created an API token.
+
+Use the --token option or the SERVERPOD_CLOUD_TOKEN environment variable to
+authenticate with this token in serverpod cloud commands.
+
+The token is only visible once:
+c2FzAZxXRnzFeN2xTo6xVInh3k3bNanACBRM7ux5AYOLQDgzK82PZvdRn0N_f2WqLPCZ
+```
+
+:::warning
+
+The console and the CLI show the token only once. Store it somewhere secure (a secret in your CI system, a password manager). It can't be retrieved again.
+
+:::
+
+### Token expiration
+
+By default, tokens expire after 30 days of non-use. Adjust this when creating the token:
+
+```bash
+# Expire after 7 days of non-use
+serverpod cloud auth create-token --idle-ttl 7d
+
+# Never expire from non-use (still valid until revoked or until --expire-at)
+serverpod cloud auth create-token --no-idle-ttl
+
+# Expire at a fixed ISO 8601 time
+serverpod cloud auth create-token --expire-at 2026-12-31T23:59:59Z
+```
+
+Durations accept `s`, `m`, `h`, and `d` units.
+
+## List authentication sessions
+
+To see your active sessions and tokens with their IDs, creation, last-used, and expiry times:
+
+```bash
+serverpod cloud auth list
+```
+
+Use the Token Id column to identify a token before revoking it.
+
+## Revoke a token
+
+Revoke a specific token by its ID from `serverpod cloud auth list`:
+
+```bash
+serverpod cloud auth logout --token-id <token-id>
+```
+
+Log out the current session instead:
+
+```bash
+serverpod cloud auth logout
+```
+
+Revoke every session and token at once:
+
+```bash
+serverpod cloud auth logout --all
+```
+
+A revoked token can no longer authenticate. To sign out a device from the console, see [Manage your sessions](https://docs.serverpod.dev/cloud/concepts/account-and-access.md#manage-your-sessions).
+
+## Use a token with the Cloud CLI
+
+The CLI accepts a token two ways. For CI pipelines and shell sessions, prefer the `SERVERPOD_CLOUD_TOKEN` environment variable. The `--token` flag is a per-command override.
+
+### Environment variable
+
+Set the variable once so every subsequent `serverpod cloud` command in that shell uses the token:
+
+```bash
+export SERVERPOD_CLOUD_TOKEN="your-token-here"
+serverpod cloud deploy
+serverpod cloud log
+```
+
+Best for CI pipelines and shell sessions where you set the secret once and run multiple commands.
+
+### Command-line flag
+
+Pass the token directly to any command:
+
+```bash
+serverpod cloud --token="your-token-here" deploy
+serverpod cloud --token="your-token-here" log
+```
+
+The flag applies only to that command. Useful when the token lives in a script variable or a short-lived secret.
+
+If both `--token` and `SERVERPOD_CLOUD_TOKEN` are set, `--token` takes precedence.
+
+## Use a token in GitHub Actions
+
+Store the token as a repository secret, then pass it to the official action:
+
+```yaml
+- uses: serverpod/serverpod_cloud_deploy@v1
+  with:
+    token: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
+```
+
+For the full walkthrough, see [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md).
+
+## Related
+
+- [CLI reference: `auth` command](https://docs.serverpod.dev/cloud/reference/cli/commands/auth.md) for `auth login`, `create-token`, `list`, and `logout`.
+- [CLI environment variables](https://docs.serverpod.dev/cloud/reference/cli/env_vars.md) for all Cloud CLI environment variables.
 
 ---
 
