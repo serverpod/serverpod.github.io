@@ -445,7 +445,11 @@ The `copyWith` method generates a deep copy of an object, preserving all origina
 
 ### toJson / fromJson
 
-The `toJson` and `fromJson` methods are generated on all models to help with serialization. Serverpod manages all serialization for you out of the box and you will rarely have to use these methods yourself. See [Custom serialization](https://docs.serverpod.dev/4.0.0/concepts/data-and-the-database/models/custom-serialization.md) for more info. On the server, models also get a `toJsonForProtocol` method that produces the JSON sent to clients. It leaves out fields whose [scope](#limiting-visibility-of-a-generated-class) hides them from the client.
+The `toJson` and `fromJson` methods are generated on all models to help with serialization. Serverpod manages all serialization for you out of the box and you will rarely have to use these methods yourself. See [Custom serialization](https://docs.serverpod.dev/4.0.0/concepts/data-and-the-database/models/custom-serialization.md) for more details. On the server, models also get a `toJsonForProtocol` method that produces the JSON sent to clients. Unlike `toJson()`, it leaves out fields whose [scope](#limiting-visibility-of-a-generated-class) hides them from the client.
+
+:::warning
+When you return a model from a [web server route](https://docs.serverpod.dev/4.0.0/concepts/web-server/overview.md), use `toJsonForProtocol()` to keep hidden fields out of the response.
+:::
 
 ### Custom methods
 

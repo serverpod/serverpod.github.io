@@ -22,7 +22,7 @@
 
 
 <script src="https://widget.kapa.ai/kapa-widget.bundle.js" data-website-id="9ae02024-c2cf-4f58-b2d9-7ca3961dc1ef" data-project-name="Serverpod" data-project-color="#020F24" data-project-logo="https://avatars.githubusercontent.com/u/48181558?s=200&amp;v=4" async></script><link rel="stylesheet" href="/assets/css/styles.81ec9f94.css">
-<script src="/assets/js/runtime~main.7554464d.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.bf01948c.js" defer="defer"></script>
 <script src="/assets/js/main.aabf87f9.js" defer="defer"></script>
 </head>
 <body>
@@ -51,7 +51,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="serialization">Serialization<a href="#serialization" class="hash-link" aria-label="Direct link to Serialization" title="Direct link to Serialization" translate="no">​</a></h2>
 <p>Three encodings are involved when a value moves between the app, the server, and the database:</p>
 <ol>
-<li class=""><strong>Protocol JSON</strong> (client and server): <code>toJson()</code> / <code>fromJson()</code>.<!-- -->
+<li class=""><strong>Protocol JSON</strong> (client and server): <code>toJson()</code> / <code>fromJson()</code> and on the server <code>toJsonForProtocol()</code>, which leaves out server-only fields.<!-- -->
 <ul>
 <li class=""><code>int</code>, <code>bool</code>, <code>double</code>, and <code>String</code> pass through as native JSON.</li>
 <li class="">Every other type converts, as listed in the overview tables.</li>
