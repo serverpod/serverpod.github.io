@@ -1,6 +1,12 @@
-# reference/cli/commands/top/top
+# scloud top
 
 https://docs.serverpod.dev/cloud/reference/cli/commands/top
+
+The `scloud top` command shows a live overview of your project in the terminal. It covers the last hour of podlets, traffic, and the database, plus the latest deployments and logs, and keeps updating until you quit.
+
+The overview needs an interactive terminal. In CI or a script, use [`scloud status live`](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md) and [`scloud log`](https://docs.serverpod.dev/cloud/reference/cli/commands/log.md) instead.
+
+For CPU, memory, traffic, and database charts over longer time ranges, open [Metrics](https://docs.serverpod.dev/cloud/concepts/metrics.md) in the console.
 
 ## Usage
 

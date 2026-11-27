@@ -42,6 +42,8 @@ To see your project's current compute, open its **Settings** in the [Serverpod C
 
 From the terminal, run `serverpod cloud project show` in your project's directory. The `Compute` row shows the podlet size, its memory, and the range, such as `0-1 podlets`.
 
+To see how much CPU and memory your podlets actually use, open [Metrics](https://docs.serverpod.dev/cloud/concepts/metrics.md).
+
 ## Change the podlet size and autoscaling range
 
 In the [Serverpod Cloud console](https://console.serverpod.dev), open your project's **Settings** and select **Edit plan**. Set **Podlet size** and **Autoscaling range** in the **Compute** section, then select **Save**. The Cloud CLI can't change compute.
@@ -56,8 +58,9 @@ Only the project's owner can change compute. For anyone else, **Edit plan** is d
 
 ## Cost and limits
 
-- **Billed per minute:** On Growth, each podlet is metered per minute while it runs, so a project at zero podlets adds no podlet cost. The [pricing page](https://serverpod.dev/pricing) lists the price of each size.
-- **Up to 20 podlets:** On Growth, **Max podlets** goes up to 20.
+- **Billing:** On Growth, you pay for each podlet for the minutes it runs. On Starter, the monthly fee covers usage up to a fixed cap. The [pricing page](https://serverpod.dev/pricing) lists the price of each size and what each plan includes.
+- **Podlets:** Starter runs one small podlet that [scales to zero](https://docs.serverpod.dev/cloud/concepts/scale-to-zero.md). On Growth, **Max podlets** goes up to 20.
+- **Serverpod version:** Use Serverpod 3.3.0 or later for more than one podlet. Earlier versions lack the health checks Cloud uses while it scales and deploys. See [Serverpod and Dart SDK versions](https://docs.serverpod.dev/cloud/reference/serverpod-and-dart-sdk-versions.md#serverpod-versions).
 
 ## Related
 

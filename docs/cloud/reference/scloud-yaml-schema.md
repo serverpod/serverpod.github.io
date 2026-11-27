@@ -46,7 +46,7 @@ project:
 
 **Type:** string. **Optional.**
 
-Pins the Dart SDK version used for builds. When unset, the CLI falls back to your `.tool-versions` file and then the `environment.sdk` constraint in your `pubspec.yaml`. See [Dart SDK versions](https://docs.serverpod.dev/cloud/reference/dart-sdk-versions.md) for the supported versions and the full selection order.
+Pins the Dart SDK version used for builds. When unset, the CLI falls back to your `.tool-versions` file and then the `environment.sdk` constraint in your `pubspec.yaml`. See [Serverpod and Dart SDK versions](https://docs.serverpod.dev/cloud/reference/serverpod-and-dart-sdk-versions.md#dart-sdk-versions) for the supported Dart SDK versions and the full selection order.
 
 ```yaml title="scloud.yaml"
 project:
@@ -254,7 +254,7 @@ The `pre_deploy`, `post_deploy`, or `app.dartDefineFromFile` value is neither a 
 ## Related
 
 - [Project identifier rules](https://docs.serverpod.dev/cloud/reference/project-id-rules.md)
-- [Dart SDK versions](https://docs.serverpod.dev/cloud/reference/dart-sdk-versions.md)
+- [Serverpod and Dart SDK versions](https://docs.serverpod.dev/cloud/reference/serverpod-and-dart-sdk-versions.md)
 - [App publishing](https://docs.serverpod.dev/cloud/concepts/app-publishing.md)
 - [Deployment hooks](https://docs.serverpod.dev/cloud/concepts/deployment-hooks.md)
 - [CLI reference: `project` command](https://docs.serverpod.dev/cloud/reference/cli/commands/project.md)

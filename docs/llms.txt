@@ -207,12 +207,14 @@
 - [App publishing](https://docs.serverpod.dev/cloud/concepts/app-publishing.md): Serverpod Cloud builds your Flutter app for iOS and Android, signs it, and uploads it to TestFlight and Google Play from the Cloud CLI.
 - [Plans and billing](https://docs.serverpod.dev/cloud/concepts/plans-and-billing.md): Plans decide which features a Serverpod Cloud project can use, and the card and billing details on your account keep every project you own running.
 - [Compute](https://docs.serverpod.dev/cloud/concepts/compute.md): Compute sets how much memory each copy of your Serverpod Cloud server gets and how many copies run, so your server keeps up with your traffic.
+- [Metrics](https://docs.serverpod.dev/cloud/concepts/metrics.md): Metrics in the Serverpod Cloud console show your project's podlets, CPU and memory, traffic, and database over time, so you can tell whether it keeps up.
+- [Account and access](https://docs.serverpod.dev/cloud/concepts/account-and-access.md): Your Serverpod Cloud account is what you sign in with, in the console and the CLI, and a project's team is who else can deploy and manage that project.
 - [Use Redis for PubSub and caching](https://docs.serverpod.dev/cloud/guides/redis.md): Configure a third-party Redis service like Upstash for distributed caching and PubSub across multiple Serverpod Cloud server instances.
 - [Ship non-Dart files with your server](https://docs.serverpod.dev/cloud/guides/ship-non-dart-files.md): Include configuration files, templates, data, or other non-Dart assets alongside your Serverpod Cloud server and read them at runtime.
 - [Deploy from CI with GitHub Actions](https://docs.serverpod.dev/cloud/guides/deploy-from-ci-with-github-actions.md): Use the official serverpod_cloud_deploy GitHub Action to deploy your Serverpod Cloud project on every push to your main branch.
 - [Recover from a failed deploy](https://docs.serverpod.dev/cloud/guides/recover-from-a-failed-deploy.md): Diagnose why a deploy to Serverpod Cloud failed, read the build log, identify the failure type, and ship a fix to recover without disrupting any running version.
 - [Migrate a self-hosted database to Cloud](https://docs.serverpod.dev/cloud/guides/migrate-a-self-hosted-database.md): Moving a self-hosted database into Serverpod Cloud with pg_dump and pg_restore, so your data, users, and sessions come across intact.
-- [Dart SDK versions](https://docs.serverpod.dev/cloud/reference/dart-sdk-versions.md): Which Dart SDK versions Serverpod Cloud supports, and how to select the version your deploy builds with using the --dart-version flag, scloud.yaml, .tool-versions, or your pubspec constraint.
+- [Serverpod and Dart SDK versions](https://docs.serverpod.dev/cloud/reference/serverpod-and-dart-sdk-versions.md): Which Serverpod and Dart SDK versions Serverpod Cloud deploys, and how to select the Dart SDK version your deploy builds with.
 - [Private dependencies](https://docs.serverpod.dev/cloud/reference/private-dependencies.md): How to deploy a Serverpod Cloud project that depends on private packages, using Dart workspaces or build secrets for private git repositories.
 - [Project identifier rules](https://docs.serverpod.dev/cloud/reference/project-id-rules.md): Naming rules for the Serverpod Cloud project identifier and how the Cloud CLI picks which project to operate on: scloud.yaml, -p flag, or environment variable.
 - [scloud.yaml schema](https://docs.serverpod.dev/cloud/reference/scloud-yaml-schema.md): Every key in scloud.yaml, with its type, what the Cloud CLI preserves across commands, and the validation errors you might see.
@@ -235,7 +237,7 @@
 - [scloud settings](https://docs.serverpod.dev/cloud/reference/cli/commands/settings.md)
 - [scloud status](https://docs.serverpod.dev/cloud/reference/cli/commands/status.md)
 - [scloud storage](https://docs.serverpod.dev/cloud/reference/cli/commands/storage.md)
-- [reference/cli/commands/top/top](https://docs.serverpod.dev/cloud/reference/cli/commands/top.md)
+- [scloud top](https://docs.serverpod.dev/cloud/reference/cli/commands/top.md)
 - [scloud variable](https://docs.serverpod.dev/cloud/reference/cli/commands/variable.md)
 - [scloud version](https://docs.serverpod.dev/cloud/reference/cli/commands/version.md)
 
